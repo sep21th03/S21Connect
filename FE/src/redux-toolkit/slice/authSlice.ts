@@ -55,6 +55,7 @@ export const login = createAsyncThunk<
       redirect: false,
       callbackUrl: credentials.callbackUrl || "/newsfeed/style2",
     });
+    console.log("result", result);
     
     if (result?.error) {
       return rejectWithValue(result.error || "Đăng nhập thất bại");

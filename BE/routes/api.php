@@ -35,13 +35,7 @@ Route::get('/email/verify/{id}/{hash}', VerifyEmailController::class)
     ->middleware(['signed'])
     ->name('verification.verify');
 
-Route::get('/email/verify', function (Request $request) {
-    if ($request->user()->hasVerifiedEmail()) {
-        return response()->json(['message' => 'Email đã được xác minh'], 200);
-    }
-    $request->user()->sendEmailVerificationNotification();
-    return response()->json(['message' => 'Email xác minh đã được gửi']);
-})->name('verification.notice');
+Route::post('/email/resend', [AuthController::class, 'verifyEmail'])->name('verification.notice');
 
 Route::middleware(['auth:api'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -56,12 +50,10 @@ Route::middleware(['auth:api'])->group(function () {
     //     return response()->json(['message' => 'Email xác minh đã được gửi']);
     // })->name('verification.notice');
 
-    Route::post('/email/resend', function (Request $request) {
-        $request->user()->sendEmailVerificationNotification();
-        return response()->json(['message' => 'Email xác minh đã được gửi lại']);
-    })->name('verification.resend');
-
-
+    // Route::post('/email/resend', function (Request $request) {
+    //     $request->user()->sendEmailVerificationNotification();
+    //     return response()->json(['message' => 'Email xác minh đã được gửi lại']);
+    // })->name('verification.resend');
 
     //post
     Route::apiResource('posts', PostController::class);

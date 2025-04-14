@@ -6,11 +6,11 @@ export default withAuth({
     ...pagesOptions,
   },
 });
-  
+
 export const config = {
   // restricted routes
   matcher: [
     // "/:path*",
-    "/((?!api|_next|static|favicon.ico|auth/register|authentication/login|auth/verify-email).*)",
+    "/((?!api|_next|static|favicon.ico|auth/register|authentication/login|auth/verify-email|auth/forget-password|auth/forget-password/reset-password).*)",
   ],
 };

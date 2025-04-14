@@ -10,7 +10,8 @@ class ResetPasswordNotification extends BaseResetPassword
 {
     public function toMail($notifiable)
     {
-        $url = url('/reset-password?token=' . $this->token);
+        $feBaseUrl = config('app.frontend_url'); 
+        $url = url("{$feBaseUrl}/auth/forget-password/reset-password?token=" . $this->token);
 
         return (new MailMessage)
             ->subject('Khôi phục mật khẩu')

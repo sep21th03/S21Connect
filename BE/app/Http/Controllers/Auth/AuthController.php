@@ -11,6 +11,11 @@ use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Password;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -57,32 +62,48 @@ class AuthController extends Controller
     public function forgotPassword(Request $request)
     {
         $request->validate(['email' => 'required|email|exists:users,email']);
-        $status = Password::sendResetLink($request->only('email'));
-
+    
+        $status = Password::broker()->sendResetLink(
+            $request->only('email')
+        );
+    
         return $status === Password::RESET_LINK_SENT
             ? response()->json(['message' => 'Email khôi phục mật khẩu đã được gửi.'])
-            : response()->json(['error' => 'Không thể gửi email.'], 500);
+            : response()->json(['error' => trans($status)], 500);
     }
 
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'token'    => 'required',
-            'email'    => 'required|email|exists:users,email',
-            'password' => 'required|min:6|confirmed'
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:6|confirmed',
         ]);
-
+    
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
-                $user->forceFill(['password' => bcrypt($password)])->save();
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
             }
         );
-
+    
         return $status === Password::PASSWORD_RESET
-        ? response()->json(['message' => 'Mật khẩu đã được đặt lại thành công.'])
-        : response()->json(['error' => 'Token không hợp lệ hoặc đã hết hạn.'], 400);
+            ? response()->json(['message' => 'Mật khẩu đã được đặt lại thành công.'])
+            : response()->json(['error' => trans($status)], 400);
     }
+
+
+    public function verifyEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+        
+        return $this->authService->verifyEmail($request->email);
+    }
+
 
     public function userInfo(Request $request)
     {

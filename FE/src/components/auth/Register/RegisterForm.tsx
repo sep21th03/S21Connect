@@ -7,7 +7,7 @@ import {
 } from "../../../utils/constant";
 import Link from "next/link";
 import React from "react";
-import { Row, Col, FormGroup, Input, Label, Button  } from "reactstrap";
+import { Row, Col, FormGroup, Input, Label, Button } from "reactstrap";
 import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
 import { useState, useEffect } from "react";
@@ -39,16 +39,24 @@ const RegisterForm = () => {
     setLoading(true);
 
     try {
-      const response = await axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, formData);
-      
-      toast.success(response.data.message || "Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.");
-      router.push("/authentication/login");
+      const response = await axiosInstance.post(
+        API_ENDPOINTS.AUTH.REGISTER,
+        formData
+      );
+
+      toast.success(
+        response.data.message ||
+          "Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản."
+      );
+      setTimeout(() => {
+        router.push("/authentication/login");
+      }, 2000);
     } catch (error: any) {
-      const errorMessage = 
-        error.response?.data?.message || 
-        error.response?.data?.error || 
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
         "Đăng ký thất bại. Vui lòng thử lại sau.";
-      
+
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -62,7 +70,13 @@ const RegisterForm = () => {
           <FormGroup>
             <Label>First Name</Label>
             <div className="position-relative">
-              <Input type="text" placeholder="Your Name" name="first_name" value={formData.first_name}/>
+              <Input
+                type="text"
+                placeholder="Your Name"
+                name="first_name"
+                value={formData.first_name}
+                onChange={handleChange}
+              />
             </div>
           </FormGroup>
         </Col>
@@ -70,14 +84,27 @@ const RegisterForm = () => {
           <FormGroup>
             <Label>Last Name</Label>
             <div className="position-relative">
-              <Input type="text" placeholder="Your Name" name="last_name" value={formData.last_name}/>
+              <Input
+                type="text"
+                placeholder="Your Name"
+                name="last_name"
+                value={formData.last_name}
+                onChange={handleChange}
+              />
             </div>
           </FormGroup>
         </Col>
       </Row>
       <FormGroup>
         <label htmlFor="exampleInputUsername">Username</label>
-        <Input type="text" placeholder="Enter username" name="username" value={formData.username}/>
+        <Input
+          type="text"
+          placeholder="Enter username"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          required
+        />
         <DynamicFeatherIcon
           iconName="User"
           className="input-icon iw-20 ih-20"
@@ -85,7 +112,14 @@ const RegisterForm = () => {
       </FormGroup>
       <FormGroup>
         <label htmlFor="exampleInputEmail1">Email address</label>
-        <Input type="email" placeholder="Enter email" name="email" value={formData.email}/>
+        <Input
+          type="email"
+          placeholder="Enter email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
         <DynamicFeatherIcon
           iconName="Mail"
           className="input-icon iw-20 ih-20"
@@ -126,28 +160,18 @@ const RegisterForm = () => {
           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
         />
       </FormGroup>
-      <div className="bottom-sec">
-        <div className="form-check checkbox_animated">
-          <Input
-            type="checkbox"
-            className="form-check-input"
-            id="exampleCheck1"
-          />
-          <label className="form-check-label" htmlFor="exampleCheck1">
-            remember me
-          </label>
-        </div>
-        <a href="#">forget password?</a>
-      </div>
       <div className="btn-section">
         <Button
           type="submit"
           className="btn btn-solid btn-lg"
           disabled={loading}
         >
-          {loading ? "Đang xử lý..." : "Đăng ký"}
+          {loading ? "Đăng ký..." : "Đăng ký"}
         </Button>
-        <Link href="/auth/login" className="btn btn-outline-secondary btn-lg ms-auto">
+        <Link
+          href="/auth/login"
+          className="btn btn-outline-secondary btn-lg ms-auto"
+        >
           Đăng nhập
         </Link>
       </div>

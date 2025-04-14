@@ -38,4 +38,21 @@ class AuthService
         }
         return response()->json(['token' => $token]);
     }
+
+    public function verifyEmail($email)
+    {
+        $user = User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'Không tìm thấy người dùng với email này'], 404);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email đã được xác minh'], 200);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json(['message' => 'Email xác minh đã được gửi']);
+    }
 }
