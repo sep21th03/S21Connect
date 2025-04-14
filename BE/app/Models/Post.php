@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+
+class Post extends Model
+{
+    use HasFactory;
+
+    protected $fillable = ['user_id', 'post_id', 'content', 'images', 'videos', 'visibility', 'is_comment_disabled'];
+
+    protected $casts = [
+        'images' => 'array',
+        'videos' => 'array', 
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    protected static function boot() {
+        parent::boot();
+        static::creating(function ($post) {
+            $post->post_id = self::generateUniquePostId();
+        });
+    }
+
+    public static function generateUniquePostId() {
+        do {
+            $uniqueId = 'pfbid' . Str::random(40);
+        } while (self::where('post_id', $uniqueId)->exists());
+
+        return $uniqueId;
+    }
+
+    public function getRouteKeyName() {
+        return 'post_id';
+    }
+
+    public function comments() {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function reactions() {
+        return $this->hasMany(Reaction::class);
+    }
+
+    public function shares() {
+        return $this->hasMany(Share::class);
+    }
+
+    public function reactionSummary() {
+        return $this->reactions()
+            ->selectRaw('type, COUNT(*) as count')
+            ->groupBy('type')
+            ->pluck('count', 'type');
+    }
+    
+    public function shareSummary() {
+        return $this->shares()->count();
+    }
+}
