@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\User;
+namespace App\Http\Controllers\Post;
 
 use App\Http\Controllers\Controller;
 use App\Services\CommentService;

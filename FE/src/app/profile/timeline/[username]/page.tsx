@@ -14,14 +14,59 @@ import CollegeMeetCard from "@/components/profile/CollegeMeetCard";
 import WorldWideTrend from "@/components/profile/WorldWideTrend";
 import ProfileLayout from "@/layout/ProfileLayout";
 import { Container } from "reactstrap";
+import axiosInstance from "@/utils/axiosInstance";
+import { FullUserProfile } from "@/utils/interfaces/user";
+import { API_ENDPOINTS } from "@/utils/constant/api";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import UserNotFound from "@/app/404/user/page";
+import LoadingLoader from "@/layout/LoadingLoader";
+import { useSession } from "next-auth/react";
 
 const ProfileTimeLine = () => {
+  const { data: session } = useSession();
+  const params = useParams();
+  const username = params.username as string;
+  const [userProfile, setUserProfile] = useState<FullUserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const isOwnProfile = userProfile?.user.username === session?.user?.username;
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get<ApiResponse<FullUserProfile>>(
+          API_ENDPOINTS.PROFILE.USER_PROFILE(username)
+        );
+        setUserProfile(response.data.data);
+      } catch (error: any) {
+        setError(error.response?.data?.message || "Failed to fetch profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (username) {
+      fetchUserProfile();
+    }
+  }, [username]);
+  
+  if (loading) {
+    return  <LoadingLoader/>;
+  }
+
+
+  if (error || !userProfile) {
+    return <UserNotFound />;
+  }
+
   return (
-    <ProfileLayout title="timeline" loaderName="profileTimeLine" >
+    <ProfileLayout title="timeline" loaderName="profileTimeLine">
       <Container fluid className="section-t-space px-0 layout-default">
         <div className="page-content">
           <div className="content-left">
-            <AboutUser />
+            <AboutUser userProfile={userProfile} isOwnProfile={isOwnProfile} />
             <FriendSuggestion mainClassName="d-xl-block d-none" />
             <div className="sticky-top d-xl-block d-none">
               <LikePage />
@@ -32,7 +77,14 @@ const ProfileTimeLine = () => {
             <div className="overlay-bg" />
             <div className="post-panel infinite-loader-sec section-t-space">
               <SufiyaElizaFirstPost mainImage={11} userImage={15} />
-              <SufiyaElizaMultiplePost moreImage diffrentImage userImage={14} main={40} second={41} third={42}/>
+              <SufiyaElizaMultiplePost
+                moreImage
+                diffrentImage
+                userImage={14}
+                main={40}
+                second={41}
+                third={42}
+              />
               <SufiyaElizaSecondPost userImage={10} />
               <SufiyaElizaThirdPost
                 userImage={1}

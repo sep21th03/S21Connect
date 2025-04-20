@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { User } from "@/utils/interfaces/user";
 import Cookies from "js-cookie";
 import { signIn, signOut } from "next-auth/react";
+import { getSession } from "next-auth/react";
 
 const TOKEN_COOKIE_NAME = "auth_token";
 const COOKIE_EXPIRES = 7;
@@ -23,20 +24,16 @@ const initialState: AuthState = {
 };
 
 interface LoginCredentials {
-    email: string;
-    password: string;
-    callbackUrl?: string;
-  }
-
-interface LoginResponse {
-  token: string;
+  email: string;
+  password: string;
+  callbackUrl?: string;
 }
 
 const saveTokenToCookies = (token: string) => {
   Cookies.set(TOKEN_COOKIE_NAME, token, { expires: COOKIE_EXPIRES });
 };
 
-const removeTokenFromCookies = () => {
+export const removeTokenFromCookies = () => {
   Cookies.remove(TOKEN_COOKIE_NAME);
 };
 
@@ -55,13 +52,17 @@ export const login = createAsyncThunk<
       redirect: false,
       callbackUrl: credentials.callbackUrl || "/newsfeed/style2",
     });
-    console.log("result", result);
-    
+
     if (result?.error) {
       return rejectWithValue(result.error || "Đăng nhập thất bại");
     }
 
     if (result?.ok) {
+      const session = await getSession(); 
+      const token = (session as any)?.token;
+      if (token) {
+        saveTokenToCookies(token);
+      }
       return { success: true, url: result.url };
     }
 
@@ -82,7 +83,7 @@ const authSlice = createSlice({
     },
     setAuthenticated: (state, action: PayloadAction<boolean>) => {
       state.isAuthenticated = action.payload;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder

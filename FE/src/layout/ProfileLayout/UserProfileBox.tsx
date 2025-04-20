@@ -4,10 +4,11 @@ import { EditProfile, ImagePath } from "../../utils/constant";
 import Image from "next/image";
 import UserData from "./UserData";
 import { Href } from '../../utils/constant/index';
+import { UserProfileInterFace } from "../LayoutTypes";
 
-const UserProfileBox = ({toggle}:{toggle:()=>void}) => {
+const UserProfileBox:FC<UserProfileInterFace> = ({toggle,isOwnProfile,userProfile}) => {
   return (
-    <div className="d-lg-none d-block">
+    <div className="d-lg-none d-block">   
       <div className="profile-box">
         <div className="profile-content">
           <div className="image-section">
@@ -21,12 +22,12 @@ const UserProfileBox = ({toggle}:{toggle:()=>void}) => {
             </div>
           </div>
           <div className="profile-detail">
-            <h2>
-              kelin jasen <span>❤</span>
-            </h2>
-            <h5>kelin.jasen156@gmail.com</h5>
+            <h2>{userProfile?.user.first_name} {userProfile?.user.last_name}</h2>
+            <h5>{userProfile?.user.email}</h5>
             <UserData />
-            <a href={Href} className="btn btn-solid" onClick={toggle}>{EditProfile}</a>
+            {isOwnProfile && (
+              <a href={Href} className="btn btn-solid" onClick={toggle}>{EditProfile}</a>
+            )}
           </div>
         </div>
       </div>

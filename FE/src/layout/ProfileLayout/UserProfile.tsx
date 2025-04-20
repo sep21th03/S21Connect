@@ -5,14 +5,18 @@ import Image from "next/image";
 import UserData from "./UserData";
 import { Href } from "../../utils/constant/index";
 import { Dropdown, DropdownMenu, DropdownToggle } from "reactstrap";
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import { UserProfileInterFace } from "../LayoutTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux-toolkit/store";
 import UserDropDown from "./UserDropDown";
 
-const UserProfile:FC<UserProfileInterFace> = ({toggle}) => {
+
+
+const UserProfile:FC<UserProfileInterFace> = ({toggle,userProfile,isOwnProfile}) => {
+
+
   const [dropDownOpen, setDropDownOpen] = useState(false);
   const toggleDropDown = () => setDropDownOpen(!dropDownOpen);
   const { imageLink,backgroundImage } = useSelector((state: RootState) => state.LayoutSlice);
@@ -33,14 +37,16 @@ const UserProfile:FC<UserProfileInterFace> = ({toggle}) => {
             </div>
           </div>
           <div className="profile-detail">
-            <h2>kelin jasen <span>❤</span></h2>
-            <h5>kelin.jasen156@gmail.com</h5>
+            <h2>{userProfile?.user.first_name} {userProfile?.user.last_name}</h2>
+            <h5>{userProfile?.user.email}</h5>
             <UserData />
-            <a href={Href} onClick={toggle} className="btn btn-solid">{EditProfile}</a>
+            {isOwnProfile && (
+              <a href={Href} onClick={toggle} className="btn btn-solid">{EditProfile}</a>
+            )}
           </div>
         </div>
       </div>
-      <UserDropDown dropDownOpen={dropDownOpen} toggleDropDown={toggleDropDown} />
+      <UserDropDown dropDownOpen={dropDownOpen} toggleDropDown={toggleDropDown} isOwnProfile={isOwnProfile}/>
     </div>
   );
 };

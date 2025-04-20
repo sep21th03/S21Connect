@@ -1,6 +1,7 @@
 import React from "react";
+import { UserEditInterFace } from "../LayoutTypes";
 
-const EditProfileDetails = () => {
+const EditProfileDetails = ({ userProfile }: UserEditInterFace) => {
   return (
     <>
       <div className="profile-wrap">

@@ -1,16 +1,16 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\User\PostController;
-use App\Http\Controllers\User\CommentController;
-use App\Http\Controllers\User\ShareController;
-use App\Http\Controllers\User\ReactionController;
+use App\Http\Controllers\Post\PostController;
+use App\Http\Controllers\Post\CommentController;
+use App\Http\Controllers\Post\ShareController;
+use App\Http\Controllers\Post\ReactionController;
 use App\Http\Controllers\User\FriendController;
 use App\Http\Controllers\User\BlockController;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\Post\ProfilePostController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,53 +23,55 @@ use App\Http\Controllers\Controller;
 |
 */
 //auth
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/login', function () {
+        return redirect(env('FRONTEND_URL') . '/auth/login');
+    })->name('login');
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-Route::middleware(['auth:api', 'verified'])->get('/user', [AuthController::class, 'userInfo']);
+    Route::get('/email/verify/{id}/{hash}', VerifyEmailController::class)
+        ->middleware(['signed'])
+        ->name('verification.verify');
 
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-
-Route::get('/email/verify/{id}/{hash}', VerifyEmailController::class)
-    ->middleware(['signed'])
-    ->name('verification.verify');
-
-Route::post('/email/resend', [AuthController::class, 'verifyEmail'])->name('verification.notice');
+    Route::post('/email/resend', [AuthController::class, 'verifyEmail'])->name('verification.notice');
+});
 
 Route::middleware(['auth:api'])->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-
-    Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
-
-    // Route::get('/email/verify', function (Request $request) {
-    //     if ($request->user()->hasVerifiedEmail()) {
-    //         return response()->json(['message' => 'Email đã được xác minh'], 200);
-    //     }
-    //     $request->user()->sendEmailVerificationNotification();
-    //     return response()->json(['message' => 'Email xác minh đã được gửi']);
-    // })->name('verification.notice');
-
-    // Route::post('/email/resend', function (Request $request) {
-    //     $request->user()->sendEmailVerificationNotification();
-    //     return response()->json(['message' => 'Email xác minh đã được gửi lại']);
-    // })->name('verification.resend');
+    Route::prefix('auth')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
+    });
 
     //post
-    Route::apiResource('posts', PostController::class);
-    Route::post('/posts/{id}/toggle-comments', [PostController::class, 'toggleComments']);
-    Route::post('/posts/{id}/reactions', [PostController::class, 'toggleReactions']);
-    //comment
-    Route::post('/comments', [CommentController::class, 'store']); // Thêm bình luận
-    Route::delete('/comments/{id}', [CommentController::class, 'destroy']); // Xóa bình luận
+    Route::prefix('posts')->group(function () {
+        // 📌 Post resource
+        Route::apiResource('/', PostController::class)->parameters(['' => 'post']);
 
-    // Routes cho cảm xúc
-    Route::post('/reactions', [ReactionController::class, 'react']); // Thêm hoặc thay đổi cảm xúc
-    Route::delete('/reactions/{postId}', [ReactionController::class, 'removeReaction']);
+        // 🔧 Toggle options
+        Route::post('/{id}/toggle-comments', [PostController::class, 'toggleComments']);
+        Route::post('/{id}/reactions', [PostController::class, 'toggleReactions']);
 
-    //share
-    Route::post('/shares', [ShareController::class, 'store']); // Chia sẻ bài viết
-    Route::get('/shares/{postId}', [ShareController::class, 'getShares']);
+        // 💬 Comments on a post
+        Route::prefix('{postId}/comments')->group(function () {
+            Route::post('/', [CommentController::class, 'store']);      // POST /posts/{postId}/comments
+            Route::delete('/{id}', [CommentController::class, 'destroy']); // DELETE /posts/{postId}/comments/{id}
+        });
+
+        // 😊 Reactions on a post
+        Route::prefix('{postId}/reactions')->group(function () {
+            Route::post('/', [ReactionController::class, 'store']);       // POST /posts/{postId}/reactions
+            Route::delete('/{id}', [ReactionController::class, 'destroy']); // DELETE /posts/{postId}/reactions/{id}
+        });
+
+        // 🔁 Shares of a post
+        Route::prefix('{postId}/shares')->group(function () {
+            Route::post('/', [ShareController::class, 'store']);        // POST /posts/{postId}/shares
+            Route::get('/', [ShareController::class, 'getShares']);     // GET  /posts/{postId}/shares
+        });
+    });
 
     //friend
     Route::post('/friends/request/{id}', [FriendController::class, 'sendRequest']);
@@ -83,6 +85,16 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/blocked-users', [BlockController::class, 'getBlockedUsers']);
 
 
-    Route::get('/profile/{id}', [Controller::class, 'getProfile'])->middleware('check.blocked');
-    Route::get('/messages/{id}', [Controller::class, 'getMessages'])->middleware('check.blocked');
+    // Profile routes
+    Route::prefix('profile')->group(function () {
+        Route::get('/me', [ProfileController::class, 'getMeProfile']);
+        Route::patch('/me', [ProfileController::class, 'updateMeProfile']);
+        Route::post('/me', [ProfileController::class, 'createMeProfile']);
+        Route::get('/{username}', [ProfileController::class, 'getUserProfile']);
+        Route::get('/{userId}/posts', [ProfilePostController::class, 'getProfilePosts']);
+    });
+
+
+    // Route::get('/profile/{id}', [Controller::class, 'getProfile'])->middleware('check.blocked');
+    // Route::get('/messages/{id}', [Controller::class, 'getMessages'])->middleware('check.blocked');
 });

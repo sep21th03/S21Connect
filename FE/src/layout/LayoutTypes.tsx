@@ -1,3 +1,4 @@
+import { FullUserProfile } from "@/utils/interfaces/user";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 
 export interface UserMenuDataInterFace {
@@ -96,13 +97,26 @@ export interface ProfileMenuInterFace {
   title: string;
 }
 
+export interface ModalUserInterFace {
+  isOpen: boolean;
+  updateBackGround?:boolean
+  toggle: () => void;
+  userProfile: FullUserProfile | null;
+}
 export interface ModalInterFace {
   isOpen: boolean;
   updateBackGround?:boolean
   toggle: () => void;
 }
+
 export interface UserProfileInterFace {
   toggle: () => void;
+  userProfile: FullUserProfile | null;
+  isOwnProfile: boolean;
+}
+
+export interface UserEditInterFace {
+  userProfile: FullUserProfile | null;
 }
 
 export interface TabPaneInterFace {
@@ -118,6 +132,7 @@ export interface SinglePhotosInterFace {
 export interface UserDropDownInterFace {
   dropDownOpen: boolean;
   toggleDropDown: () => void;
+  isOwnProfile: boolean;
 }
 
 export interface CompanyLayoutInterFace{

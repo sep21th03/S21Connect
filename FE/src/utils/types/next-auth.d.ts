@@ -25,6 +25,7 @@ declare module "next-auth" {
       email: string;
       first_name: string;
       last_name: string;
+      name: string;
       username: string;
       is_admin: number;
       token: string;

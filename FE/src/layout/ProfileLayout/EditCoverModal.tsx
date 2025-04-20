@@ -1,6 +1,6 @@
 import React, { FC, useState } from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from "reactstrap";
-import { ModalInterFace } from "../LayoutTypes";
+import { ModalUserInterFace } from "../LayoutTypes";
 import { EditProfile, ImagePath, Href, EditProfileImage } from "../../utils/constant/index";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import EditProfileDetails from "./EditProfileDetails";
@@ -9,7 +9,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux-toolkit/store";
 import CustomImage from "@/Common/CustomImage";
 
-const EditCoverModal: FC<ModalInterFace> = ({ isOpen, toggle }) => {
+const EditCoverModal: FC<ModalUserInterFace> = ({ isOpen, toggle, userProfile }) => {
   const [updateImage, setUpdateImage] = useState(false);
   const updateToggleImage = () => {setUpdateImage(!updateImage)};
   const handleEdit = () => {
@@ -46,7 +46,7 @@ const EditCoverModal: FC<ModalInterFace> = ({ isOpen, toggle }) => {
                 </div>
               </div>
             </div>
-            <EditProfileDetails />
+            <EditProfileDetails userProfile={userProfile}/>
           </div>
         </ModalBody>
         <ModalFooter>

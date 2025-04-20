@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { authoption } from "./api/auth/[...nextauth]/authOption";
 import SessionWrapper from "@/Common/SessionWrapper";
 import ErrorBoundary from "@/Common/ErrorBoundry";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Sep21Connect",
