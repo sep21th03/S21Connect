@@ -54,12 +54,12 @@ class ProfileController extends Controller
                 'current_school' => 'nullable|string|max:255',
                 'past_school' => 'nullable|string|max:255',
                 'relationship_status' => 'nullable|in:single,in_a_relationship,engaged,married,complicated,separated,divorced,widowed',
-                'is_phone_number_visible' => 'nullable|boolean',
-                'is_location_visible' => 'nullable|boolean',
-                'is_workplace_visible' => 'nullable|boolean',
-                'is_school_visible' => 'nullable|boolean',
-                'is_past_school_visible' => 'nullable|boolean',
-                'is_relationship_status_visible' => 'nullable|boolean',
+                'is_phone_number_visible' => 'nullable',
+                'is_location_visible' => 'nullable',
+                'is_workplace_visible' => 'nullable',
+                'is_school_visible' => 'nullable',
+                'is_past_school_visible' => 'nullable',
+                'is_relationship_status_visible' => 'nullable',
             ]);
 
             $profile = $this->profileService->updateProfile($userId, $data);
@@ -122,6 +122,38 @@ class ProfileController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Lỗi lấy hồ sơ',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateProfileAbout() {
+        try {
+            $userId = Auth::id();
+            $data = request()->validate([
+                'phone_number' => 'nullable|string|max:20',
+                'location' => 'nullable|string|max:255',
+                'workplace' => 'nullable|string|max:255',
+                'current_school' => 'nullable|string|max:255',
+                'past_school' => 'nullable|string|max:255',
+                'relationship_status' => 'nullable|in:single,in_a_relationship,engaged,married,complicated,separated,divorced,widowed',
+                'bio' => 'nullable|string|max:255',
+                'birthday' => 'nullable|date_format:Y-m-d',
+                'gender' => 'nullable',
+            ]);
+
+            $result = $this->profileService->updateProfileAbout($userId, $data);
+
+            return response()->json([
+                'message' => 'Cập nhật hồ sơ thành công',
+                'data' => [
+                    'user' => $result['user'],
+                    'profile' => $result['profile'],
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi cập nhật hồ sơ',
                 'error' => $e->getMessage()
             ], 500);
         }

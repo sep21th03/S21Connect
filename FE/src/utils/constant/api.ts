@@ -41,7 +41,24 @@ export const API_ENDPOINTS = {
     MY_PROFILE: {
       GET: "/me",
       UPDATE: "/me",
+      UPDATE_ABOUT: "/about/info",
     },
     USER_PROFILE: (username: string) => `/profile/${username}`,
+    USER_DATA: (userId: string) => `/profile/user/data/${userId}`,
+  },
+
+  FRIENDS: {
+    BASE: "/friends",
+    SEND: (userId: number | string) => `/request/${userId}`,
+    ACCEPT: (userId: number | string) => `/accept/${userId}`,
+    REJECT: (userId: number | string) => `/cancel/${userId}`,
+    UNFRIEND: (userId: number | string) => `/remove/${userId}`,
+    CHECK_STATUS: (userId: number | string) => `/status/${userId}`,
+  },
+
+  USERS: {
+    BASE: "/users",
+    HOVER_CARD: (userId: string) => `/${userId}/hovercard`,
+    LIST_FRIENDS: (userId: string) => `/${userId}/friends`,
   },
 };

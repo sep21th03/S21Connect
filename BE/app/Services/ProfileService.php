@@ -33,13 +33,13 @@ class ProfileService
                     'location' => $user->profile->is_location_visible ? $user->profile->location : null,
                     'workplace' => $user->profile->is_workplace_visible ? $user->profile->workplace : null,
                     'current_school' => $user->profile->is_school_visible ? $user->profile->current_school : null,
-                    'past_school' => $user->profile->is_school_visible ? $user->profile->past_school : null,
+                    'past_school' => $user->profile->is_past_school_visible ? $user->profile->past_school : null,
                     'relationship_status' => $user->profile->is_relationship_status_visible ? $user->profile->relationship_status : null,
                     'is_phone_number_visible' => $user->profile->is_phone_number_visible,
                     'is_location_visible' => $user->profile->is_location_visible,
                     'is_workplace_visible' => $user->profile->is_workplace_visible,
                     'is_school_visible' => $user->profile->is_school_visible,
-                    'is_past_school_visible' => $user->profile->is_school_visible,
+                    'is_past_school_visible' => $user->profile->is_past_school_visible,
                     'is_relationship_status_visible' => $user->profile->is_relationship_status_visible,
                     'created_at' => $user->profile->created_at,
                     'updated_at' => $user->profile->updated_at,
@@ -83,12 +83,12 @@ class ProfileService
                 'current_school' => $data['current_school'] ?? $profile->current_school,
                 'past_school' => $data['past_school'] ?? $profile->past_school,
                 'relationship_status' => $data['relationship_status'] ?? $profile->relationship_status,
-                'is_phone_number_visible' => isset($data['is_phone_number_visible']) ? (int)$data['is_phone_number_visible'] : $profile->is_phone_number_visible,
-                'is_location_visible' => isset($data['is_location_visible']) ? (int)$data['is_location_visible'] : $profile->is_location_visible,
-                'is_workplace_visible' => isset($data['is_workplace_visible']) ? (int) $data['is_workplace_visible'] : (int) $profile->is_workplace_visible,
-                'is_school_visible' => isset($data['is_school_visible']) ? (int)$data['is_school_visible'] : $profile->is_school_visible,
-                'is_past_school_visible' => isset($data['is_past_school_visible']) ? (int)$data['is_past_school_visible'] : $profile->is_past_school_visible,
-                'is_relationship_status_visible' => isset($data['is_relationship_status_visible']) ? (int)$data['is_relationship_status_visible'] : $profile->is_relationship_status_visible,
+                'is_phone_number_visible' => $data['is_phone_number_visible'] ?? $profile->is_phone_number_visible,
+                'is_location_visible' => $data['is_location_visible'] ?? $profile->is_location_visible,
+                'is_workplace_visible' => $data['is_workplace_visible'] ?? $profile->is_workplace_visible,
+                'is_school_visible' => $data['is_school_visible'] ?? $profile->is_school_visible,
+                'is_past_school_visible' => $data['is_past_school_visible'] ?? $profile->is_past_school_visible,
+                'is_relationship_status_visible' => $data['is_relationship_status_visible'] ?? $profile->is_relationship_status_visible,
             ]);
 
             DB::commit();
@@ -120,6 +120,40 @@ class ProfileService
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Profile creation failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+
+    public function updateProfileAbout($userId, array $data)
+    {
+        try {
+            return DB::transaction(function () use ($userId, $data) {
+                $profile = UserProfile::where('user_id', $userId)->firstOrFail();
+                $user = User::where('id', $userId)->firstOrFail();
+
+                $profile->update([
+                    'phone_number' => $data['phone_number'] ?? $profile->phone_number,
+                    'location' => $data['location'] ?? $profile->location,
+                    'workplace' => $data['workplace'] ?? $profile->workplace,
+                    'current_school' => $data['current_school'] ?? $profile->current_school,
+                    'past_school' => $data['past_school'] ?? $profile->past_school,
+                    'relationship_status' => $data['relationship_status'] ?? $profile->relationship_status,
+                ]);
+
+                $user->update([
+                    'bio' => $data['bio'], 
+                    'birthday' => $data['birthday'],
+                    'gender' => $data['gender'],
+                ]);
+                
+                return [
+                    'user' => $user->fresh(),    
+                    'profile' => $profile->fresh()
+                ];
+            });
+        } catch (\Exception $e) {
+            Log::error('Profile update failed: ' . $e->getMessage());
             throw $e;
         }
     }

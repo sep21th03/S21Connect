@@ -6,10 +6,6 @@ import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import { socialMediaDetail } from "@/Data/profile";
 import SvgIconCommon from "@/Common/SvgIconCommon";
 import { FullUserProfile } from "@/utils/interfaces/user";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux-toolkit/store";
-import { useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
 
 interface AboutUserProps {
   userProfile: FullUserProfile;
@@ -18,37 +14,72 @@ interface AboutUserProps {
 
 const AboutUser: FC<AboutUserProps> = ({ userProfile, isOwnProfile }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState<FullUserProfile>(userProfile);
 
+  const handleProfileUpdate = (updatedUserProfile: FullUserProfile) => {
+    setUserInfo(updatedUserProfile); 
+  };
 
   const toggle = () => setIsOpen(!isOpen);
 
-  const aboutUser = [
-    {
-      icon: "MapPin",
-      description: userProfile?.profile.location || "Chưa cập nhật",
-      time: "Sống tại",
-    },
-    {
-      icon: "Briefcase",
-      description: userProfile?.profile.workplace || "Chưa cập nhật",
-      time: "Làm việc tại",
-    },
-    {
-      icon: "Book",
-      description: userProfile?.profile.current_school || "Chưa cập nhật",
-      time: "Học tại",
-    },
-    {
-      icon: "Book",
-      description: userProfile?.profile.past_school || "Chưa cập nhật",
-      time: "Từng học tại",
-    },
-    {
-      icon: "Heart",
-      description: userProfile?.profile.relationship_status || "Chưa cập nhật",
-      time: "Mối quan hệ",
-    },
-  ];
+  const getAboutUserItems = () => {
+    const items = [];
+    
+    if ((userInfo?.profile.is_location_visible || isOwnProfile) && userInfo?.profile.location) {
+      items.push({
+        icon: "MapPin",
+        description: userInfo.profile.location,
+        time: "Sống tại",
+      });
+    }
+    
+    if ((userInfo?.profile.is_workplace_visible || isOwnProfile) && userInfo?.profile.workplace) {
+      items.push({
+        icon: "Briefcase",
+        description: userInfo.profile.workplace,
+        time: "Làm việc tại",
+      });
+    }
+    
+    if ((userInfo?.profile.is_school_visible || isOwnProfile) && userInfo?.profile.current_school) {
+      items.push({
+        icon: "Book",
+        description: userInfo.profile.current_school,
+        time: "Học tại",
+      });
+    }
+    
+    if ((userInfo?.profile.is_past_school_visible || isOwnProfile) && userInfo?.profile.past_school) {
+      items.push({
+        icon: "Book",
+        description: userInfo.profile.past_school,
+        time: "Từng học tại",
+      });
+    }
+    
+    if ((userInfo?.profile.is_relationship_status_visible || isOwnProfile) && userInfo?.profile.relationship_status) {
+      items.push({
+        icon: "Heart",
+        description: userInfo.profile.relationship_status,
+        time: "Mối quan hệ",
+      });
+    }
+
+    if ((userInfo?.profile.is_phone_number_visible || isOwnProfile) && userInfo?.profile.phone_number) {
+      items.push({
+        icon: "Phone",
+        description: userInfo.profile.phone_number,
+        time: "Số điện thoại",
+      });
+    }
+    
+    return items;
+  };
+
+  const aboutUserItems = getAboutUserItems();
+
+  // If no items to display and not own profile, show a message
+  const noInfoToDisplay = aboutUserItems.length === 0 && !isOwnProfile;
 
   return (
     <div className="profile-about">
@@ -69,26 +100,32 @@ const AboutUser: FC<AboutUserProps> = ({ userProfile, isOwnProfile }) => {
          )}
       </div>
       <div className="about-content">
-        <ul>
-          {aboutUser.map((data, index) => (
-            <li key={index}>
-              <div className="icon">
-                {data.icon ? (
-                  <DynamicFeatherIcon
-                    iconName={data.icon as any}
-                    className="iw-18 ih-18"
-                  />
-                ) : (
-                  <SvgIconCommon iconName={data.icon as any} />
-                )}
-              </div>
-              <div className="details">
-                <h6>{data.time}</h6>
-                <h5>{data.description}</h5>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {noInfoToDisplay ? (
+          <div className="no-info-message">
+            <p>Không có thông tin để hiển thị</p>
+          </div>
+        ) : (
+          <ul>
+            {aboutUserItems.map((data, index) => (
+              <li key={index}>
+                <div className="icon">
+                  {data.icon ? (
+                    <DynamicFeatherIcon
+                      iconName={data.icon as any}
+                      className="iw-18 ih-18"
+                    />
+                  ) : (
+                    <SvgIconCommon iconName={data.icon as any} />
+                  )}
+                </div>
+                <div className="details">
+                  <h6>{data.time}</h6>
+                  <h5>{data.description}</h5>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="about-footer">
@@ -107,7 +144,8 @@ const AboutUser: FC<AboutUserProps> = ({ userProfile, isOwnProfile }) => {
         <EditCoverModal
           isOpen={isOpen}
           toggle={toggle}
-          userProfile={userProfile}
+          userProfile={userInfo}
+          onUpdateProfile={handleProfileUpdate}
         />
       )} 
     </div>

@@ -7,8 +7,6 @@ export const authorize = async (credentials: any) => {
       username: credentials.email,
       password: credentials.password,
     });
-
-    console.log("Response từ server:", response.status);
     
     if (response.data && response.data.token) {
       return {

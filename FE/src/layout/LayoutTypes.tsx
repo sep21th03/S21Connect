@@ -97,6 +97,10 @@ export interface ProfileMenuInterFace {
   title: string;
 }
 
+export interface ProfileMenuInterFaceCustom {
+  title: string;
+  username: string;
+}
 export interface ModalUserInterFace {
   isOpen: boolean;
   updateBackGround?:boolean
@@ -117,6 +121,7 @@ export interface UserProfileInterFace {
 
 export interface UserEditInterFace {
   userProfile: FullUserProfile | null;
+  onUpdateProfile: (updatedUserProfile: FullUserProfile) => void;
 }
 
 export interface TabPaneInterFace {

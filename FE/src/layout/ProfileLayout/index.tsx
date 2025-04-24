@@ -33,10 +33,10 @@ const ProfileLayout: FC<ProfileLayoutInterFace> = ({ children, title,profileTab,
       <div className="page-center">
         <UserProfile toggle={toggle} userProfile={userProfile} isOwnProfile={isOwnProfile} />
         <UserProfileBox toggle={toggle} userProfile={userProfile} isOwnProfile={isOwnProfile} />
-        {!profileTab && <ProfileMenu title={title?title:""} />}
+        {!profileTab && <ProfileMenu title={title?title:""} username={username}/>}
         {children}
       </div>
-      <EditCoverModal isOpen={isOpen} toggle={toggle} />
+      <EditCoverModal isOpen={isOpen} toggle={toggle} userProfile={userProfile} />
     </CommonLayout>
   );
 };

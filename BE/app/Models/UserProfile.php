@@ -20,6 +20,12 @@ class UserProfile extends Model
         'current_school',
         'past_school',
         'relationship_status',
+        'is_phone_number_visible',
+        'is_location_visible',
+        'is_workplace_visible',
+        'is_school_visible',
+        'is_past_school_visible',
+        'is_relationship_status_visible',
     ];
 
     protected $casts = [

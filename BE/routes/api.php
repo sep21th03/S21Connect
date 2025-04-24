@@ -11,6 +11,7 @@ use App\Http\Controllers\User\FriendController;
 use App\Http\Controllers\User\BlockController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\Post\ProfilePostController;
+use App\Http\Controllers\User\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,10 +75,14 @@ Route::middleware(['auth:api'])->group(function () {
     });
 
     //friend
-    Route::post('/friends/request/{id}', [FriendController::class, 'sendRequest']);
-    Route::post('/friends/accept/{id}', [FriendController::class, 'acceptRequest']);
-    Route::delete('/friends/cancel/{id}', [FriendController::class, 'cancelRequest']);
-    Route::delete('/friends/remove/{id}', [FriendController::class, 'unfriend']);
+    Route::prefix('friends')->group(function () {
+        Route::post('/request/{id}', [FriendController::class, 'sendRequest']);
+        Route::post('/accept/{id}', [FriendController::class, 'acceptRequest']);
+        Route::delete('/cancel/{id}', [FriendController::class, 'cancelRequest']);
+        Route::delete('/remove/{id}', [FriendController::class, 'unfriend']);
+        Route::get('/status/{friendId}', [FriendController::class, 'checkStatus']);
+    });
+
 
     //block
     Route::post('/block/{id}', [BlockController::class, 'blockUser']);
@@ -92,9 +97,13 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/me', [ProfileController::class, 'createMeProfile']);
         Route::get('/{username}', [ProfileController::class, 'getUserProfile']);
         Route::get('/{userId}/posts', [ProfilePostController::class, 'getProfilePosts']);
+        Route::post('/about/info', [ProfileController::class, 'updateProfileAbout']);
+        Route::get('/user/data/{id}', [FriendController::class, 'getFriendStats']);
     });
 
-
+    //hovercard
+    Route::get('/users/{userId}/hovercard', [UserController::class, 'hoverCardData']);
+    Route::get('/users/{userId}/friends', [FriendController::class, 'getListFriend']);
     // Route::get('/profile/{id}', [Controller::class, 'getProfile'])->middleware('check.blocked');
     // Route::get('/messages/{id}', [Controller::class, 'getMessages'])->middleware('check.blocked');
 });
