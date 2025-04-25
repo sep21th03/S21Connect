@@ -3,14 +3,10 @@ import axiosInstance from "@/utils/axiosInstance";
 
 export const authorize = async (credentials: any) => {
   try {
-    console.log("Đang gửi request đến:", API_ENDPOINTS.AUTH.LOGIN);
-    
     const response = await axiosInstance.post(API_ENDPOINTS.AUTH.LOGIN, {
       username: credentials.email,
       password: credentials.password,
     });
-
-    console.log("Response từ server:", response.status);
     
     if (response.data && response.data.token) {
       return {

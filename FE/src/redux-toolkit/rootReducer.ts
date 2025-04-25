@@ -5,6 +5,8 @@ import favouritePageSlice from "./reducers/FavouritePageSlice";
 import LayoutSlice from "./reducers/LayoutSlice";
 import ShowMorePostSlice from "./reducers/ShowMorePostSlice";
 import AuthSlice from "./slice/authSlice";
+import ProfileSlice from "./slice/profileSlice";
+import UserSlice from "./slice/userSlice";
 
 const rootReducer = combineReducers({
   storiesModalSlice,
@@ -13,6 +15,8 @@ const rootReducer = combineReducers({
   ShowMorePostSlice,
   // Add other slices here
   AuthSlice,
+  ProfileSlice,
+  UserSlice,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

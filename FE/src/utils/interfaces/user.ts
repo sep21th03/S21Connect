@@ -9,6 +9,8 @@ export interface User {
     email: string;
     avatar: string | null;
     cover_photo: string | null;
+    gender: string | null;
+    birthday: string | null;
     bio: string | null;
     is_admin: boolean;
     status: "active" | "banned" | "deleted";
@@ -27,3 +29,40 @@ export interface User {
     token: string;
   }
   
+  export interface UserProfile {
+    id: number;
+    user_id: string;
+  
+    phone_number?: string | null;
+    location?: string | null;
+    workplace?: string | null;
+    current_school?: string | null;
+    past_school?: string | null;
+  
+    relationship_status: RelationshipStatus
+  
+    is_phone_number_visible: boolean;
+    is_location_visible: boolean;
+    is_workplace_visible: boolean;
+    is_school_visible: boolean;
+    is_past_school_visible: boolean;
+    is_relationship_status_visible: boolean;
+  
+    created_at?: string;
+    updated_at?: string;
+  }
+  
+  export interface FullUserProfile {
+    user: User;
+    profile: UserProfile;
+  }
+
+  export type RelationshipStatus = 
+  | 'single'
+  | 'in_a_relationship'
+  | 'engaged'
+  | 'married'
+  | 'complicated'
+  | 'separated'
+  | 'divorced'
+  | 'widowed';

@@ -2,8 +2,43 @@ import { About, Href, IntroMySelf } from "../../utils/constant";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import SvgIconCommon from "@/Common/SvgIconCommon";
 import { aboutContentData, socialMediaDetail } from "@/Data/profile";
+import PersonalInformationModal from "@/layout/ProfileLayout/PersonalInformationModal";
+import { useState } from "react";
+import { FullUserProfile } from "@/utils/interfaces/user";  
+import dayjs from "dayjs";
 
-const ProfileAbout: React.FC = () => {
+interface ProfileAboutProps {
+  userProfile: FullUserProfile;
+  isOwnProfile: boolean;
+}
+
+const ProfileAbout: React.FC<ProfileAboutProps> = ({ userProfile, isOwnProfile }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const toggle = () => setIsOpen(!isOpen);
+  const [userInfo, setUserInfo] = useState(userProfile);
+
+  const handleProfileUpdate = (updatedUserProfile: FullUserProfile) => {
+    setUserInfo(updatedUserProfile); 
+  };
+
+  const aboutUser = [
+    {
+      icon: "User",
+      heading: "About",
+      details: userInfo?.user.bio || "Chưa cập nhật",
+    },
+    { icon: "Mail", heading: "email address", details: userInfo?.user.email || "Chưa cập nhật" },
+    { iconName: "cake", heading: "Birthday", details: userInfo?.user.birthday || "Chưa cập nhật" },
+    { icon: "Phone", heading: "Phone", details: userInfo?.profile.phone_number || "Chưa cập nhật" },
+    { icon: "User", heading: "gender", details: userInfo?.user.gender || "Chưa cập nhật" },
+    { icon: "Heart", heading: "relationship status", details: userInfo?.profile.relationship_status || "Chưa cập nhật" },
+    { icon: "MapPin", heading: "Tại", details: userInfo?.profile.location || "Chưa cập nhật" },
+    { iconName: "blood-drop", heading: "blood group", details: userInfo?.profile.workplace || "Chưa cập nhật" },
+    { icon: "AtSign", heading: "past school", details: userInfo?.profile.past_school || "Chưa cập nhật" },
+    { icon: "Link", heading: "current school", details: userInfo?.profile.current_school || "Chưa cập nhật" },
+    { icon: "Link", heading: "joined", details: dayjs(userInfo?.user.created_at).format("DD/MM/YYYY") || "Chưa cập nhật" },
+  ];
+
   return (
     <div className="profile-about sticky-top">
       <div className="card-title">
@@ -11,7 +46,7 @@ const ProfileAbout: React.FC = () => {
         <h5>{IntroMySelf}</h5>
         <div className="settings">
           <div className="setting-btn">
-            <a href={Href}>
+            <a href={Href} onClick={toggle}>
               <DynamicFeatherIcon iconName="Edit2" className="icon icon-dark stroke-width-3 iw-11 ih-11"/>
             </a>
           </div>
@@ -19,11 +54,11 @@ const ProfileAbout: React.FC = () => {
       </div>
       <div className="about-content">
         <ul>
-          {aboutContentData.map((data, index) => (
+          {aboutUser.map((data, index) => (
             <li key={index}>
               <div className="icon">
                 {data.icon ? (
-                  <DynamicFeatherIcon iconName={data.icon} className="iw-18 ih-18"/>
+                  <DynamicFeatherIcon iconName={data.icon as any} className="iw-18 ih-18"/>
                 ) : (
                   <SvgIconCommon iconName={data.iconName ? data.iconName : ""} className="iw-18 ih-18"/>
                 )}
@@ -47,6 +82,9 @@ const ProfileAbout: React.FC = () => {
           ))}
         </ul>
       </div>
+      {isOwnProfile && (
+        <PersonalInformationModal isOpen={isOpen} toggle={toggle} userProfile={userProfile} onUpdateProfile={handleProfileUpdate}/>
+      )}
     </div>
   );
 };

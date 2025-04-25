@@ -3,7 +3,12 @@ import { ImagePath } from "../../../utils/constant";
 import UserData from "@/layout/ProfileLayout/UserData";
 import Image from "next/image";
 import SmallDeviceSection from "./SmallDeviceSection";
-const FriendSectionPageCover: React.FC = () => {
+import { useSession } from "next-auth/react";
+
+const FriendSectionPageCover = () => {
+  // const { data: session } = useSession();
+  // const userProfile = session?.user;
+  // console.log(session);
   return (
     <>
       <div className="profile-cover bg-size blur-up lazyloaded">
@@ -22,9 +27,9 @@ const FriendSectionPageCover: React.FC = () => {
             </div>
             <div className="profile-detail">
               <h2>
-                kelin jasen <span>❤</span>
+                {/* {userProfile?.name} <span>❤</span> */}
               </h2>
-              <h5>kelin.jasen156@gmail.com</h5>
+              {/* <h5>{userProfile?.email}</h5> */}
               <UserData />
             </div>
           </div>

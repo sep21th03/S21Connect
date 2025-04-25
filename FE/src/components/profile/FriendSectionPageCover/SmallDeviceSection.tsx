@@ -22,7 +22,7 @@ const SmallDeviceSection: React.FC = () => {
             <h2>
               kelin jasen <span>❤</span>
             </h2>
-            <h5>kelin.jasen156@gmail.com</h5>
+            {/* <h5>kelin.jasen156@gmail.com</h5> */}
             <UserData />
           </div>
         </div>

@@ -3,15 +3,16 @@ import { profileMenuData } from "@/Data/Layout";
 import Link from "next/link";
 import React, { FC } from "react";
 import { Input } from "reactstrap";
-import { ProfileMenuInterFace } from "../LayoutTypes";
+import { ProfileMenuInterFaceCustom } from "../LayoutTypes";
 
-const ProfileMenu: FC<ProfileMenuInterFace> = ({title}) => {
+
+const ProfileMenu: FC<ProfileMenuInterFaceCustom> = ({title, username}) => {
   return (
     <div className="profile-menu section-t-space">
       <ul>
         {profileMenuData.map((data, index) => (
           <li className={`${data.name === title  ? "active":""} ${data.name === "acitivity feed" ?"d-xl-none d-inline-block":""}`} key={index}>
-            <Link href={data.navigate}>
+            <Link href={data.navigate + "/" + username}>
               <DynamicFeatherIcon iconName={data.icon} className="iw-14 ih-14"/>
               <h6>{data.name}</h6>
             </Link>
