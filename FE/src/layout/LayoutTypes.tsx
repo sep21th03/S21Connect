@@ -1,3 +1,4 @@
+import { FullUserProfile } from "@/utils/interfaces/user";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 
 export interface UserMenuDataInterFace {
@@ -24,7 +25,7 @@ export interface HorizontalSidebarInterFace {
   children?: ReactNode;
   toggleMenu?: boolean;
   toggleSideBar?: () => void;
-  loaderName?:string
+  loaderName?: string;
 }
 export interface CommonLayoutProps {
   mainClass?: string;
@@ -34,8 +35,8 @@ export interface CommonLayoutProps {
   showFullSideBar?: boolean;
   HideConversationPanel?: boolean;
   ConversationPanelClassName?: string;
-  loaderName?:string
-  differentLogo?:string
+  loaderName?: string;
+  differentLogo?: string;
 }
 
 export interface CommonLayoutHeaderInterFace {
@@ -47,8 +48,8 @@ export interface CommonLayoutSideBarInterFace {
 }
 export interface FavoriteLayoutProps {
   children: ReactNode;
-  FavoriteTabs?:ReactNode
-  loaderName:string
+  FavoriteTabs?: ReactNode;
+  loaderName: string;
 }
 
 export interface NotificationListsProps {
@@ -76,10 +77,20 @@ export interface ThemeSettingsInterFace {
 }
 
 export interface SingleData {
-  id: number;
+  id: string;
   name: string;
   image: string;
   message: string[];
+}
+
+export interface OnlineUser {
+  id: string;
+  name: string;
+  username: string;
+  avatar?: string;
+  socketId?: string;
+  lastActive?: Date;
+  status: string;
 }
 
 export interface ConversationPanelInterFace {
@@ -88,21 +99,39 @@ export interface ConversationPanelInterFace {
 export interface ProfileLayoutInterFace {
   children: ReactNode;
   title?: string;
-  profileTab?:boolean
-  loaderName:string
+  profileTab?: boolean;
+  loaderName: string;
 }
 
 export interface ProfileMenuInterFace {
   title: string;
 }
 
+export interface ProfileMenuInterFaceCustom {
+  title: string;
+  username: string;
+}
+export interface ModalUserInterFace {
+  isOpen: boolean;
+  updateBackGround?: boolean;
+  toggle: () => void;
+  userProfile: FullUserProfile | null;
+}
 export interface ModalInterFace {
   isOpen: boolean;
-  updateBackGround?:boolean
+  updateBackGround?: boolean;
   toggle: () => void;
 }
+
 export interface UserProfileInterFace {
   toggle: () => void;
+  userProfile: FullUserProfile | null;
+  isOwnProfile: boolean;
+}
+
+export interface UserEditInterFace {
+  userProfile: FullUserProfile | null;
+  onUpdateProfile: (updatedUserProfile: FullUserProfile) => void;
 }
 
 export interface TabPaneInterFace {
@@ -118,20 +147,21 @@ export interface SinglePhotosInterFace {
 export interface UserDropDownInterFace {
   dropDownOpen: boolean;
   toggleDropDown: () => void;
+  isOwnProfile: boolean;
 }
 
-export interface CompanyLayoutInterFace{
-  children:ReactNode
-  title:string
-  activeNav?:string
-} 
+export interface CompanyLayoutInterFace {
+  children: ReactNode;
+  title: string;
+  activeNav?: string;
+}
 
-export interface  CompanyHomeSectionInterFace {
-  title:string
+export interface CompanyHomeSectionInterFace {
+  title: string;
 }
 
 export interface CompanyHeaderInterFace {
-  activeNav?:string
+  activeNav?: string;
 }
 
 export interface LoadingLoaderProps {
@@ -140,7 +170,12 @@ export interface LoadingLoaderProps {
 
 export interface commonInterFace {
   closeFriendsData: SingleData[];
-  recentChats?:boolean;
+  recentChats?: boolean;
 }
 
-export interface HoverMessageProps {imagePath:string,name:string,target: string;placement: "right"|"top";}
+export interface HoverMessageProps {
+  imagePath: string;
+  name: string;
+  target: string;
+  placement: "right" | "top";
+}

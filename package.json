@@ -1,0 +1,30 @@
+{
+  "name": "s21",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:websockets\" \"npm run dev:frontend\"",
+    "dev:api": "cd BE && php artisan serve --host=127.0.0.1 --port=8000",
+    "dev:websockets": "cd BE && php artisan websockets:serve",
+    "dev:frontend": "cd FE && npm run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sep21th03/S21Connect.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sep21th03/S21Connect/issues"
+  },
+  "homepage": "https://github.com/sep21th03/S21Connect#readme",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1"
+  }
+}

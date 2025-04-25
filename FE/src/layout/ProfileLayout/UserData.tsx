@@ -1,15 +1,18 @@
-import { profileUserData } from "@/Data/Layout";
 import { FC } from "react";
 
-const UserData: FC = () => {
+const UserData: FC<{ userData: { followers: number; following: number; friends: number } }> = ({ userData }) => {
+  const displayData = [
+    { title: "Following", value: userData?.following },
+    { title: "Followers", value: userData?.followers },
+    { title: "Friends", value: userData?.friends },
+  ];
+
   return (
     <div className="counter-stats">
       <ul>
-        {profileUserData.map((data, index) => (
+        {displayData.map((data, index) => (
           <li key={index}>
-            <h3 className="counter-value" data-count={546}>
-              {data.value}
-            </h3>
+            <h3 className="counter-value">{data.value}</h3>
             <h5>{data.title}</h5>
           </li>
         ))}

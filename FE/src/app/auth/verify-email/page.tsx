@@ -19,8 +19,6 @@ const VerifyEmailPage: NextPage = () => {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("id", id);
-    console.log("hash", hash);
     if (id && hash) {
       const verifyEmail = async () => {
         try {
@@ -28,8 +26,7 @@ const VerifyEmailPage: NextPage = () => {
                 expires: String(expires),
                 signature: String(signature),
               });
-              console.log(axiosInstance);
-          const res = await axiosInstance.get(`/email/verify/${id}/${hash}?${params}`);
+          const res = await axiosInstance.get(`/auth/email/verify/${id}/${hash}?${params}`);
           setLoading(false);
           setMessage(res.data.message);
         } catch (error: any) {
