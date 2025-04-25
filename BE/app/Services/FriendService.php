@@ -186,22 +186,4 @@ class FriendService
         return count(array_intersect($friendsOfUser1, $friendsOfUser2));
     }
 
-    public function getListFriend($userId)
-    {
-       $listFriend = Friendship::where('user_id', $userId)
-            ->where('status', 'accepted')
-            ->orWhere(function ($query) use ($userId) {
-                $query->where('friend_id', $userId)
-                    ->where('status', 'accepted');
-            })
-            ->get()
-            ->map(function ($friendship) use ($userId) {
-                return $friendship->user_id === $userId
-                    ? $friendship->friend_id
-                    : $friendship->user_id;
-            })
-            ->toArray();
-
-        return User::whereIn('id', $listFriend)->get();
-    }
 }

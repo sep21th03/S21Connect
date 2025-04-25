@@ -26,7 +26,7 @@ const VerifyEmailPage: NextPage = () => {
                 expires: String(expires),
                 signature: String(signature),
               });
-          const res = await axiosInstance.get(`/email/verify/${id}/${hash}?${params}`);
+          const res = await axiosInstance.get(`/auth/email/verify/${id}/${hash}?${params}`);
           setLoading(false);
           setMessage(res.data.message);
         } catch (error: any) {

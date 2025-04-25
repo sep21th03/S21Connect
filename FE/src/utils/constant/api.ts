@@ -57,8 +57,9 @@ export const API_ENDPOINTS = {
   },
 
   USERS: {
-    BASE: "/users",
+    BASE: "/user",
     HOVER_CARD: (userId: string) => `/${userId}/hovercard`,
-    LIST_FRIENDS: (userId: string) => `/${userId}/friends`,
+    LIST_FRIENDS: (userId: string) => `/${userId}/list_friends`,
+    ONLINE_USERS: (userId: string) => `/${userId}/friends`,
   },
 };

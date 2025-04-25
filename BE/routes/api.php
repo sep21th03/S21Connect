@@ -46,6 +46,10 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
     });
 
+
+    //user
+    Route::get('/user', [UserController::class, 'me']);
+
     //post
     Route::prefix('posts')->group(function () {
         // 📌 Post resource
@@ -102,8 +106,12 @@ Route::middleware(['auth:api'])->group(function () {
     });
 
     //hovercard
-    Route::get('/users/{userId}/hovercard', [UserController::class, 'hoverCardData']);
-    Route::get('/users/{userId}/friends', [FriendController::class, 'getListFriend']);
+
+    Route::prefix('user')->group(function () {
+        Route::get('{userId}/hovercard', [UserController::class, 'hoverCardData']);
+        Route::get('{userId}/list_friends', [UserController::class, 'getListFriend']);
+        Route::get('{userId}/friends', [UserController::class, 'getFriendsWithMutualCount']);
+    });
     // Route::get('/profile/{id}', [Controller::class, 'getProfile'])->middleware('check.blocked');
     // Route::get('/messages/{id}', [Controller::class, 'getMessages'])->middleware('check.blocked');
 });

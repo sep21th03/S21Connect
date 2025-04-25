@@ -59,10 +59,5 @@ class FriendController extends Controller
         return response()->json($mutualFriends);
     }
 
-    public function getListFriend($userId)
-    {
-        $friendList = $this->friendService->getListFriend($userId);
-
-        return response()->json($friendList);
-    }
+ 
 }

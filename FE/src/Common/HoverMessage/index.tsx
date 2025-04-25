@@ -1,4 +1,3 @@
-// HoverMessage.tsx
 import { FC } from "react";
 import { UncontrolledPopover, PopoverBody, Media } from "reactstrap";
 import Image from "next/image";
@@ -10,11 +9,12 @@ interface HoverMessageProps {
     id?: string;
     first_name?: string;
     last_name?: string;
+    name?: string;
     avatar?: string;
-    mutualFriends?: number;
-    location?: string;
-    email?: string;
+    mutual_friends_count?: number;
     status?: string;
+    email?: string;
+    location?: string;
   };
   target: string;
   placement: "right" | "top" | "bottom" | "left";
@@ -31,9 +31,32 @@ const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePat
 
   if (!data) return null;
   
-  const fullName = data.first_name && data.last_name 
-    ? `${data.first_name} ${data.last_name}`
-    : data.email || "User";
+  // Xử lý tên đầy đủ từ các nguồn khác nhau
+  const fullName = data.name || 
+    (data.first_name && data.last_name 
+      ? `${data.first_name} ${data.last_name}`
+      : data.email || "User");
+  
+  // Tính thời gian hoạt động cuối
+  const lastActive = data.lastActive ? new Date(data.lastActive) : null;
+  const getLastActiveText = () => {
+    if (!lastActive) return "";
+    
+    const now = new Date();
+    const diffMs = now.getTime() - lastActive.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return "vừa hoạt động";
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} ngày trước`;
+  };
+  
+  const lastActiveText = data.status === "online" ? "Đang hoạt động" : getLastActiveText();
     
   return (
     <UncontrolledPopover 
@@ -56,6 +79,18 @@ const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePat
           </div>
           <Media body>
             <h4>{fullName}</h4>
+            {lastActiveText && (
+              <h6 className="last-active">
+                <Image 
+                  height={15} 
+                  width={15} 
+                  src={`${SvgPath}/clock.svg`} 
+                  className="img-fluid" 
+                  alt="last active" 
+                />
+                {lastActiveText}
+              </h6>
+            )}
             <h6>
               <Image 
                 height={15} 
@@ -64,18 +99,20 @@ const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePat
                 className="img-fluid" 
                 alt="mutual friends" 
               />
-              {data.mutualFriends || 0} bạn chung
+              {data.mutual_friends_count || 0} bạn chung
             </h6>
-            <h6>
-              <Image 
-                height={15} 
-                width={15} 
-                src={`${SvgPath}/map-pin.svg`} 
-                className="img-fluid" 
-                alt="location" 
-              />
-              {data.location || "Không có thông tin"}
-            </h6>
+            {data.location && (
+              <h6>
+                <Image 
+                  height={15} 
+                  width={15} 
+                  src={`${SvgPath}/map-pin.svg`} 
+                  className="img-fluid" 
+                  alt="location" 
+                />
+                {data.location}
+              </h6>
+            )}
             {data.email && (
               <h6>
                 <Image 

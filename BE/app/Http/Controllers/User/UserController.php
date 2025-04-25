@@ -29,4 +29,28 @@ class UserController extends Controller
 
         return response()->json($data);
     }
+
+    public function me(Request $request)
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'id'         => $user->id,
+            'username'   => $user->username,
+        ]);
+    }
+
+    public function getListFriend($userId)
+    {
+        $friendList = $this->userService->getListFriend($userId);
+
+        return response()->json($friendList);
+    }
+
+    public function getFriendsWithMutualCount($userId)
+    {
+        $listFriend = $this->userService->getFriendsWithMutualCount($userId);
+
+        return response()->json($listFriend);
+    }
 }

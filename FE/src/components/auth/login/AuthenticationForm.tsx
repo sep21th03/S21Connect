@@ -103,7 +103,7 @@ const AuthenticationForm: React.FC = () => {
           </label>
         </div> */}
         <a
-          href="/auth/forget-password"
+          href="/auth/verify-email"
           className="forget-password"
           style={{ marginLeft: "0" }}
         >
