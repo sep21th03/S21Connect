@@ -158,4 +158,26 @@ class ProfileController extends Controller
             ], 500);
         }
     }
+
+    public function updateAvatar(Request $request): JsonResponse
+    {
+        try {
+            $userId = Auth::id();
+            $data = $request->validate([
+                'avatar' => 'required|url',
+            ]);
+
+            $profile = $this->profileService->updateAvatar($userId, $data['avatar']);
+
+            return response()->json([
+                'message' => 'Cập nhật ảnh đại diện thành công',
+                'data' => $profile
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi cập nhật ảnh đại diện',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

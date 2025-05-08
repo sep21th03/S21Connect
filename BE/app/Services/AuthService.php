@@ -32,11 +32,12 @@ class AuthService
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+        $refreshToken = JWTAuth::fromUser(Auth::user());
         $user = Auth::user();
         if (is_null($user->email_verified_at)) {
             return response()->json(['error' => 'Email chưa được xác minh'], 403);
         }
-        return response()->json(['token' => $token]);
+        return response()->json(['token' => $token, 'refresh_token' => $refreshToken, 'expires_in' => JWTAuth::factory()->getTTL() * 60]);
     }
 
     public function verifyEmail($email)

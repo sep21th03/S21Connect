@@ -157,4 +157,18 @@ class ProfileService
             throw $e;
         }
     }
+
+    public function updateAvatar($userId, $avatarUrl)
+    {
+        try {
+            $user = User::findOrFail($userId);
+            $user->avatar = $avatarUrl;
+            $user->save();
+
+            return $user;
+        } catch (\Exception $e) {
+            Log::error('Avatar update failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 }

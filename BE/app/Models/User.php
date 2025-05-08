@@ -37,6 +37,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'birthday',
         'avatar',
         'cover_photo',
+        'last_active',
     ];
 
     /**
@@ -77,6 +78,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             'first_name' => $this->first_name,
             'last_name'  => $this->last_name,
             'is_admin'   => $this->is_admin,
+            'avatar'     => $this->avatar,
         ];
     }
 
@@ -91,6 +93,23 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     }
 
     // Relationships
+
+
+    public function messagesSent()
+    {
+        return $this->hasMany(Messenger::class, 'sender_id');
+    }
+
+    public function messagesReceived()
+    {
+        return $this->hasMany(Messenger::class, 'receiver_id');
+    }
+
+    public function groups()
+    {
+        return $this->belongsToMany(ChatGroup::class, 'chat_group_user', 'user_id', 'group_id');
+    }
+
     public function profile()
     {
         return $this->hasOne(UserProfile::class);

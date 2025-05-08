@@ -7,7 +7,7 @@ import Link from "next/link";
 import { FC } from "react";
 import { Media } from "reactstrap";
 import { LogOut } from "../../../utils/constant";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 import { logout } from "@/redux-toolkit/slice/authSlice";
 import { useAppDispatch } from "@/redux-toolkit/hooks";
 
@@ -15,9 +15,9 @@ interface UserProfileMenuProps {
   username: string;
 }
 
-const UserProfileMenu: FC<UserProfileMenuProps> = () => {
-  const { data: session } = useSession();
-  const username = session?.user?.username || "User";
+const UserProfileMenu: FC<UserProfileMenuProps> = ({username}) => {
+  // const { data: session } = useSession();
+  // const username = session?.user?.username || "User";
   const dispatch = useAppDispatch();
   const handleLogOut = () => {
     dispatch(logout());

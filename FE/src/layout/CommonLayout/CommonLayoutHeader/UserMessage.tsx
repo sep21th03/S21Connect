@@ -2,26 +2,44 @@ import { userMessageData } from "@/Data/Layout";
 import { Href, ImagePath } from "../../../utils/constant";
 import Image from "next/image";
 import { Media } from "reactstrap";
+import { SingleUser } from "@/components/Messenger/MessengerType";
 
-const UserMessage = () => {
+const UserMessage = ({
+  userList,
+  onlineUsers,
+  onUserClick,
+}: {
+  userList: SingleUser[] | null;
+  onlineUsers: string[];
+  onUserClick: (user: SingleUser) => void;
+}) => {
   return (
     <div className="dropdown-content">
       <ul className="friend-list">
-        {userMessageData.map((data, index) => (
+        {userList?.map((data, index) => (
           <li key={index}>
-            <a href={Href}>
+            <a href={Href} onClick={() => onUserClick(data)}>
               <Media>
-                <Image width={40} height={40} src={`${ImagePath}/user-sm/${index + 1}.jpg`} alt="user"/>
+                <Image
+                  width={40}
+                  height={40}
+                  src={`${ImagePath}/user-sm/${index + 1}.jpg`}
+                  alt="user"
+                />
                 <Media body>
+                  <h5 className="mt-0">{data.name}</h5>
                   <div>
-                    <h5 className="mt-0">{data.name}</h5>
-                    <h6>{data.message}</h6>
+                    {data.id === data.latest_Messenger?.sender_id ? (
+                      <h6>{data.latest_Messenger?.content}</h6>
+                    ) : (
+                      <h6>Bạn: {data.latest_Messenger?.content}</h6>
+                    )}
                   </div>
                 </Media>
               </Media>
-              {data.status && (
+              {onlineUsers.includes(data.id) && (
                 <div className="active-status">
-                  <span className={data.status} />
+                  <span className="active" />
                 </div>
               )}
             </a>

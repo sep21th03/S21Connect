@@ -14,15 +14,11 @@ import { useSocket } from "@/hooks/useSocket";
 
 const MAX_DISPLAY_USERS = 20;
 
-const CloseFriends: FC<commonInterFace> = ({
-  closeFriendsData,
-  recentChats,
-}) => {
+const CloseFriends = () => {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(true);
   const [selectedUser, setSelectedUser] = useState<SingleData | null>(null);
   const [chatBox, setChatBox] = useState(false);
-  const [userName, setUserName] = useState(closeFriendsData);
   const mobileSize = useMobileSize();
   const [listFriends, setListFriends] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +37,6 @@ const CloseFriends: FC<commonInterFace> = ({
       const data = await axiosInstance.get<{ friends: OnlineUser[] }>(
         API_ENDPOINTS.USERS.BASE + API_ENDPOINTS.USERS.ONLINE_USERS(userId)
       );
-      console.log(data.data);
       setListFriends(data.data);
     } catch (error) {
       console.error("Failed to fetch friends:", error);
@@ -108,7 +103,6 @@ const CloseFriends: FC<commonInterFace> = ({
         setSelectedUser({
           ...selectedUser,
           ...updatedUser,
-          message: selectedUser.message // Giữ lại tin nhắn
         });
       }
     }
@@ -119,7 +113,6 @@ const CloseFriends: FC<commonInterFace> = ({
     const chatUser: SingleData = {
       ...user,
       image: user.avatar || 'default',
-      message: [] // Khởi tạo mảng tin nhắn trống
     };
     
     setSelectedUser(chatUser);
@@ -194,8 +187,6 @@ const CloseFriends: FC<commonInterFace> = ({
           <ChatBoxCommon
             setChatBox={setChatBox}
             data={selectedUser}
-            setUserName={setUserName}
-            userName={userName}
           />
         )}
       </Collapse>

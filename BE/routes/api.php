@@ -12,6 +12,9 @@ use App\Http\Controllers\User\BlockController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\Post\ProfilePostController;
 use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\Messenger\MessengerController;
+use App\Http\Controllers\Messenger\ChatGroupController;
+use App\Http\Controllers\Image\ImageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,12 +41,12 @@ Route::prefix('auth')->group(function () {
         ->name('verification.verify');
 
     Route::post('/email/resend', [AuthController::class, 'verifyEmail'])->name('verification.notice');
+    Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
 });
 
 Route::middleware(['auth:api'])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
-        Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
     });
 
 
@@ -103,6 +106,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/{userId}/posts', [ProfilePostController::class, 'getProfilePosts']);
         Route::post('/about/info', [ProfileController::class, 'updateProfileAbout']);
         Route::get('/user/data/{id}', [FriendController::class, 'getFriendStats']);
+        Route::post('/user/avatar', [ProfileController::class, 'updateAvatar']);
     });
 
     //hovercard
@@ -110,7 +114,54 @@ Route::middleware(['auth:api'])->group(function () {
     Route::prefix('user')->group(function () {
         Route::get('{userId}/hovercard', [UserController::class, 'hoverCardData']);
         Route::get('{userId}/list_friends', [UserController::class, 'getListFriend']);
+        Route::get('{userId}/list_friends_limit', [UserController::class, 'getListFriendLimit']);
         Route::get('{userId}/friends', [UserController::class, 'getFriendsWithMutualCount']);
+        Route::post('/update-last-active', [UserController::class, 'updateLastActive']);
+    });
+
+    //messenger
+    Route::prefix('messages')->group(function () {
+        Route::post('/send', [MessengerController::class, 'send']);
+        Route::post('/mark-as-read', [MessengerController::class, 'markAsRead']);
+        Route::get('/conversation', [MessengerController::class, 'getConversation']);
+        Route::get('/recent-conversations', [MessengerController::class, 'getRecentConversations']);
+    });
+
+    //image
+    Route::prefix('images')->group(function () {
+        Route::post('/upload', [ImageController::class, 'store']);
+        Route::get('/{id}', [ImageController::class, 'show']);
+        Route::delete('/{id}', [ImageController::class, 'destroy']);
+        Route::get('/', [ImageController::class, 'index']);
+    });
+
+
+    Route::prefix('chat-groups')->group(function () {
+        Route::post('/', [ChatGroupController::class, 'create']);
+
+        // Lấy thông tin nhóm
+        Route::get('/{id}', [ChatGroupController::class, 'show']);
+
+        // Cập nhật thông tin nhóm
+        Route::put('/{id}', [ChatGroupController::class, 'update']);
+
+        // Thêm thành viên vào nhóm
+        Route::post('/{id}/add-members', [ChatGroupController::class, 'addMembers']);
+
+        // Xoá thành viên khỏi nhóm
+        Route::post('/{id}/remove-members', [ChatGroupController::class, 'removeMembers']);
+
+        // Rời nhóm
+        Route::post('/{id}/leave', [ChatGroupController::class, 'leaveGroup']);
+
+        // Chuyển quyền chủ nhóm
+        Route::post('/{id}/transfer-ownership', [ChatGroupController::class, 'transferOwnership']);
+
+        // Xoá nhóm
+        Route::delete('/{id}', [ChatGroupController::class, 'delete']);
+
+        // Lấy danh sách nhóm của người dùng
+        Route::get('/', [ChatGroupController::class, 'getUserGroups']);
     });
     // Route::get('/profile/{id}', [Controller::class, 'getProfile'])->middleware('check.blocked');
     // Route::get('/messages/{id}', [Controller::class, 'getMessages'])->middleware('check.blocked');

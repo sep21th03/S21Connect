@@ -80,8 +80,8 @@ export interface SingleData {
   id: string;
   name: string;
   image: string;
-  message: string[];
 }
+
 
 export interface OnlineUser {
   id: string;
@@ -119,7 +119,7 @@ export interface ModalUserInterFace {
 }
 export interface ModalInterFace {
   isOpen: boolean;
-  updateBackGround?: boolean;
+  updateBackGround?: (url: string) => void | undefined | null;
   toggle: () => void;
 }
 
@@ -136,12 +136,14 @@ export interface UserEditInterFace {
 
 export interface TabPaneInterFace {
   handleImageUrl: (val: string) => void;
+  userid: string;
 }
 
 export interface SinglePhotosInterFace {
   showPhotos: boolean;
   setShowPhotos: (value: boolean) => void;
   handleImageUrl: (value: string) => void;
+  userid: string;
 }
 
 export interface UserDropDownInterFace {

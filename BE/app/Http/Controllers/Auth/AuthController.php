@@ -45,10 +45,13 @@ class AuthController extends Controller
         return response()->json(['message' => 'Đăng xuất thành công!']);
     }
 
-    public function refreshToken()
+    public function refreshToken(Request $request): JsonResponse
     {
         try {
-            $newToken = JWTAuth::refresh(JWTAuth::getToken());
+            $refreshToken = $request->input('refresh_token');
+
+
+            $newToken = JWTAuth::refresh($refreshToken);
 
             return response()->json([
                 'token'   => $newToken,

@@ -48,14 +48,14 @@ export const authoption: NextAuthOptions = {
 
           if (data && data.token) {
             const decodedToken = jwtDecode<JWT>(data.token);
-
             return {
               id: decodedToken.sub,
               email: decodedToken.email,
               name: `${decodedToken.first_name} ${decodedToken.last_name}`,
               username: decodedToken.username,
               token: data.token,
-              image: null,
+              refreshToken: data.refresh_token,
+              image: decodedToken.avatar,
             };
           }
 
@@ -85,8 +85,10 @@ export const authoption: NextAuthOptions = {
         token.email = user.email;
         token.token = user.token;
         token.username = user.username;
+        token.refreshToken = user.refreshToken;
+        token.image = user.image;
       }
-     
+
       return token;
     },
     async session({ session, token }) {
@@ -95,6 +97,8 @@ export const authoption: NextAuthOptions = {
         session.user.email = token.email as string;
         session.user.username = token.username as string;
         session.token = token.token as string;
+        session.refreshToken = token.refreshToken as string;
+        session.user.image = token.image as string;
       }
       return session;
     },

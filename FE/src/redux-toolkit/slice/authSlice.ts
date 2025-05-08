@@ -11,19 +11,11 @@ import { getSession } from "next-auth/react";
 import { io, Socket } from "socket.io-client";
 import { toast } from "react-toastify";
 
-// export const setSocketConnection = createAction<Socket>(
-//   "auth/setSocketConnection"
-// );
-// export const updateOnlineUsers = createAction<any[]>("user/updateOnlineUsers");
-// export const updateUserStatus = createAction<{
-//   userId: string;
-//   status: string;
-//   username: string;
-// }>("user/updateUserStatus");
 
 let socket: Socket | null = null;
 
 const TOKEN_COOKIE_NAME = "auth_token";
+const REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 const COOKIE_EXPIRES = 7;
 
 interface AuthState {
@@ -54,12 +46,25 @@ const saveTokenToCookies = (token: string) => {
   Cookies.set(TOKEN_COOKIE_NAME, token, { expires: COOKIE_EXPIRES });
 };
 
+const saveRefreshTokenToCookies = (refreshToken: string) => {
+  Cookies.set(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
+    expires: COOKIE_EXPIRES,
+  });
+};
+
+export { saveTokenToCookies, saveRefreshTokenToCookies };
+
 export const removeTokenFromCookies = () => {
   Cookies.remove(TOKEN_COOKIE_NAME);
+  Cookies.remove(REFRESH_TOKEN_COOKIE_NAME);
 };
 
 export const getAuthToken = () => {
   return Cookies.get(TOKEN_COOKIE_NAME);
+};
+
+export const getRefreshToken = () => {
+  return Cookies.get(REFRESH_TOKEN_COOKIE_NAME);
 };
 
 export const login = createAsyncThunk<
@@ -81,38 +86,12 @@ export const login = createAsyncThunk<
     if (result?.ok) {
       const session = await getSession();
       const token = (session as any)?.token;
-
+      const refreshToken = (session as any)?.refreshToken;
       if (token) {
         saveTokenToCookies(token);
-
-        // if (socket) socket.disconnect();
-
-        // socket = io("http://localhost:3001", {
-        //   auth: { token },
-        //   reconnection: true,
-        //   reconnectionAttempts: 5,
-        // });
-
-        // socket.on("online_users_list", (users) => {
-        //   console.log("Online users:", users);
-        //   dispatch(updateOnlineUsers(users));
-        // });
-
-        // socket.on("user_status_changed", (data) => {
-        //   console.log("User status changed:", data);
-        //   dispatch(updateUserStatus(data));
-        // });
-
-        // socket.emit("get_online_users");
-
-        // // Xử lý lỗi kết nối
-        // socket.on("connect_error", (error) => {
-        //   console.log("Socket connection error:", error);
-        //   toast?.error?.("Không thể kết nối đến máy chủ real-time");
-        // });
-
-        // // Lưu socket vào redux state
-        // dispatch(setSocketConnection(socket));
+      }
+      if (refreshToken) {
+        saveRefreshTokenToCookies(refreshToken);
       }
       return { success: true, url: result.url };
     }
@@ -162,9 +141,6 @@ const authSlice = createSlice({
     setAuthenticated: (state, action: PayloadAction<boolean>) => {
       state.isAuthenticated = action.payload;
     },
-    // setSocket: (state, action: PayloadAction<Socket | null>) => {
-    //   state.socket = action.payload as any; // Type assertion to bypass readonly issue
-    // },
   },
   extraReducers: (builder) => {
     builder
@@ -181,13 +157,10 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      // .addCase(setSocketConnection, (state, action) => {
-      //   state.socket = action.payload as any;
-      // })
+
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
-        // state.socket = null;
       });
   },
 });
