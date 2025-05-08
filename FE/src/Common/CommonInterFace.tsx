@@ -106,6 +106,7 @@ export interface AlbumInterFace {
   lg?:number
   xl?:number
   setShowPhotos: (value: boolean) => void;
+  userid: string;
 }
 
 export interface DetailGalleryInterFace {

@@ -19,9 +19,11 @@ interface HoverMessageProps {
   target: string;
   placement: "right" | "top" | "bottom" | "left";
   imagePath: string;
+  onMessageClick: () => void;
+  onFriendRequestClick: () => void;
 }
 
-const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePath }) => {
+const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePath, onMessageClick, onFriendRequestClick }) => {
   // Suppress ReactStrap deprecated warnings
   const error = console.error;
   console.error = (...args: any) => {
@@ -38,7 +40,7 @@ const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePat
       : data.email || "User");
   
   // Tính thời gian hoạt động cuối
-  const lastActive = data.lastActive ? new Date(data.lastActive) : null;
+  const lastActive = data.last_active ? new Date(data.last_active) : null;
   const getLastActiveText = () => {
     if (!lastActive) return "";
     
@@ -55,9 +57,8 @@ const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePat
     const diffDays = Math.floor(diffHours / 24);
     return `${diffDays} ngày trước`;
   };
-  
   const lastActiveText = data.status === "online" ? "Đang hoạt động" : getLastActiveText();
-    
+
   return (
     <UncontrolledPopover 
       trigger="hover" 
@@ -72,7 +73,7 @@ const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePat
               height={60} 
               width={60} 
               className="img-fluid user-img" 
-              src={`${ImagePath}/${imagePath}`} 
+              src={imagePath ? imagePath : `${ImagePath}/user-sm/1.jpg`}
               alt={fullName} 
             />
             <span className={`status-indicator ${data.status || "offline"}`} />
@@ -127,7 +128,7 @@ const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePat
             )}
           </Media>
         </Media>
-        <ButtonPopover />
+        <ButtonPopover onMessageClick={onMessageClick} onFriendRequestClick={onFriendRequestClick} />
       </PopoverBody>
     </UncontrolledPopover>
   );

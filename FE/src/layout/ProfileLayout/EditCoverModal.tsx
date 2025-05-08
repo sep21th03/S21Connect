@@ -11,17 +11,16 @@ import CustomImage from "@/Common/CustomImage";
 import { FullUserProfile } from "@/utils/interfaces/user";  
 import {API_ENDPOINTS} from "@/utils/constant/api";
 import axiosInstance from "@/utils/axiosInstance";
+import Image from "next/image";
 
 interface EditCoverModalProps extends ModalUserInterFace {
   userProfile: FullUserProfile;
   onUpdateProfile: (updatedUserProfile: FullUserProfile) => void;
 }
-
 const EditCoverModal: FC<EditCoverModalProps> = ({ isOpen, toggle, userProfile, onUpdateProfile }) => {
   const [updateImage, setUpdateImage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [updatedProfile, setUpdatedProfile] = useState<FullUserProfile>(userProfile);
-  
   const updateToggleImage = () => {setUpdateImage(!updateImage)};
   
   const handleEdit = () => {
@@ -76,10 +75,12 @@ const EditCoverModal: FC<EditCoverModalProps> = ({ isOpen, toggle, userProfile, 
               <div className="edit-content">
                 <div className="profile-pic">
                   <div className="bg-size blur-up lazyloaded">
-                    <CustomImage
-                      src={`${ImagePath}/${imageLink}`}
-                      className="img-fluid blur-up lazyload bg-img"
+                    <Image
+                      src={userProfile?.user?.avatar ? userProfile.user.avatar : `${ImagePath}/user-sm/1.jpg`}
+                      className="img-fluid lazyload bg-img rounded-circle"
                       alt=""
+                      width={100}
+                      height={100}
                     />
                   </div>
                   <a href={Href} onClick={handleEdit}>

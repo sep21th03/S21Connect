@@ -85,6 +85,65 @@ class UserService
         return User::whereIn('id', $listFriend)->get();
     }
 
+    public function getListFriendLimit($userId, $limit = 20)
+    {
+        $userFriendIds = Friendship::where('status', 'accepted')
+            ->where(function ($q) use ($userId) {
+                $q->where('user_id', $userId)
+                    ->orWhere('friend_id', $userId);
+            })
+            ->pluck('user_id', 'friend_id')
+            ->flatMap(function ($item, $key) use ($userId) {
+                return [$item, $key];
+            })
+            ->filter(fn($id) => $id != $userId)
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $friends = User::select('id', 'first_name', 'last_name', 'avatar')
+            ->whereIn('id', $userFriendIds)
+            ->limit($limit)
+            ->get();
+
+        $friendIds = $friends->pluck('id')->toArray();
+        $allFriendships = Friendship::where('status', 'accepted')
+            ->where(function ($q) use ($friendIds) {
+                $q->whereIn('user_id', $friendIds)
+                    ->orWhereIn('friend_id', $friendIds);
+            })
+            ->get();
+
+        $friendFriendMap = [];
+        foreach ($friendIds as $fid) {
+            $friendFriendMap[$fid] = [];
+        }
+        foreach ($allFriendships as $fs) {
+            $friend_id_1 = $fs->user_id;
+            $friend_id_2 = $fs->friend_id;
+            if (in_array($friend_id_1, $friendIds)) {
+                $friendFriendMap[$friend_id_1][] = $friend_id_2;
+            }
+            if (in_array($friend_id_2, $friendIds)) {
+                $friendFriendMap[$friend_id_2][] = $friend_id_1;
+            }
+        }
+
+        return $friends->map(function ($friend) use ($userFriendIds, $friendFriendMap) {
+            $friendFriends = $friendFriendMap[$friend->id] ?? [];
+            $mutualCount = count(array_intersect($userFriendIds, $friendFriends));
+
+            return [
+                'id' => $friend->id,
+                'name' => "{$friend->first_name} {$friend->last_name}",
+                'avatar' => $friend->avatar ?? null,
+                'mutual_friends_count' => $mutualCount,
+            ];
+        });
+    }
+
+
+
     public function getFriendsWithMutualCount($viewerId)
     {
         // Lấy mảng ID bạn bè của viewer
@@ -128,5 +187,17 @@ class UserService
         });
 
         return $result;
+    }
+
+    public function updateLastActive($data)
+    {
+        $userId = $data['user_id'];
+        $lastActive = $data['last_active'];
+        $user = User::find($userId);
+        if ($user) {
+            $user->last_active = $lastActive;
+            $user->save();
+        }
+        return $user;
     }
 }

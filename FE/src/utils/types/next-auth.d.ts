@@ -16,6 +16,8 @@ export interface JWT {
   last_name: string;  // Họ người dùng
   is_admin: number;   // Quyền admin (1 hoặc 0)
   token: string;      // Token gốc, nếu cần lưu lại
+  refreshToken: string; // Token refresh, nếu cần lưu lại
+  avatar: string;    // URL ảnh đại diện
 }
 
 declare module "next-auth" {
@@ -29,8 +31,10 @@ declare module "next-auth" {
       username: string;
       is_admin: number;
       token: string;
+      image: string;
     };
     token: string;
+    refreshToken: string;
   }
 
   interface User {
@@ -41,5 +45,6 @@ declare module "next-auth" {
     username: string;
     is_admin: number;
     token: string;
+    refreshToken: string;
   }
 }

@@ -47,10 +47,30 @@ class UserController extends Controller
         return response()->json($friendList);
     }
 
+    public function getListFriendLimit($userId)
+    {
+        $friendList = $this->userService->getListFriendLimit($userId);
+
+        return response()->json($friendList);
+    }
+
     public function getFriendsWithMutualCount($userId)
     {
         $listFriend = $this->userService->getFriendsWithMutualCount($userId);
 
         return response()->json($listFriend);
+    }
+
+
+    public function updateLastActive(Request $request)
+    {
+        $data = $request->validate([
+            'last_active' => 'required|date',
+            'user_id' => 'required|uuid|exists:users,id',
+        ]);
+
+        $this->userService->updateLastActive($data);
+
+        return response()->json(['message' => 'Last active updated successfully']);
     }
 }

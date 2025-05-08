@@ -6,6 +6,7 @@ import UserProfileMenu from "./UserProfileMenu";
 import CustomImage from '@/Common/CustomImage';
 import useOutsideDropdown from "@/utils/useOutsideDropdown";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 const UserProfile: FC = () => {
   const { isComponentVisible, ref, setIsComponentVisible } =useOutsideDropdown(false);
@@ -16,11 +17,11 @@ const UserProfile: FC = () => {
         <DynamicFeatherIcon iconName="User" className="icon-light stroke-width-3 d-sm-none d-block iw-16 ih-16"/>
         <Media className="d-none d-sm-flex">
           <div className="user-img bg-size blur-up lazyloaded ">
-            <CustomImage src={session?.user?.image || `${ImagePath}/user-sm/1.jpg`} className="img-fluid blur-up lazyload bg-img" alt="user"  />
+            <Image src={session?.user?.image || `${ImagePath}/user-sm/1.jpg`} className="img-fluid lazyload bg-img rounded-circle" alt="user"  width={50} height={50}/>
             <span className="available-stats online" />
           </div>
           <Media body className="d-none d-md-block">
-            <h4>{session?.user?.name || 'Josephin water'}</h4>
+            <h4>{session?.user?.name}</h4>
             <span>{ActiveNow}</span>
           </Media>
         </Media>
@@ -33,7 +34,7 @@ const UserProfile: FC = () => {
           </div>
         </div>
         <div className="dropdown-content">
-            <UserProfileMenu/>
+          <UserProfileMenu username={`${session?.user.username}`} />
         </div>
       </div>
     </li>
