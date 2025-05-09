@@ -13,6 +13,7 @@ const UserChat: FC<UserChatInterFace> = ({
   setUserList,
   setActiveTab,
   onlineUsers,
+  initialConversationId,
 }) => {
   const [lastActive, setLastActive] = useState<string>("");
   useEffect(() => {
@@ -93,6 +94,7 @@ const UserChat: FC<UserChatInterFace> = ({
       <ChatHistory
         user={user}
         setUserList={setUserList}
+        initialConversationId={initialConversationId}
       />
     </div>
   );

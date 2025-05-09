@@ -13,18 +13,54 @@ export interface User {
 
 export interface Message {
   id: string;
-  content: string;
   sender_id: string;
-  receiver_id?: string;
-  group_id?: string;
+  receiver_id: string;
+  conversation_id: string;
+  group_id: string | null;
+  content: string;
   type: "text" | "image" | "video" | "sticker" | "file";
-  file_paths?: string[];
+  file_paths: string[] | null; 
   is_read: boolean;
-  read_at?: string;
+  read_at: string | null;
   created_at: string;
   updated_at: string;
-  sender?: User;
+  sender: {
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    last_active: string;
+  };
 }
+
+export interface RecentMessage {
+  id: string;
+  username: string;
+  name?: string;
+  count?: number;
+  isOnline?: boolean;
+  conversation_type: "private" | "group";
+  latest_message?: {
+    id: string;
+    content: string;
+    type: string;
+    created_at: string;
+    sender_id: string;
+    is_read: boolean;
+    sender: {
+      id: string;
+      first_name: string;
+      last_name: string;
+      username: string;
+      last_active?: string;
+    };
+  };
+  unread_count?: number;
+  member_count?: number;
+  last_active?: string;
+}
+
+
 
 export function useSocket(onOnlineList: (users: any[]) => void) {
   const socketRef = useRef<Socket | null>(null);
@@ -82,10 +118,10 @@ export function useSocket(onOnlineList: (users: any[]) => void) {
     return true;
   };
 
-  const onNewMessage = (callback: (message: Message) => void) => {
+  const onNewMessage = (callback: (message: RecentMessage) => void) => {
     if (!socket?.connected) return;
 
-    const handleNewMessage = (message: Message) => {
+    const handleNewMessage = (message: RecentMessage) => {
       callback(message);
     };
 

@@ -13,6 +13,7 @@ const CommonChatBox: FC<CommonChatBoxInterFace> = ({
   setUserList,
   setActiveTab,
   onlineUsers,
+  initialConversationId,
 }) => {
   const socialMedias = [
     { link: "https://www.facebook.com/", name: "facebook" },
@@ -36,6 +37,7 @@ const CommonChatBox: FC<CommonChatBoxInterFace> = ({
         setUserList={setUserList}
         setActiveTab={setActiveTab}
         onlineUsers={onlineUsers}
+        initialConversationId={initialConversationId}
       />
       <div className="user-info">
         <div
