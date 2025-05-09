@@ -9,6 +9,7 @@ const ChatContent: FC<ChatContentInterFace> = ({
   setUserList,
   setActiveTab,
   onlineUsers,
+  initialConversationId,
 }) => {
   return (
     <div className="chat-content">
@@ -19,6 +20,7 @@ const ChatContent: FC<ChatContentInterFace> = ({
             setUserList={setUserList}
             setActiveTab={setActiveTab}
             onlineUsers={onlineUsers}
+            initialConversationId={initialConversationId}
           />
         </TabPane>
       </TabContent>

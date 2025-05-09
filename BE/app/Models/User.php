@@ -93,17 +93,59 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     }
 
     // Relationships
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_user')
+            ->withPivot('nickname', 'last_read_at')
+            ->withTimestamps();
+    }
 
-
-    public function messagesSent()
+    public function sentMessages()
     {
         return $this->hasMany(Messenger::class, 'sender_id');
     }
 
-    public function messagesReceived()
+    public function receivedMessages()
     {
         return $this->hasMany(Messenger::class, 'receiver_id');
     }
+
+    public function avatar()
+    {
+        return $this->hasOne(Image::class)->where('type', 'avatar');
+    }
+
+    public function startConversationWith(User $otherUser)
+    {
+        return Conversation::createPrivateConversation($this, $otherUser);
+    }
+
+    public function getDisplayNameInConversation(Conversation $conversation)
+    {
+        $pivot = $conversation->users()
+            ->where('user_id', $this->id)
+            ->first()
+            ->pivot;
+            
+        return $pivot->nickname ?? $this->name;
+    }
+
+    public function markConversationAsRead(Conversation $conversation)
+    {
+        $this->conversations()->updateExistingPivot(
+            $conversation->id,
+            ['last_read_at' => now()]
+        );
+    }
+    // public function messagesSent()
+    // {
+    //     return $this->hasMany(Messenger::class, 'sender_id');
+    // }
+
+    // public function messagesReceived()
+    // {
+    //     return $this->hasMany(Messenger::class, 'receiver_id');
+    // }
 
     public function groups()
     {

@@ -6,30 +6,29 @@ import { Href } from "../../../utils/constant/index";
 import Picker, { EmojiClickData } from "emoji-picker-react";
 import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
-import { Message, useSocket } from "@/hooks/useSocket";
+import { Message, RecentMessage, useSocket } from "@/hooks/useSocket";
 import { useSession } from "next-auth/react";
 import { formatTime } from "@/utils/index";
 
-const ChatHistory: FC<ChatHistoryInterFace> = ({
-  user,
-  setUserList,
-}) => {
+const ChatHistory: FC<ChatHistoryInterFace> = ({ user, setUserList, initialConversationId }) => {
   const [showButton, setShowButton] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { socketRef, joinChat, sendMessage, onNewMessage, leaveChat } =
     useSocket((users) => console.log(users));
   const { data: session } = useSession();
 
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const markMessagesAsRead = async (userId: string, messages: Message[]) => {
     try {
       const unreadMessages = messages.filter(
-        (message) => !message.is_read && message.receiver_id === userId
+        (message) =>
+          (message.is_read) &&
+          message.sender_id === userId
       );
       if (unreadMessages.length > 0) {
         await axiosInstance.post(
@@ -38,7 +37,6 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
             receiver_id: userId,
           }
         );
-
 
         setUserList(
           (prevUsers: SingleUser[] | null) =>
@@ -64,17 +62,22 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
 
       const fetchMessages = async (userId?: string, groupId?: string) => {
         try {
-          let url = `${API_ENDPOINTS.MESSAGES.MESSAGES.BASE}/conversation`;
+          // let url = `${API_ENDPOINTS.MESSAGES.MESSAGES.BASE}/conversation`;
+          let url = `${
+            API_ENDPOINTS.MESSAGES.MESSAGES.BASE
+          }${API_ENDPOINTS.MESSAGES.MESSAGES.GET_MESSAGES(initialConversationId ?? "")}`;
 
-          const params: { [key: string]: string } = {};
-          if (userId) {
-            params.with_user_id = userId;
-          }
-          if (groupId) {
-            params.group_id = groupId;
-          }
+          // const params: { [key: string]: string } = {};
+          // if (userId) {
+          //   params.with_user_id = userId;
+          // }
+          // if (groupId) {
+          //   params.group_id = groupId;
+          // }
 
-          const response = await axiosInstance.get(url, { params });
+          // const response = await axiosInstance.get(url, { params });
+          const response = await axiosInstance.get(url);
+
           setMessages(response.data.data.reverse());
 
           if (userId) {
@@ -93,12 +96,10 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
 
       const cleanup = onNewMessage((message) => {
         if (
-          (message.receiver_id === userId &&
-            message.sender_id === session?.user?.id) ||
-          (message.sender_id === userId &&
-            message.receiver_id === session?.user?.id)
+          message.latest_message?.sender.id === userId ||
+          message.latest_message?.sender.id === session?.user?.id
         ) {
-          setMessages((prevMessages) => [...prevMessages, message]);
+          setMessages((prevMessages) => [...prevMessages, message as RecentMessage]);
         }
       });
 
@@ -150,21 +151,21 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
                 <Fragment key={index}>
                   {data.sender_id === session?.user?.id ? (
                     <div className="message message-personal new">
-                      {data.content}
+                      {data?.content}
                       <div className="timestamp">
-                        {formatTime(data.created_at)}
+                        {formatTime(data.created_at || "")}
                       </div>
                       <div className="checkmark-sent-delivered">✓</div>
-                      <div className="checkmark-read">✓</div>
+                      {data.is_read && <div className="checkmark-read">✓</div>}
                     </div>
                   ) : (
                     <div className="message new">
                       {data.content}
                       <div className="timestamp">
-                        {formatTime(data.created_at)}
+                        {formatTime(data.created_at || "")}
                       </div>
                       <div className="checkmark-sent-delivered">✓</div>
-                      <div className="checkmark-read">✓</div>
+                      {data.is_read && <div className="checkmark-read">✓</div>}
                     </div>
                   )}
                 </Fragment>

@@ -15,6 +15,7 @@ use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Messenger\MessengerController;
 use App\Http\Controllers\Messenger\ChatGroupController;
 use App\Http\Controllers\Image\ImageController;
+use App\Http\Controllers\Messenger\ConversationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -121,12 +122,32 @@ Route::middleware(['auth:api'])->group(function () {
 
     //messenger
     Route::prefix('messages')->group(function () {
+        // Route::post('/send', [MessengerController::class, 'send']);
+        // Route::post('/mark-as-read', [MessengerController::class, 'markAsRead']);
+        // Route::get('/conversation', [MessengerController::class, 'getConversation']);
+        // Route::get('/recent-conversations', [MessengerController::class, 'getRecentConversations']);
+
+
         Route::post('/send', [MessengerController::class, 'send']);
-        Route::post('/mark-as-read', [MessengerController::class, 'markAsRead']);
-        Route::get('/conversation', [MessengerController::class, 'getConversation']);
+        Route::post('/read', [MessengerController::class, 'markAsRead']);
+        Route::get('/conversation/{conversationId}', [MessengerController::class, 'getMessages']);
         Route::get('/recent-conversations', [MessengerController::class, 'getRecentConversations']);
+        Route::get('/{id}', [MessengerController::class, 'getMessage']);
+        Route::delete('/{id}', [MessengerController::class, 'delete']);
+        Route::post('/upload', [MessengerController::class, 'uploadFiles']);
+        Route::get('/search/{conversationId}', [MessengerController::class, 'search']);
     });
 
+    Route::prefix('conversations')->group(function () {
+        Route::get('/', [ConversationController::class, 'index']);
+        Route::post('/', [ConversationController::class, 'create']);
+        Route::get('/{id}', [ConversationController::class, 'show']);
+        Route::put('/{id}', [ConversationController::class, 'update']);
+        Route::post('/{id}/users', [ConversationController::class, 'addUsers']);
+        Route::delete('/{id}/users/{userId}', [ConversationController::class, 'removeUser']);
+        Route::put('/{id}/users/{userId}/nickname', [ConversationController::class, 'updateNickname']);
+        Route::delete('/{id}/leave', [ConversationController::class, 'leave']);
+    });
     //image
     Route::prefix('images')->group(function () {
         Route::post('/upload', [ImageController::class, 'store']);
