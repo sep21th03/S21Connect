@@ -108,7 +108,7 @@ export function useSocket(onOnlineList: (users: any[]) => void) {
   const sendMessage = (message: {
     content: string;
     receiver_id?: string;
-    group_id?: string;
+    conversation_id?: string;
     type?: "text" | "image" | "video" | "sticker" | "file";
     file_paths?: string[];
   }) => {

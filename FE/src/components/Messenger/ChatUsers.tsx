@@ -19,21 +19,19 @@ const ChatUsers: FC = React.memo(() => {
     onlineUsers,
   } = useMessengerContext();
 
-  const handleSetActiveTab = useCallback((userId: string) => {
-    if (activeTab === userId) return;
+  const handleSetActiveTab = useCallback((conversationId: string) => {
+    if (activeTab === conversationId) return;
 
-    // Update URL without triggering a full navigation
-    window.history.pushState({}, '', `/messanger/${userId}`);
-    
-    // Set the active tab in context
-    setActiveTab(userId);
+    // window.history.pushState({}, '', `/messanger/${conversationId}`);
+    router.push(`/messanger/${conversationId}`);
 
-    // Mark conversation as read
+    setActiveTab(conversationId);
+
     setUserList((prevUsers) => {
       if (!prevUsers) return prevUsers;
 
       const updatedUsers = prevUsers.map((user) => {
-        if (user.id === userId && user.unread_count !== 0) {
+        if (user.id === conversationId && user.unread_count !== 0) {
           return { ...user, unread_count: 0 };
         }
         return user;

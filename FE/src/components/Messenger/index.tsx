@@ -1,5 +1,5 @@
 // components/Messenger/index.tsx
-import { FC, useCallback } from "react";
+import { FC, useCallback, useEffect } from "react";
 import ChatUsers from "./ChatUsers";
 import ChatContent from "./ChatContent";
 import { useMessengerContext } from "@/contexts/MessengerContext";
@@ -10,23 +10,29 @@ interface MessengerSectionProps {
   initialConversationId?: string;
 }
 
-const MessengerSection: FC<MessengerSectionProps> = ({ initialConversationId }) => {
-  const { 
-    userList, 
-    setUserList, 
-    activeTab, 
-    setActiveTab, 
-    onlineUsers 
-  } = useMessengerContext();
-  // Use callback to avoid recreating this function on every render
-  const handleUpdateUserList = useCallback((updatedList: SingleUser[]) => {
-    setUserList(updatedList);
-  }, [setUserList]);
+const MessengerSection: FC<MessengerSectionProps> = ({
+  initialConversationId,
+}) => {
+  const { userList, setUserList, activeTab, setActiveTab, onlineUsers } =
+    useMessengerContext();
 
-  // Find the selected user from the userList
-  const selectedUser = activeTab && userList 
-    ? userList.find((u) => u.id === activeTab) || null 
-    : null;
+  useEffect(() => {
+    if (initialConversationId && !activeTab) {
+      setActiveTab(initialConversationId);
+    }
+  }, [initialConversationId, activeTab, setActiveTab]);
+
+  const handleUpdateUserList = useCallback(
+    (updatedList: SingleUser[]) => {
+      setUserList(updatedList);
+    },
+    [setUserList]
+  );
+
+  const selectedUser =
+    activeTab && userList
+      ? userList.find((u) => u.id === activeTab) || null
+      : null;
 
   return (
     <section className="messenger-section">
