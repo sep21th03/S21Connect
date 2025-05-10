@@ -92,7 +92,7 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({ user, setUserList, initialConve
 
       fetchMessages(userId);
 
-      joinChat({ user_id: userId });
+      // joinChat({ user_id: userId });
 
       const cleanup = onNewMessage((message) => {
         if (
@@ -105,7 +105,7 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({ user, setUserList, initialConve
 
       return () => {
         cleanup?.();
-        leaveChat({ user_id: userId });
+        // leaveChat({ user_id: userId });
       };
     } else {
       setIsLoading(false);

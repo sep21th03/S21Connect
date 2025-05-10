@@ -69,6 +69,14 @@ io.use(async (socket, next) => {
   }
 });
 
+function joinConversationRoom(socket, conversationId) {
+  const room = `conversation:${conversationId}`;
+  socket.join(room);
+  console.log(`User ${socket.user.username} joined conversation room: ${room}`);
+  return room;
+}
+
+
 // Khi có kết nối client
 io.on("connection", (socket) => {
   const userId = socket.user.id;
@@ -98,21 +106,17 @@ io.on("connection", (socket) => {
     broadcastAndLogOnlineUsers();
   });
 
-  socket.on("join_chat", (data) => {
-    // Only create room for group chat
-    if (data.group_id) {
-      const room = `group:${data.group_id}`;
-      socket.join(room);
-      console.log(`User ${username} joined group room: ${room}`);
+    socket.on("join_chat", (data) => {
+    if (data.conversation_id) {
+      joinConversationRoom(socket, data.conversation_id);
     }
   });
 
   socket.on("leave_chat", (data) => {
-    // Only leave room for group chat
-    if (data.group_id) {
-      const room = `group:${data.group_id}`;
+    if (data.conversation_id) {
+      const room = `conversation:${data.conversation_id}`;
       socket.leave(room);
-      console.log(`User ${username} left group room: ${room}`);
+      console.log(`User ${username} left conversation room: ${room}`);
     }
   });
 
@@ -123,7 +127,7 @@ io.on("connection", (socket) => {
         "http://127.0.0.1:8000/api/messages/send",
         {
           receiver_id: data.receiver_id,
-          group_id: data.group_id,
+          conversation_id: data.conversation_id,
           content: data.content,
           type: data.type || "text",
           file_paths: data.file_paths,
@@ -135,18 +139,17 @@ io.on("connection", (socket) => {
 
       const message = messageResponse.data;
 
-      if (data.group_id) {
-        // For group chat, emit to the group room
-        const room = `group:${data.group_id}`;
-        io.to(room).emit("new_message", {
-          ...message,
-          sender: {
-            id: userId,
-            username: username,
-          },
-        });
-      } else if (data.receiver_id) {
-        // For 1-1 chat, emit directly to the receiver if online
+      const room = `conversation:${data.conversation_id}`;
+
+      io.to(room).emit("new_message", {
+        ...message,
+        sender: {
+          id: userId,
+          username: username,
+        },
+      });
+
+      if (data.receiver_id) {
         const receiver = onlineUsers.get(data.receiver_id);
         if (receiver) {
           io.to(receiver.socketId).emit("new_message", {
@@ -157,15 +160,6 @@ io.on("connection", (socket) => {
             },
           });
         }
-
-        // Also emit to sender
-        socket.emit("new_message", {
-          ...message,
-          sender: {
-            id: userId,
-            username: username,
-          },
-        });
       }
     } catch (error) {
       console.error("Error sending message:", error.message);
@@ -206,6 +200,28 @@ io.on("connection", (socket) => {
     }
   });
   // Ví dụ: lắng nghe message
+
+   socket.on("join_all_conversations", async () => {
+    try {
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/conversations",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      
+      const conversations = response.data;
+      conversations.forEach(conversation => {
+        joinConversationRoom(socket, conversation.id);
+      });
+      
+      console.log(`User ${username} joined all their conversation rooms`);
+    } catch (error) {
+      console.error("Error joining conversations:", error.message);
+    }
+  });
+  
+  
   socket.on("message", (data) => {
     // broadcast đến room chat
     io.to(data.room).emit("message", {

@@ -14,8 +14,8 @@ use App\Http\Controllers\Post\ProfilePostController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Messenger\MessengerController;
 use App\Http\Controllers\Messenger\ChatGroupController;
-use App\Http\Controllers\Image\ImageController;
 use App\Http\Controllers\Messenger\ConversationController;
+use App\Http\Controllers\Image\ImageController;
 
 /*
 |--------------------------------------------------------------------------
