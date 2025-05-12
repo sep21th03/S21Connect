@@ -1,11 +1,11 @@
 import { Media } from "reactstrap";
 import { NavLink } from "reactstrap";
-import { NavItem } from "reactstrap";
-import { SingleUser } from "./MessengerType";
-import CustomImage from "@/Common/CustomImage";
+import { NavItem } from "reactstrap";;
 import { ImagePath } from "../../utils/constant";
 import { formatTime } from "@/utils/formatTime";
 import React from "react";
+import { RecentMessage } from "@/hooks/useSocket";
+import Image from "next/image";
 
 const ChatUserItem = React.memo(
   ({
@@ -15,28 +15,50 @@ const ChatUserItem = React.memo(
     online,
     sessionUserId,
   }: {
-    data: SingleUser;
+    data: RecentMessage;
     active: boolean;
     onClick: () => void;
     online: boolean;
     sessionUserId?: string;
   }) => {
+    const renderContentPreview = (
+      content?: string,
+      senderId?: string,
+      sessionUserId?: string,
+      senderName?: string
+    ) => {
+      if (!content) return "";
+    
+      const imageRegex = /\.(jpeg|jpg|gif|png|webp)$/i;
+      const isImageUrl = imageRegex.test(content) || (content.startsWith("http") && imageRegex.test(new URL(content).pathname));
+    
+      if (isImageUrl) {
+        return senderId === sessionUserId
+          ? "Bạn đã gửi 1 ảnh"
+          : `${senderName || "Người dùng"} đã gửi 1 ảnh`;
+      }
+    
+      return senderId === sessionUserId ? `Bạn: ${content}` : content;
+    };
+    
     return (
       <NavItem>
         <NavLink className={active ? "active" : ""} onClick={onClick}>
           <Media className="list-media">
             <div className="story-img">
               <div className="user-img bg-size blur-up lazyloaded">
-                <CustomImage
-                  src={`${ImagePath}/user/${data.id}.jpg`}
-                  className="img-fluid blur-up bg-img lazyloaded"
+                <Image
+                  src={data.other_user.avatar || `${ImagePath}/icon/user.png`}
+                  className="img-fluid blur-up bg-img lazyloaded rounded-circle"
                   alt="user"
+                  width={120}
+                  height={120}
                 />
               </div>
             </div>
             <Media body>
               <h5>
-                {data.name}
+                {data.other_user.name}
                 <span>{formatTime(data.latest_message?.created_at || "")}</span>
               </h5>
               <h6>{online ? "online" : "offline"}</h6>
@@ -45,17 +67,17 @@ const ChatUserItem = React.memo(
           {data.unread_count && data.unread_count > 0 ? (
             <div className="chat">
               <h6 style={{ color: "black", fontWeight: "bold" }}>
-                {data.latest_message?.sender?.id === sessionUserId
-                  ? `Bạn: ${data.latest_message?.content}`
-                  : data.latest_message?.content}
+                {data.latest_message?.sender_id === sessionUserId
+                  ? `Bạn: ${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}`
+                  : renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}
               </h6>
               <span className="count">{data.unread_count}</span>
             </div>
           ) : (
             <h6>
-              {data.latest_message?.sender?.id === sessionUserId
-                ? `Bạn: ${data.latest_message?.content}`
-                : data.latest_message?.content}
+              {data.latest_message?.sender_id === sessionUserId
+                ? `Bạn: ${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}`
+                : renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}
             </h6>
           )}
         </NavLink>

@@ -1,12 +1,12 @@
 "use client";
-import { SingleUser } from "@/components/Messenger/MessengerType";
+import { RecentMessage } from "@/hooks/useSocket";
 import { createContext, useContext, ReactNode } from "react";
 
 interface MessengerContextType {
-  userList: SingleUser[] | null;
-  setUserList: React.Dispatch<React.SetStateAction<SingleUser[] | null>>;
-  activeTab: string | null;
-  setActiveTab: React.Dispatch<React.SetStateAction<string | null>>;
+  userList: RecentMessage[] | null;
+  setUserList: React.Dispatch<React.SetStateAction<RecentMessage[] | null>>;
+  activeTab: string | null | undefined;
+  setActiveTab: React.Dispatch<React.SetStateAction<string | null | undefined>>;
   onlineUsers: string[];
 }
 

@@ -226,13 +226,23 @@ const UserProfile: FC<UserProfileInterFace> = ({
           <div className="image-section">
             <div className="profile-img">
               <div className="bg-size blur-up lazyloaded">
-                <Image
+                {userProfile?.user.avatar ? (
+                  <Image
                   src={userProfile?.user.avatar || "/default-avatar.jpg"}
                   className="img-fluid lazyload bg-img rounded-circle"
                   alt="profile"
-                  width={120}
-                  height={120}
-                />
+                    width={120}
+                    height={120}
+                  />
+                ) : (
+                  <CustomImage
+                    src={`${ImagePath}/user-sm/1.jpg`}
+                    className="img-fluid lazyload bg-img rounded-circle"
+                    alt="profile"
+                    width={120}
+                    height={120}
+                  />
+                )}
               </div>
               <span className="stats">
                 <Image

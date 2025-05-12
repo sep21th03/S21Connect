@@ -14,7 +14,7 @@ class Conversation extends Model
     ];
     protected $keyType = 'string';
     public $incrementing = false;
-    
+
     /**
      * The "booted" method of the model.
      *
@@ -161,18 +161,16 @@ class Conversation extends Model
         $lastRead = $this->users()
             ->where('user_id', $user->id)
             ->first()
-            ->pivot
+            ?->pivot
             ->last_read_at;
 
-        if (!$lastRead) {
-            return $this->messages()
-                ->where('sender_id', '!=', $user->id)
-                ->count();
+        $query = $this->messages()
+            ->where('sender_id', '!=', $user->id);
+
+        if ($lastRead) {
+            $query->where('created_at', '>', $lastRead);
         }
 
-        return $this->messages()
-            ->where('sender_id', '!=', $user->id)
-            ->where('created_at', '>', $lastRead)
-            ->count();
+        return $query->count();
     }
 }

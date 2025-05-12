@@ -5,34 +5,27 @@ import ThemeCustomizer from "@/layout/CommonLayout/ThemeCustomizer";
 import { SingleUser } from "@/components/Messenger/MessengerType";
 import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
-import { useSocket } from "@/hooks/useSocket";
+import { RecentMessage, useSocket } from "@/hooks/useSocket";
 import { MessengerContextProvider } from "@/contexts/MessengerContext";
-import { useParams } from "next/navigation";
-
 
 interface MessengerLayoutProps {
   children: ReactNode;
 }
 
-const MessengerLayout: FC<MessengerLayoutProps> = ({ 
-  children, 
-}) => {
-  const { id } = useParams();
-  const [userList, setUserList] = useState<SingleUser[] | null>(null);
+const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
+  const [userList, setUserList] = useState<RecentMessage[] | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const { socketRef, onNewMessage } = useSocket((users) => {
+  const { socket, onNewMessage } = useSocket((users) => {
     setOnlineUsers(users.map((user) => user.id));
   });
-
   // Fetch user list once at layout level
   useEffect(() => {
     const fetchUserList = async () => {
       try {
         const response = await axiosInstance.get(
-          API_ENDPOINTS.MESSAGES.MESSAGES.BASE +
           API_ENDPOINTS.MESSAGES.MESSAGES.RECENT_CONVERSATIONS
         );
         setUserList(response.data);
@@ -44,64 +37,52 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({
     };
     fetchUserList();
   }, []);
-
-  // Update activeTab when initialConversationId changes
-  // Only on initial page load, not during user navigation
-
-  // Handle URL changes from browser navigation (back/forward buttons)
   useEffect(() => {
     const handlePopState = () => {
-      const pathSegments = window.location.pathname.split('/');
+      const pathSegments = window.location.pathname.split("/");
       const userId = pathSegments[pathSegments.length - 1];
-      
+
       if (userId && userId !== activeTab) {
         setActiveTab(userId);
       }
     };
 
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener("popstate", handlePopState);
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener("popstate", handlePopState);
     };
   }, [activeTab]);
 
-  // Handle new messages at the layout level
   useEffect(() => {
     const cleanup = onNewMessage((message) => {
       if (!userList) return;
-      
-      setUserList(prevUsers => {
+
+      setUserList((prevUsers) => {
         if (!prevUsers) return prevUsers;
-        
-        return prevUsers.map((user) => {
-          const isSender = message.latest_message?.sender.id === user.id;
+
+        return prevUsers.map((conversation) => {
+          const isSender = message.sender?.id === conversation.other_user.id;
 
           if (isSender) {
             return {
-              ...user,
+              ...conversation,
               latest_message: {
-                id: message.id,
-                content: message.latest_message?.content || "",
-                type: message.latest_message?.type || "",
-                created_at: message.latest_message?.created_at || "",
-                sender_id: message.latest_message?.sender.id || "",
-                sender: {
-                  id: message.latest_message?.sender.id || "",
-                  first_name: message.latest_message?.sender.first_name || "",
-                  last_name: message.latest_message?.sender.last_name || "",
-                  username: message.latest_message?.sender.username || "",
-                  last_active: message.latest_message?.sender.last_active,
-                },
+                content: message.content || "",
+                type: message.type || "",
+                created_at: message.created_at || "",
+                sender_id: message.sender?.id || "",
+                sender_name: `${message.sender?.first_name || ""} ${
+                  message.sender?.last_name || ""
+                }`.trim(),
               },
               unread_count:
-                user.id !== activeTab
-                  ? user.unread_count
-                    ? user.unread_count + 1
-                    : 1
-                  : user.unread_count,
+                conversation.id !== activeTab
+                  ? (conversation.unread_count ?? 0) + 1
+                  : conversation.unread_count,
             };
           }
-          return user;
+
+          return conversation;
         });
       });
     });
@@ -111,13 +92,16 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({
     };
   }, [userList, activeTab, onNewMessage]);
 
-  const contextValue = useMemo(() => ({
-    userList,
-    setUserList,
-    activeTab,
-    setActiveTab,
-    onlineUsers,
-  }), [userList, activeTab, onlineUsers]);
+  const contextValue = useMemo(
+    () => ({
+      userList,
+      setUserList,
+      activeTab,
+      setActiveTab,
+      onlineUsers,
+    }),
+    [userList, activeTab, onlineUsers]
+  );
 
   return (
     <MessengerContextProvider value={contextValue}>

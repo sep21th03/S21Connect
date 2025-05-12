@@ -51,6 +51,10 @@ class ConversationController extends Controller
                     $data['name'] = $otherUser
                         ? $otherUser->getDisplayNameInConversation($conversation)
                         : null;
+                    $otherUser['avatar'] = User::where('id', '!=', Auth::id())
+                        ->where('id', $otherUser->id)
+                        ->first()
+                        ?->avatar;
 
                     // Add other user data for private conversations
                     if ($otherUser) {
@@ -58,7 +62,8 @@ class ConversationController extends Controller
                             'id' => $otherUser->id,
                             'username' => $otherUser->username,
                             'name' => trim($otherUser->first_name . ' ' . $otherUser->last_name),
-                            'last_active' => $otherUser->last_active
+                            'last_active' => $otherUser->last_active,
+                            'avatar' => $otherUser->avatar,
                         ];
                     }
                 } else {
@@ -469,6 +474,47 @@ class ConversationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'You have left the conversation'
+        ]);
+    }
+
+    // Controller: ConversationController.php
+    public function getMedia($id, Request $request)
+    {
+        $perPage = $request->input('perPage', 20);
+        $page = $request->input('page', 1);
+
+        $mediaMessages = Messenger::where('conversation_id', $id)
+            ->where('type', 'image')
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['content', 'created_at']);
+
+        return response()->json($mediaMessages->items());
+    }
+
+
+    public function hasUnreadMessages($conversationId)
+    {
+        $conversation = Conversation::findOrFail($conversationId);
+
+        $userId = Auth::id();
+
+        $lastTimeRead = $conversation->users()
+            ->where('user_id', $userId)
+            ->first()
+            ?->pivot
+            ->last_read_at;
+
+        $query = $conversation->messages()
+            ->where('sender_id', '!=', $userId);
+
+        if ($lastTimeRead) {
+            $query->where('created_at', '>', $lastTimeRead);
+        }
+
+        $hasUnread = $query->where('is_read', false)->exists();
+
+        return response()->json([
+            'has_unread' => $hasUnread,
         ]);
     }
 }

@@ -22,7 +22,7 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({
   const [activeTab, setActiveTab] = useState<string | null>(initialConversationId);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const { socketRef, onNewMessage } = useSocket((users) => {
+  const { socket, onNewMessage } = useSocket((users) => {
     setOnlineUsers(users.map((user) => user.id));
   });
 
@@ -31,7 +31,6 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({
     const fetchUserList = async () => {
       try {
         const response = await axiosInstance.get(
-          API_ENDPOINTS.MESSAGES.MESSAGES.BASE +
           API_ENDPOINTS.MESSAGES.MESSAGES.RECENT_CONVERSATIONS
         );
         setUserList(response.data);
@@ -43,7 +42,6 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({
     };
     fetchUserList();
   }, []);
-
   // Update activeTab when initialConversationId changes
   // Only on initial page load, not during user navigation
   useEffect(() => {

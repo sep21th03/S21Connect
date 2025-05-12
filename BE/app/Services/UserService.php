@@ -82,7 +82,7 @@ class UserService
             })
             ->toArray();
 
-        return User::whereIn('id', $listFriend)->get();
+        return User::whereIn('id', $listFriend)->take(20)->get();
     }
 
     public function getListFriendLimit($userId, $limit = 20)

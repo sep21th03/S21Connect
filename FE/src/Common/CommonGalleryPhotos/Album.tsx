@@ -120,7 +120,7 @@ const Album: FC<AlbumInterFace> = ({ showPhotos, setShowPhotos, lg, xl, userid }
         setAlbumDetail([newAlbum, ...albumDetail]);
       }
     }
-  };
+  };  
 
   return (
     <Row className={`gallery-album ${showPhotos ? "d-none" : ""}`}>
