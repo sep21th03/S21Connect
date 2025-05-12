@@ -7,25 +7,23 @@ import useOutsideDropdown from "@/utils/useOutsideDropdown";
 import { FC, useEffect, useState } from "react";
 import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
-import { SingleUser } from "@/components/Messenger/MessengerType";
-import { useSocket } from "@/hooks/useSocket";
+import { RecentMessage, useSocket } from "@/hooks/useSocket";
 import ChatBoxCommon from "@/layout/CommonLayout/ConversationPanel/common/ChatBoxCommon";
 
 
 const HeaderMessage: React.FC = () => {
   const { isComponentVisible, ref, setIsComponentVisible } =useOutsideDropdown(false);
-  const [userList, setUserList] = useState<SingleUser[] | null>(null);
+  const [userList, setUserList] = useState<RecentMessage[] | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [showChatBox, setShowChatBox] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const { socketRef } = useSocket((users) => {
+  const { socket } = useSocket((users) => {
     setOnlineUsers(users.map((user) => user.id));
   });
   useEffect(() => { 
     const fetchUserList = async () => {
       try {
         const response = await axiosInstance.get(
-          API_ENDPOINTS.MESSAGES.MESSAGES.BASE +
             API_ENDPOINTS.MESSAGES.MESSAGES.RECENT_CONVERSATIONS
         );
         setUserList(response.data);
@@ -35,17 +33,28 @@ const HeaderMessage: React.FC = () => {
     };
     fetchUserList();
   }, []);
-  const handleUserClick = (user: any) => {
+  const handleUserClick = (user: RecentMessage) => {
     setSelectedUser(user);
     setShowChatBox(true);
     setIsComponentVisible(false);
   };
+  const handleMessagesRead = (userId: string) => {
+    setUserList((prev) => {
+      if (!prev) return prev;
+      return prev.map((item) => {
+        if (item.other_user.id === userId) {
+          return { ...item, unread_count: 0 };
+        }
+        return item;
+      });
+    });
+  };  
   return (
     <>
     <li className="header-btn custom-dropdown dropdown-lg btn-group message-btn">
       <a className={`main-link ${isComponentVisible ? "show" : ""}`} href={Href} onClick={() => setIsComponentVisible(!isComponentVisible)}>
         <DynamicFeatherIcon iconName="MessageCircle" className="icon-light stroke-width-3 iw-16 ih-16" />
-        <span className="count success">2</span>
+        <span className="count success">{userList?.filter(user => user.unread_count > 0).length}</span>
       </a>
       <div className={`dropdown-menu dropdown-menu-right ${isComponentVisible ? "show" : ""}`} ref={ref}>
         <div className="dropdown-header">
@@ -68,6 +77,7 @@ const HeaderMessage: React.FC = () => {
       <ChatBoxCommon 
         setChatBox={setShowChatBox}
         data={selectedUser}
+        handleMessagesRead={handleMessagesRead} 
       />
     )}
     </>

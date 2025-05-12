@@ -1,3 +1,4 @@
+import { RecentMessage } from "@/hooks/useSocket";
 import { Dispatch, SetStateAction } from "react";
 interface messengerInterFace {
   receiverMessage?: string;
@@ -32,7 +33,7 @@ export interface SingleUser {
 }
 
 export interface ChatUsersInterFace {
-  userList: SingleUser[] | null;
+  userList: RecentMessage[] | null;
   setActiveTab: Dispatch<SetStateAction<string | null>>;
   activeTab: string | null;
   onlineUsers: string[];
@@ -42,31 +43,31 @@ export interface ChatUsersInterFace {
 export interface ChatContentInterFace {
   activeTab: string | null;
   setActiveTab: Dispatch<SetStateAction<string | null>>;
-  userList: SingleUser | null;
-  setUserList: Dispatch<SetStateAction<SingleUser[] | null>>;
+  userList: RecentMessage | null;
+  setUserList: Dispatch<SetStateAction<RecentMessage[] | null>>;
   onlineUsers: string[];
   initialConversationId?: string;
 }
 
 export interface CommonChatBoxInterFace {
   setActiveTab: Dispatch<SetStateAction<string | null>>;
-  userList: SingleUser | null;
-  setUserList: Dispatch<SetStateAction<SingleUser[] | null>>;
+  userList: RecentMessage | null;
+  setUserList: Dispatch<SetStateAction<RecentMessage[] | null>>;
   onlineUsers: string[];
   initialConversationId?: string;
 }
 
 export interface UserChatInterFace {
   setActiveTab?: Dispatch<SetStateAction<string | null>>;
-  setUserList: Dispatch<SetStateAction<SingleUser[] | null>>;
-  user: SingleUser | null;
+  setUserList: Dispatch<SetStateAction<RecentMessage[] | null>>;
+  user: RecentMessage | null;
   onlineUsers: string[];
   initialConversationId?: string;
 }
 
 export interface ChatHistoryInterFace {
-  user: SingleUser | null;
-  setUserList: Dispatch<SetStateAction<SingleUser[] | null>>;
+  user: RecentMessage | null;
+  setUserList: Dispatch<SetStateAction<RecentMessage[] | null>>;
   userId?: string;
   initialConversationId?: string;
 }

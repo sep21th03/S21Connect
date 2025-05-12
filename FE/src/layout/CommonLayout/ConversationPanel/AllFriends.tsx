@@ -11,6 +11,7 @@ import { ImagePath } from "@/utils/constant";
 import { SingleData, commonInterFace } from "@/layout/LayoutTypes";
 import { API_ENDPOINTS } from "@/utils/constant/api";
 import Image from "next/image";
+import { useSocket, User } from "@/hooks/useSocket";
 
 
 interface Friend {
@@ -28,6 +29,11 @@ const AllFriends = () => {
   const mobileSize = useMobileSize();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
+
+  useSocket((users: User[]) => {
+    setOnlineUsers(users);
+  });
   
   const getListFriends = async (userId: string) => {
     setIsLoading(true);
@@ -47,6 +53,9 @@ const AllFriends = () => {
       setIsLoading(false);
     }
   };
+
+  const friendsOnline = friends.filter((friend) => !onlineUsers.some((user) => user.id === friend.id));
+
   useEffect(() => {
     if (session?.user?.id) {
       getListFriends(session.user.id);
@@ -124,7 +133,7 @@ const AllFriends = () => {
         ) : (
           <div className="online-friends">
             <ul>
-              {friends.map((friend, index) => renderFriendItem(friend, index))}
+              {friendsOnline.map((friend, index) => renderFriendItem(friend, index))}
             </ul>
           </div>
         )}

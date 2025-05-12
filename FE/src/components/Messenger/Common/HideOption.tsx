@@ -1,14 +1,18 @@
 import { SvgPath } from "../../../utils/constant";
 import Image from "next/image";
 
-const HideOption = () => {
+const HideOption = ({ onImageClick }: { onImageClick: () => void }) => {
   const imageList = ["image", "paperclip", "camera"];
 
   return (
     <div className="options ">
       <ul>
         {imageList.map((data,index) => (
-          <li key={index}>
+          <li key={index} onClick={() => {
+            if (data === "image") {
+              onImageClick();
+            }
+          }}>
             <Image
               height={16}
               width={16}

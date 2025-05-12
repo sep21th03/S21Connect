@@ -147,6 +147,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::delete('/{id}/users/{userId}', [ConversationController::class, 'removeUser']);
         Route::put('/{id}/users/{userId}/nickname', [ConversationController::class, 'updateNickname']);
         Route::delete('/{id}/leave', [ConversationController::class, 'leave']);
+        Route::get('/{id}/media', [ConversationController::class, 'getMedia']);
     });
     //image
     Route::prefix('images')->group(function () {

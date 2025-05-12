@@ -2,15 +2,13 @@
 import { Nav } from "reactstrap";
 import UserHeader from "./UserHeader";
 import { FC, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React from "react";
 import ChatUserItem from "./ChatUserItem";
 import { useMessengerContext } from "@/contexts/MessengerContext";
-
+import { useSession } from "next-auth/react";
 const ChatUsers: FC = React.memo(() => {
   const router = useRouter();
-  const { data: session } = useSession();
   const { 
     userList, 
     setUserList, 
@@ -18,7 +16,7 @@ const ChatUsers: FC = React.memo(() => {
     setActiveTab, 
     onlineUsers,
   } = useMessengerContext();
-
+  const { data: session } = useSession();
   const handleSetActiveTab = useCallback((conversationId: string) => {
     if (activeTab === conversationId) return;
 
@@ -51,7 +49,8 @@ const ChatUsers: FC = React.memo(() => {
             data={data}
             active={activeTab === data.id}
             onClick={() => handleSetActiveTab(data.id)}
-            online={onlineUsers.includes(data.id)}
+            online={onlineUsers.includes(data.other_user.id)}
+            sessionUserId={session?.user?.id}
           />
         ))}
       </Nav>

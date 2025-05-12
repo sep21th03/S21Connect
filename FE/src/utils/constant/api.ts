@@ -63,6 +63,7 @@ export const API_ENDPOINTS = {
     LIST_FRIENDS: (userId: string) => `/${userId}/list_friends`,
     LIST_FRIENDS_LIMIT: (userId: string) => `/${userId}/list_friends_limit`,
     ONLINE_USERS: (userId: string) => `/${userId}/friends`,
+    LAST_ACTIVE: (otherUserId: string) => `/user/update-last-active`,
   },
 
   MESSAGES: {
@@ -72,12 +73,9 @@ export const API_ENDPOINTS = {
       SEND_MESSAGE: `/send`,
       GET_GROUP_MESSAGES: (groupId: string) => `/group/${groupId}`,
       SEND_GROUP_MESSAGE: (groupId: string) => `/group`,
-      RECENT_CONVERSATIONS: "/recent-conversations",
-      UNREAD_MESSAGES: "/mark-as-read",
-    },
-    CHAT_GROUP: {
-      BASE: "/chat-groups",
-      GET_CHAT_GROUP: (groupId: string) => `/${groupId}`,
+      RECENT_CONVERSATIONS: "/conversations",
+      UNREAD_MESSAGES: "/read",
+      GET_USER_GALLERY: (conversationId: string) => `/conversations/${conversationId}/media`,
     },
   },
   IMAGES: {
