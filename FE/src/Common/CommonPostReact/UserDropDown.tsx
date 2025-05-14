@@ -2,38 +2,73 @@ import { Href, ImagePath } from "../../utils/constant";
 import { FC, useState } from "react";
 import { Dropdown, DropdownMenu, DropdownToggle, Media } from "reactstrap";
 import DynamicFeatherIcon from "../DynamicFeatherIcon";
-import { userDropDownData } from "@/Data/common";
-import CustomImage from "../CustomImage";
+import { createPostDropDown } from "@/Data/common";
+import { Post } from "@/components/NewsFeed/Style1/Style1Types";
+import Image from "next/image";
 
-const UserDropDown: FC = () => {
+interface UserDropDownProps {
+  setShowOption: (showOption: string) => void;
+  showOption: string;
+  post: Post;
+}
+
+const UserDropDown: FC<UserDropDownProps> = ({setShowOption, showOption, post }) => {
   const [showDropDown, setShowDropDown] = useState(false);
-
+  const selectedOption = createPostDropDown.find((opt) => opt.slug === showOption);
   return (
     <div className="user-info">
       <Media>
         <a href={Href} className="user-img bg-size blur-up lazyloaded">
-          <CustomImage src={`${ImagePath}/user-sm/2.jpg`} className="img-fluid blur-up lazyload bg-img" alt="user"/>
+          <Image
+            src={`${post?.user?.avatar}` || `${ImagePath}/user/user-1.jpg`}
+            className="img-fluid lazyload bg-img rounded-circle"
+            alt="user"
+            width={50}
+            height={50}
+          />
         </a>
         <Media body>
           <a href={Href}>
-            <h5>Pabelo Mukrani</h5>
+            <h5>
+              {post?.user?.first_name} {post?.user?.last_name} 
+            </h5>
           </a>
           <div className="setting-dropdown">
-            <Dropdown isOpen={showDropDown} toggle={() => setShowDropDown(!showDropDown)} className="custom-dropdown arrow-none dropdown-sm btn-group">
+            <Dropdown
+              isOpen={showDropDown}
+              toggle={() => setShowDropDown(!showDropDown)}
+              className="custom-dropdown arrow-none dropdown-sm btn-group"
+            >
               <DropdownToggle color="transparent">
                 <h6 onClick={() => setShowDropDown(!showDropDown)}>
-                  <DynamicFeatherIcon iconName="Globe" className="icon-font-light left-icon iw-12 ih-12"/>
-                  public
-                  <DynamicFeatherIcon iconName="ChevronDown" className=" iw-14"/>
+                  <DynamicFeatherIcon
+                    iconName={selectedOption?.icon}
+                    className="icon-font-light left-icon iw-12 ih-12"
+                  />
+                  {selectedOption?.name}
+                  <DynamicFeatherIcon
+                    iconName="ChevronDown"
+                    className=" iw-14"
+                  />
                 </h6>
               </DropdownToggle>
               <DropdownMenu>
                 <ul>
-                  {userDropDownData.map((data, index) => (
-                    <li key={index}>
-                      <a href={Href}>
-                        <DynamicFeatherIcon iconName={data.icon} />
-                        {data.detail}
+                  {createPostDropDown.map((option) => (
+                    <li key={option.slug}>
+                      <a
+                        href={Href}
+                        className={
+                          option.slug === showOption ? "active" : ""
+                        }
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowOption(option.slug);
+                          setShowDropDown(false);
+                        }}
+                      >
+                        <DynamicFeatherIcon iconName={option.icon} />
+                          {option.name}
                       </a>
                     </li>
                   ))}

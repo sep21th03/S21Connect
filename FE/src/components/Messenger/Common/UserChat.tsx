@@ -6,21 +6,30 @@ import { Media } from "reactstrap";
 import { ImagePath } from "../../../utils/constant";
 import { Href } from "../../../utils/constant/index";
 import ChatHistory from "./ChatHistory";
-import { formatTime } from "@/utils/formatTime";
 import Image from "next/image";
+import { useRef } from "react";
 import { useSocket } from "@/hooks/useSocket";
-import axiosInstance from "@/utils/axiosInstance";
-import { API_ENDPOINTS } from "@/utils/constant/api";
-
-
 const UserChat: FC<UserChatInterFace> = ({
   user,
   setUserList,
   setActiveTab,
   onlineUsers,
   initialConversationId,
-  }) => {
+}) => {
   const [lastActive, setLastActive] = useState<string>("");
+  const [peerConnection, setPeerConnection] =
+    useState<RTCPeerConnection | null>(null);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+
+  const {
+    socket,
+    incomingCall,
+    answerCall,
+    rejectCall,
+    endCall,
+    onCallRejected,
+  } = useSocket((users) => console.log(users));
   useEffect(() => {
     if (user?.other_user.last_active) {
       const lastActiveDate = new Date(user.other_user.last_active);
@@ -51,7 +60,11 @@ const UserChat: FC<UserChatInterFace> = ({
           <div className="story-img">
             <div className="user-img bg-size blur-up lazyloaded">
               <Image
-                src={user ? user.other_user?.avatar || `${ImagePath}/icon/user.png` : ""}
+                src={
+                  user
+                    ? user.other_user?.avatar || `${ImagePath}/icon/user.png`
+                    : ""
+                }
                 className="img-fluid lazyload bg-img rounded-circle"
                 alt="user"
                 width={120}

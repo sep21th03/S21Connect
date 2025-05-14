@@ -56,29 +56,30 @@ Route::middleware(['auth:api'])->group(function () {
 
     //post
     Route::prefix('posts')->group(function () {
-        // 📌 Post resource
-        Route::apiResource('/', PostController::class)->parameters(['' => 'post']);
+        Route::post('/', [PostController::class, 'store']);
+        Route::get('/public_post', [PostController::class, 'public_post']);
+        Route::get('/my_post', [PostController::class, 'getMyPost']);
+        Route::post('/edit', [PostController::class, 'editPost']);
+        Route::post('/{id}', [PostController::class, 'destroy']);
+        Route::get('/get_friend/{id}', [PostController::class, 'getFriendPost']); // GET /posts/{id}
 
-        // 🔧 Toggle options
         Route::post('/{id}/toggle-comments', [PostController::class, 'toggleComments']);
         Route::post('/{id}/reactions', [PostController::class, 'toggleReactions']);
 
-        // 💬 Comments on a post
-        Route::prefix('{postId}/comments')->group(function () {
-            Route::post('/', [CommentController::class, 'store']);      // POST /posts/{postId}/comments
-            Route::delete('/{id}', [CommentController::class, 'destroy']); // DELETE /posts/{postId}/comments/{id}
+        Route::prefix('/comments')->group(function () {
+            Route::post('/add', [CommentController::class, 'store']);
+            Route::get('/{postId}', [CommentController::class, 'getCommentsByPostId']);
+            Route::delete('/{id}', [CommentController::class, 'destroy']);
         });
 
-        // 😊 Reactions on a post
         Route::prefix('{postId}/reactions')->group(function () {
-            Route::post('/', [ReactionController::class, 'store']);       // POST /posts/{postId}/reactions
-            Route::delete('/{id}', [ReactionController::class, 'destroy']); // DELETE /posts/{postId}/reactions/{id}
+            Route::post('/toggle', [ReactionController::class, 'toggleReaction']);
+            Route::get('/get', [ReactionController::class, 'getPostReactions']);
         });
 
-        // 🔁 Shares of a post
-        Route::prefix('{postId}/shares')->group(function () {
-            Route::post('/', [ShareController::class, 'store']);        // POST /posts/{postId}/shares
-            Route::get('/', [ShareController::class, 'getShares']);     // GET  /posts/{postId}/shares
+        Route::prefix('/shares')->group(function () {
+            Route::post('/post', [ShareController::class, 'share']);      
+            Route::get('/{postId}', [ShareController::class, 'getSharesByPost']);   
         });
     });
 

@@ -25,9 +25,11 @@ const UserProfile: FC<UserProfileInterFace> = ({
   toggle,
   userProfile,
   isOwnProfile,
+  setFriendshipStatus,
+  friendshipStatus
 }) => {
   const [dropDownOpen, setDropDownOpen] = useState(false);
-  const [friendshipStatus, setFriendshipStatus] = useState("none"); // possible values: none, pending, accepted
+  // const [friendshipStatus, setFriendshipStatus] = useState("none");
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
 

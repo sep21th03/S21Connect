@@ -75,9 +75,21 @@ export interface TypingUser {
   is_typing: boolean;
 }
 
+export interface IncomingCall {
+  caller_id: string;
+  caller_name: string;
+  call_type: "audio" | "video";
+}
+
+export interface CallOfferDetails {
+  offer: RTCSessionDescriptionInit;
+  call_type: "audio" | "video";
+}
+
 export function useSocket(onOnlineList: (users: User[]) => void) {
   const socketRef = useRef<Socket | null>(null);
   const onOnlineListRef = useRef(onOnlineList);
+  const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
@@ -97,7 +109,6 @@ export function useSocket(onOnlineList: (users: User[]) => void) {
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("Socket connected");
       setIsConnected(true);
       socket?.emit("join_all_conversations");
       socket?.emit("get_online_users");
@@ -105,7 +116,6 @@ export function useSocket(onOnlineList: (users: User[]) => void) {
 
     socket.on("disconnect", () => {
       setIsConnected(false);
-      console.log("Socket disconnected");
     });
 
     socket.emit("get_online_users");
@@ -116,6 +126,10 @@ export function useSocket(onOnlineList: (users: User[]) => void) {
 
     socket.on("online_users_list", handleOnlineUsers);
 
+    socket.on("incoming_call", (call: IncomingCall) => {
+      console.log("Incoming call:", call);
+      setIncomingCall(call);
+    });
     const heartbeatInterval = setInterval(() => {
       if (socket?.connected) {
         socket.emit("heartbeat");
@@ -127,6 +141,7 @@ export function useSocket(onOnlineList: (users: User[]) => void) {
       socket?.off("online_users_list", handleOnlineUsers);
       socket?.off("connect");
       socket?.off("disconnect");
+      socket?.off("incoming_call");
     };
   }, []);
 
@@ -218,6 +233,96 @@ export function useSocket(onOnlineList: (users: User[]) => void) {
     };
   };
 
+   const initiateCall = (receiverId: string, offer: RTCSessionDescriptionInit, callType: "audio" | "video") => {
+    if (!socket?.connected) return false;
+    socket.emit("call_offer", { 
+      receiver_id: receiverId, 
+      offer, 
+      call_type: callType 
+    });
+    return true;
+  };
+  
+  const getCallOffer = (callerId: string, callback: (offerDetails: CallOfferDetails) => void) => {
+    if (!socket?.connected) return false;
+    
+    socket.emit("get_call_offer", { caller_id: callerId });
+    
+    const handleOfferDetails = (details: CallOfferDetails) => {
+      callback(details);
+      socket?.off("call_offer_details", handleOfferDetails);
+    };
+    
+    socket.on("call_offer_details", handleOfferDetails);
+    return true;
+  };
+  
+  const answerCall = (callerId: string, answer: RTCSessionDescriptionInit) => {
+    if (!socket?.connected) return false;
+    socket.emit("call_answer", { caller_id: callerId, answer });
+    setIncomingCall(null);
+    return true;
+  };
+  
+  const rejectCall = (callerId: string) => {
+    if (!socket?.connected) return false;
+    socket.emit("call_reject", { caller_id: callerId });
+    setIncomingCall(null);
+    return true;
+  };
+  
+  const sendIceCandidate = (peerId: string, candidate: RTCIceCandidateInit) => {
+    if (!socket?.connected) return false;
+    socket.emit("call_ice_candidate", { peer_id: peerId, candidate });
+    return true;
+  };
+  
+  const onCallAnswer = (callback: (data: { answer: RTCSessionDescriptionInit, user_id: string }) => void) => {
+    if (!socket) return;
+    socket.on("call_answer", callback);
+    return () => {
+      socket?.off("call_answer", callback);
+    };
+  };
+  
+  const onIceCandidate = (callback: (data: { candidate: RTCIceCandidateInit, from_user_id: string }) => void) => {
+    if (!socket) return;
+    socket.on("call_ice_candidate", callback);
+    return () => {
+      socket?.off("call_ice_candidate", callback);
+    };
+  };
+  
+  const endCall = (peerId: string) => {
+    if (!socket?.connected) return false;
+    socket.emit("call_end", { peer_id: peerId });
+    return true;
+  };
+  
+  const onCallEnded = (callback: (data: { from_user_id: string }) => void) => {
+    if (!socket) return;
+    socket.on("call_end", callback);
+    return () => {
+      socket?.off("call_end", callback);
+    };
+  };
+  
+  const onCallRejected = (callback: (data: { reason: string; user_id: string }) => void) => {
+    if (!socket) return;
+    socket.on("call_rejected", callback);
+    return () => {
+      socket?.off("call_rejected", callback);
+    };
+  };
+
+  const onCallError = (callback: (data: { message: string }) => void) => {
+    if (!socket) return;
+    socket.on("call_error", callback);
+    return () => {
+      socket?.off("call_error", callback);
+    };
+  };
+
   return {
     socket: socketRef.current,
     isConnected,
@@ -230,6 +335,13 @@ export function useSocket(onOnlineList: (users: User[]) => void) {
     markMessagesAsRead,
     onMessagesRead,
     onUserStatusChanged,
-    onImageUploadStatus
+    onImageUploadStatus,
+    initiateCall,
+    getCallOffer,
+    answerCall,
+    rejectCall,
+    endCall,
+    onCallRejected,
+    incomingCall
   };
 }

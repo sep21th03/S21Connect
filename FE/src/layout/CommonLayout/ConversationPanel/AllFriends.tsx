@@ -1,33 +1,34 @@
 import { FC, useEffect, useState } from "react";
 import { Collapse, Media } from "reactstrap";
 import { useSession } from "next-auth/react";
-import CustomImage from "@/Common/CustomImage";
 import HoverMessage from "@/Common/HoverMessage";
 import ChatBoxCommon from "./common/ChatBoxCommon";
 import CommonHeader from "./common/CommonHeader";
 import useMobileSize from "@/utils/useMobileSize";
 import axiosInstance from "@/utils/axiosInstance";
 import { ImagePath } from "@/utils/constant";
-import { SingleData, commonInterFace } from "@/layout/LayoutTypes";
 import { API_ENDPOINTS } from "@/utils/constant/api";
 import Image from "next/image";
 import { useSocket, User } from "@/hooks/useSocket";
 
-
-interface Friend {
+interface FriendList {
   id: string;
-  name: string;
-  avatar?: string;
   mutual_friends_count: number;
+  other_user: {
+    id: string;
+    name: string;
+    avatar: string;
+    username: string;
+  };
 }
 
 const AllFriends = () => {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(true);
-  const [selectedUser, setSelectedUser] = useState<SingleData | null>(null);
+  const [selectedUser, setSelectedUser] = useState<FriendList | null>(null);
   const [chatBox, setChatBox] = useState(false);
   const mobileSize = useMobileSize();
-  const [friends, setFriends] = useState<Friend[]>([]);
+  const [friends, setFriends] = useState<FriendList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
 
@@ -55,67 +56,77 @@ const AllFriends = () => {
   };
 
   const friendsOnline = friends.filter((friend) => !onlineUsers.some((user) => user.id === friend.id));
-
   useEffect(() => {
     if (session?.user?.id) {
       getListFriends(session.user.id);
     }
   }, [session?.user?.id]);
 
-  const handleOpenChatBox = (friend: Friend) => {
-    const chatUser: SingleData = {
+  const handleOpenChatBox = (friend: FriendList) => {
+    const chatUser: FriendList = {
       id: friend.id,
-      name: friend.name,
-      image: friend.avatar || `${ImagePath}/user-sm/1.jpg`,
+      mutual_friends_count: friend.mutual_friends_count,
+      other_user: {
+        id: friend.other_user.id,
+        name: friend.other_user.name,
+        avatar: friend.other_user.avatar || `${ImagePath}/user-sm/1.jpg`,
+        username: friend.other_user.username,
+      },
     };
     
     setSelectedUser(chatUser);
     setChatBox(true);
   };
-  const renderFriendItem = (friend: Friend, index: number) => (
-    <li
-      key={friend.id || index}
-      className={`friend-box user${index + 1}`}
-    >
-      <Media onClick={() => handleOpenChatBox(friend)}>
-        <a
-          className="popover-cls user-img bg-size blur-up lazyloaded"
-          id={`friend-${friend.id || index}`}
-        >
-          <Image
-            src={
-              friend.avatar
-                ? friend.avatar
-                : `${ImagePath}/user-sm/1.jpg`
-            }
-            className="img-fluid lazyload bg-img rounded-circle"
-            alt="user"
-            height={50} width={50}
-          />
-        </a>
-        <Media body>
-          <h5 className="user-name">
-            {friend.name}
-          </h5>
-          <h6 className="mutual-count">
-            {friend.mutual_friends_count} bạn chung
-          </h6>
+  
+  const renderFriendItem = (friend: FriendList, index: number) => {
+    // Create a unique and safe ID for this friend item
+    const friendElementId = `friend-${friend.id || index}`;
+    
+    return (
+      <li
+        key={friend.id || index}
+        className={`friend-box user${index + 1}`}
+      >
+        <Media onClick={() => handleOpenChatBox(friend)}>
+          <a
+            className="popover-cls user-img bg-size blur-up lazyloaded"
+            id={friendElementId}
+          >
+            <Image
+              src={
+                friend.other_user?.avatar
+                  ? friend.other_user?.avatar
+                  : `${ImagePath}/user-sm/1.jpg`
+              }
+              className="img-fluid lazyload bg-img rounded-circle"
+              alt="user"
+              height={50} width={50}
+            />
+          </a>
+          <Media body>
+            <h5 className="user-name">
+              {friend.other_user?.name}
+            </h5>
+            <h6 className="mutual-count">
+              {friend.mutual_friends_count} bạn chung
+            </h6>
+          </Media>
         </Media>
-      </Media>
-      <HoverMessage
-        placement={mobileSize ? "right" : "top"}
-        target={`friend-${friend.id || index}`}
-        data={friend}
-        imagePath={
-          friend.avatar
-            ? friend.avatar
-            : `${ImagePath}/user-sm/1.jpg`
-        }
-        onMessageClick={() => {handleOpenChatBox(friend)}}
-        onFriendRequestClick={() => {}}
-      />
-    </li>
-  );
+        {/* <HoverMessage
+          placement={mobileSize ? "right" : "top"}
+          target={friendElementId}
+          data={friend}
+          imagePath={
+            friend.other_user?.avatar
+              ? friend.other_user?.avatar
+              : `${ImagePath}/user-sm/1.jpg`
+          }
+          onMessageClick={() => {handleOpenChatBox(friend)}}
+          onFriendRequestClick={() => {}}
+        /> */}
+      </li>
+    );
+  };
 
   return (
     <div className="friend-section">
@@ -142,6 +153,7 @@ const AllFriends = () => {
           <ChatBoxCommon
             setChatBox={setChatBox}
             data={selectedUser}
+            handleMessagesRead={() => {}}
           />
         )}
       </Collapse>

@@ -7,14 +7,14 @@ import SettingsDropDown from "./SettingsDropDown";
 import { CreatePostHeaderInterFace } from "../CommonInterFace";
 import Image from "next/image";
 
-const CreatePostHeader: FC<CreatePostHeaderInterFace> = ({writePost,setShowPostButton}) => {
+const CreatePostHeader: FC<CreatePostHeaderInterFace> = ({writePost,setShowPostButton, postDropDown, setPostDropDown, selectedOption, setSelectedOption, postContent, setPostContent}) => {
   return (
     <div className={`static-section ${writePost ?"d-none":""}`}>
       <div className="card-title">
         <h3>{CreatePost}</h3>
         <ul className="create-option">
           <li className="options">
-            <OptionDropDown />            
+            <OptionDropDown postDropDown={postDropDown} setPostDropDown={setPostDropDown} selectedOption={selectedOption} setSelectedOption={setSelectedOption} />            
           </li>
           <li>
             <h5><DynamicFeatherIcon iconName="Video" className="iw-15" />{GoLive}</h5>
@@ -28,6 +28,8 @@ const CreatePostHeader: FC<CreatePostHeaderInterFace> = ({writePost,setShowPostB
           type="text"
           className="enable"
           placeholder="write something here.."
+          value={postContent}
+          onChange={(e) => setPostContent(e.target.value)}
         />
         <a href={Href}>
           <Image width={14} height={12} src={`${ImagePath}/icon/translate.png`} className="img-fluid blur-up icon lazyloaded" alt="translate"/>

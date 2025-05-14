@@ -20,14 +20,14 @@ export interface LikePageInterFace {
 }
 
 export interface postDropDownOptionInterface {
-  iconName: "Bookmark" | "XSquare" | "X";
+  iconName: "Bookmark" | "XSquare" | "X" | "Edit";
   post: string;
+  onClick?: (postUser: Post) => void;
 }
 
 export interface SufiyaElizaThirdPostInterface {
   fourthPost?: number;
-  userImage: number;
-  iframeLink?:string
+  post: Post
 }
 
 export interface CommonGalleryImageProps {
@@ -36,18 +36,19 @@ export interface CommonGalleryImageProps {
 }
 
 export interface SufiyaElizaFirstPostInterFace {
-  userImage: number;
-  mainImage: number;
   className?:string
+  post: Post
 }
 
 export interface PostDetailInterFace {
-  mainImage: number;
+  post: Post
+  localPost: Post
+  setLocalPost: (post: Post) => void
 }
 
 
 export interface SufiyaElizaSecondPostInterFace {
-  userImage: number;
+  post: Post
 }
 
 export interface EventsCardInterFace{
@@ -61,10 +62,7 @@ export interface BirthdayReminderInterFace  {
 }
 
 export interface SufiyaElizaMultiplePostInterFace {
-  moreImage?:boolean
-  diffrentImage?:boolean
-  userImage?:number
-  main:number,second:number,third:number
+  post: Post
 }
 
 export  interface SidebarPanelInterFace {
@@ -81,4 +79,47 @@ export interface FriendSuggestionInterFace {
 }
 export interface StorySectionProps {
   storyShow?:number 
+}
+
+export interface ReactionResponse {
+  reactions: ReactionData[];
+  total_count: number;
+  user_reaction: string | null;
+  reaction_counts: {
+    [key: string]: number;
+  };
+}
+
+export interface ReactionData {
+  type: string;
+  count: number;
+}
+
+export interface Post {
+  id: number;
+  content: string;
+  type: "first" | "second" | "third" | "multiple";
+  user: {
+    id: number;
+    username: string;
+    avatar: string;
+    first_name: string;
+    last_name: string;
+  };
+  images?: string[];
+  videos?: string[];
+  created_at: string;
+  updated_at: string;
+  bg_id: number;
+  post_id: number;
+  checkin: string;
+  feeling: string;
+  visibility: string;
+  tagfriends: string[];
+  total_reactions: number;
+  total_comments: number;
+  total_shares: number;
+  reaction_counts: {
+    [key: string]: number;
+  };
 }

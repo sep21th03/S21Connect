@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\PostService;
 use App\Http\Requests\User\Post\StorePostRequest;
 use App\Http\Requests\User\Post\UpdatePostRequest;
-
+use Illuminate\Http\Client\Request;
 
 class PostController extends Controller
 {
@@ -18,10 +18,30 @@ class PostController extends Controller
         $this->postService = $postService;
     }
 
-    public function index()
+    public function public_post()
     {
-        $posts = $this->postService->index();
+        $posts = $this->postService->public_post();
         return response()->json($posts);
+    }
+
+    public function getFriendPost(string $user_id)
+    {
+        $posts = $this->postService->getFriendPost($user_id);
+        return response()->json($posts);
+    }
+
+    public function getMyPost()
+    {
+        $posts = $this->postService->getMyPost();
+        return response()->json($posts);
+    }
+
+    public function editPost(UpdatePostRequest $request)
+    {
+        $data = $request->validated();
+        $post_id = $data['post_id'];
+        $post = $this->postService->updatePost($data, $post_id);
+        return response()->json(['data' => $post]);
     }
 
     /**
@@ -30,27 +50,8 @@ class PostController extends Controller
     public function store(StorePostRequest $request)
     {
         $this->postService->store($request->validated());
-        return response()->json(['message' => 'Đăng bài thành công!']);
+        return response()->json(['message' => 'Tạo bài viết thành công']);
     }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $post_id)
-    {
-        $post = $this->postService->show($post_id);
-        return response()->json($post);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdatePostRequest $request, string $post_id)
-    {
-        $post = $this->postService->update($request->validated(), $post_id);
-        return response()->json($post);
-    }
-
     /**
      * Remove the specified resource from storage.
      */

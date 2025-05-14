@@ -1,13 +1,18 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import PostDetails from "./PostDetails";
 import CommonUserHeading from "@/Common/CommonUserHeading";
-import { SufiyaElizaFirstPostInterFace } from "../../Style1Types";
+import { SufiyaElizaFirstPostInterFace, Post } from "../../Style1Types";
 
-const SufiyaElizaFirstPost: FC<SufiyaElizaFirstPostInterFace> = ({mainImage,userImage,className}) => {
+
+const SufiyaElizaFirstPost: FC<SufiyaElizaFirstPostInterFace> = ({className,post}) => {
+  const [localPost, setLocalPost] = useState(post);
+  const [isDeleted, setIsDeleted] = useState(false);
+  if (isDeleted) return null; 
+
   return (
     <div className={`post-wrapper col-grid-box d-block section-t-space ${className ?className:""} `}>
-      <CommonUserHeading image={userImage} id="SufiyaElizaFirstPost" />
-      <PostDetails mainImage={mainImage} />
+      <CommonUserHeading id="SufiyaElizaFirstPost" postUser={localPost}  onPostUpdated={(updatedPost: Post) => setLocalPost(updatedPost)} onPostDeleted={() => setIsDeleted(true)}/>
+      <PostDetails post={localPost} localPost={localPost} setLocalPost={setLocalPost}/>
     </div>
   );
 };

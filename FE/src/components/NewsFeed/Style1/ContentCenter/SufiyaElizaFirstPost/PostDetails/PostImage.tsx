@@ -5,19 +5,20 @@ import Image from "next/image";
 import CommonVideoModal from "@/Common/Modals/CommonVideoModal";
 import { PostDetailInterFace } from "../../../Style1Types";
 
-const PostImage: FC<PostDetailInterFace> = ({mainImage}) => {
+const PostImage: FC<PostDetailInterFace> = ({post,localPost,setLocalPost}) => {
   const [showModal, setShowModal] = useState(false)
   const modalToggle = ()=>setShowModal(!showModal)
+  const imageList = post?.images?.split("|") || [];
   return (
     <div className="img-wrapper">
-      <Image
+      {/* <Image
         height={225}
         width={385}
-        src={`${ImagePath}/post/${mainImage}.jpg`}
+        src={`${imageList[0]}`}
         className="img-fluid blur-up lazyloaded"
         alt="image"
-      />
-      <div className="controler">
+      /> */}
+      {/* <div className="controler">
         <a href={Href} className="play"  onClick={modalToggle}>
           <DynamicFeatherIcon iconName="PlayCircle" className="iw-50 ih-50" />
         </a>
@@ -28,7 +29,7 @@ const PostImage: FC<PostDetailInterFace> = ({mainImage}) => {
         <a href={Href} className="volume">
           <DynamicFeatherIcon iconName="Volume2" className="iw-14 ih-14" />
         </a>
-      </div>
+      </div> */}
     </div>
   );
 };

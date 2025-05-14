@@ -127,6 +127,8 @@ export interface UserProfileInterFace {
   toggle: () => void;
   userProfile: FullUserProfile | null;
   isOwnProfile: boolean;
+  setFriendshipStatus: (status: string) => void;
+  friendshipStatus: string;
 }
 
 export interface UserEditInterFace {

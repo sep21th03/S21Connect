@@ -2,7 +2,7 @@ import { first } from 'lodash';
 // types/user.ts
 
 export interface User {
-    id: number;
+    id: string;
     username: string;
     first_name: string;
     last_name: string;
