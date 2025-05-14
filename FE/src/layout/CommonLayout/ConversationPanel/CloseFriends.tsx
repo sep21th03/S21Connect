@@ -20,6 +20,7 @@ interface Friend {
   name: string;
   avatar?: string;
   mutual_friends_count: number;
+  username: string;
 }
 
 const CloseFriends = () => {
@@ -35,7 +36,6 @@ const CloseFriends = () => {
   useSocket((users: User[]) => {
     setOnlineUsers(users);
   });
-  
   const getListFriends = async (userId: string) => {
     setIsLoading(true);
     try {
@@ -68,6 +68,7 @@ const CloseFriends = () => {
       id: friend.id,
       name: friend.name,
       image: friend.avatar || `${ImagePath}/user-sm/1.jpg`,
+      username: friend.username,
     };
     
     setSelectedUser(chatUser);

@@ -14,7 +14,7 @@ return new class extends Migration
             $table->uuid('id')->primary(); 
             $table->uuid('user_id');
             $table->uuid('friend_id');
-            $table->enum('status', ['pending', 'accepted'])->default('pending');
+            $table->enum('status', ['pending', 'accepted', 'none'])->default('none');
             $table->timestamps();
         
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

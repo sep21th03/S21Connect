@@ -71,11 +71,7 @@ export const likePageListContentData = [
   },
 ];
 
-export const postDropDownOption: postDropDownOptionInterface[] = [
-  { iconName: "Bookmark", post: "save post" },
-  { iconName: "XSquare", post: "hide post" },
-  { iconName: "X", post: "unfollow sufiya" },
-];
+
 
 export const friendSuggestionSettings = {
   centerMode: true,

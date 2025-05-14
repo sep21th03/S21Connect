@@ -130,7 +130,144 @@ async function uploadToCloudinary(base64Image, fileName) {
   }
 }
 
-// When a client connects
+const activeCallOffers = new Map();
+const activeCalls = new Map();
+
+function setupCallHandlers(socket, io) {
+  const userId = socket.user.id;
+  const username = socket.user.username;
+
+  socket.on("call_offer", (data) => {
+    try {
+      const { receiver_id, offer, call_type } = data;
+      
+      console.log(`User ${username} (${userId}) is calling user ${receiver_id} with ${call_type} call`);
+      
+      activeCallOffers.set(userId, { offer, call_type });
+      
+      const receiverSocketId = [...io.sockets.sockets.values()]
+        .find(s => s.user && s.user.id === receiver_id)?.id;
+      
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("incoming_call", {
+          caller_id: userId,
+          caller_name: username,
+          call_type,
+        });
+      } else {
+        socket.emit("call_rejected", {
+          reason: "user_offline",
+          user_id: receiver_id,
+        });
+      }
+    } catch (error) {
+      console.error("Error processing call offer:", error);
+      socket.emit("call_error", { message: "Failed to process call offer" });
+    }
+  });
+
+  socket.on("get_call_offer", (data) => {
+    try {
+      const { caller_id } = data;
+      const callOffer = activeCallOffers.get(caller_id);
+      
+      if (callOffer) {
+        socket.emit("call_offer_details", {
+          offer: callOffer.offer,
+          call_type: callOffer.call_type,
+        });
+      } else {
+        socket.emit("call_error", { message: "Call offer not found" });
+      }
+    } catch (error) {
+      console.error("Error retrieving call offer:", error);
+      socket.emit("call_error", { message: "Failed to retrieve call offer" });
+    }
+  });
+
+  socket.on("call_answer", (data) => {
+    try {
+      const { receiver_id, answer } = data;
+      console.log(`User ${username} answered call from ${receiver_id}`);
+      
+      const callerSocketId = [...io.sockets.sockets.values()]
+        .find(s => s.user && s.user.id === receiver_id)?.id;
+      
+      if (callerSocketId) {
+        io.to(callerSocketId).emit("call_answer", { answer });
+        
+        activeCalls.set(`${userId}_${receiver_id}`, {
+          participants: [userId, receiver_id],
+          startTime: new Date(),
+        });
+      }
+    } catch (error) {
+      console.error("Error processing call answer:", error);
+    }
+  });
+
+  socket.on("call_reject", (data) => {
+    try {
+      const { caller_id } = data;
+      console.log(`User ${username} rejected call from ${caller_id}`);
+      
+      const callerSocketId = [...io.sockets.sockets.values()]
+        .find(s => s.user && s.user.id === caller_id)?.id;
+      
+      if (callerSocketId) {
+        io.to(callerSocketId).emit("call_rejected", {
+          reason: "user_rejected",
+          user_id: userId,
+        });
+      }
+      
+      activeCallOffers.delete(caller_id);
+    } catch (error) {
+      console.error("Error processing call rejection:", error);
+    }
+  });
+
+  socket.on("call_ice_candidate", (data) => {
+    try {
+      const { receiver_id, candidate } = data;
+      
+      const receiverSocketId = [...io.sockets.sockets.values()]
+        .find(s => s.user && s.user.id === receiver_id)?.id;
+      
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("call_ice_candidate", { candidate });
+      }
+    } catch (error) {
+      console.error("Error sending ICE candidate:", error);
+    }
+  });
+
+  socket.on("call_end", (data) => {
+    try {
+      const { receiver_id } = data;
+      console.log(`Call between ${userId} and ${receiver_id} ended by ${username}`);
+      
+      const receiverSocketId = [...io.sockets.sockets.values()]
+        .find(s => s.user && s.user.id === receiver_id)?.id;
+      
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("call_end");
+      }
+      
+      const callKey1 = `${userId}_${receiver_id}`;
+      const callKey2 = `${receiver_id}_${userId}`;
+      
+      activeCalls.delete(callKey1);
+      activeCalls.delete(callKey2);
+      activeCallOffers.delete(userId);
+      activeCallOffers.delete(receiver_id);
+    } catch (error) {
+      console.error("Error ending call:", error);
+    }
+  });
+
+}
+
 io.on("connection", (socket) => {
   const userId = socket.user.id;
   const username = socket.user.username || "Anonymous";
@@ -143,6 +280,8 @@ io.on("connection", (socket) => {
   }
 
   updateLastActive(userId, formatDateToMySQL(now), token);
+
+  setupCallHandlers(socket);
 
   onlineUsers.set(userId, {
     id: userId,

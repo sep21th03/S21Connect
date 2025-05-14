@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Friendship;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Conversation;
 
 class UserService
 {
@@ -101,7 +102,7 @@ class UserService
             ->values()
             ->toArray();
 
-        $friends = User::select('id', 'first_name', 'last_name', 'avatar')
+        $friends = User::select('id', 'first_name', 'last_name', 'avatar', 'username')
             ->whereIn('id', $userFriendIds)
             ->limit($limit)
             ->get();
@@ -132,14 +133,37 @@ class UserService
         return $friends->map(function ($friend) use ($userFriendIds, $friendFriendMap) {
             $friendFriends = $friendFriendMap[$friend->id] ?? [];
             $mutualCount = count(array_intersect($userFriendIds, $friendFriends));
-
-            return [
-                'id' => $friend->id,
-                'name' => "{$friend->first_name} {$friend->last_name}",
-                'avatar' => $friend->avatar ?? null,
+            $conversationId = $this->getConversationFriends($friend->id);
+             return [
+                'id' => $conversationId,
                 'mutual_friends_count' => $mutualCount,
+                'other_user' => [
+                    'id' => $friend->id,
+                    'name' => "{$friend->first_name} {$friend->last_name}",
+                    'avatar' => $friend->avatar ?? null,
+                    'username' => $friend->username ?? null,
+                ],
             ];
         });
+    }
+
+    public function getConversationFriends($userId)
+    {
+        $userId1 = Auth::user()->id;
+        $userId2 = $userId;
+       $conversation = Conversation::where('type', 'private')
+        ->whereHas('users', function ($q) use ($userId1, $userId2) {
+            $q->whereIn('user_id', [$userId1, $userId2]);
+        }, '=', 2) 
+        ->whereHas('users', function ($q) use ($userId1) {
+            $q->where('user_id', $userId1);
+        })
+        ->whereHas('users', function ($q) use ($userId2) {
+            $q->where('user_id', $userId2);
+        })
+        ->first();
+
+    return $conversation?->id;
     }
 
 

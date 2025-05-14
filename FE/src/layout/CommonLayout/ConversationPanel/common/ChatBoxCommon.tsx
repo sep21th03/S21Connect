@@ -25,7 +25,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  
+  console.log(messages)
   const {
     socket,
     sendMessage,
@@ -51,7 +51,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
   useEffect(() => {
     if (!data) return;
   
-    const userId = data.other_user.id;
+    const userId = data.other_user.id ;
     const conversationId = data.id;
   
     const fetchMessages = async () => {
@@ -243,7 +243,6 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
     }
     return message.content;
   };
-
   return (
     <div className="chat-box" style={{ right: 370 }}>
       <a href={Href} className="chat-header">
@@ -251,7 +250,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
           <div
             className="user-img"
             style={{
-              // backgroundImage: `url(${data.other_user.avatar ? data.other_user.avatar : `${ImagePath}/user-sm/1.jpg`})`,
+              backgroundImage: `url(${data.other_user.avatar ? data.other_user.avatar : `${ImagePath}/user-sm/1.jpg`})`,
             }}
           >
             <span
@@ -260,21 +259,21 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
               }`}
             />
           </div>
-          <span>{data.other_user.name}</span>
+          <a href={`/profile/timeline/${data.other_user?.username}`} style={{textDecoration: "none", color: "black"}}>{data.other_user?.name}</a>
         </div>
         <div className="menu-option">
           <ul>
             <li onClick={() => setSmallChat(!smallChat)}>
-              <img src="../assets/svg/video.svg" alt="video" />
+              <img src="../../assets/svg/video.svg" alt="video" />
             </li>
             <li onClick={() => setSmallChat(!smallChat)}>
-              <img src="../assets/svg/phone.svg" alt="phone" />
+              <img src="../../assets/svg/phone.svg" alt="phone" />
             </li>
             <li onClick={() => setSmallChat(!smallChat)}>
-              <img src="../assets/svg/settings.svg" alt="settings" />
+              <img src="../../assets/svg/settings.svg" alt="settings" />
             </li>
             <li className="close-chat" onClick={() => setChatBox(false)}>
-              <img src="../assets/svg/x.svg" alt="close" />
+              <img src="../../assets/svg/x.svg" alt="close" />
             </li>
           </ul>
         </div>
@@ -290,12 +289,12 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
                 {renderMessageContent(message)}
                 <div className="timestamp" style={{ fontSize: "10px", marginTop: "5px", color: "#999" }}>
                   {formatTime(message.created_at || "")}
-                  {message.sender_id === session?.user?.id && (
+                  {/* {message.sender_id === session?.user?.id && (
                     <>
-                      <span className="checkmark-sent-delivered" style={{ marginLeft: "5px" }}>✓</span>
-                      {message.is_read && <span className="checkmark-read" style={{ marginLeft: "1px" }}>✓</span>}
+                      <span className="checkmark-sent-delivered" style={{ marginLeft: "5px", paddingLeft: "5px" }}>✓</span>
+                      {message.is_read && <span className="checkmark-read" style={{ marginLeft: "1px", paddingLeft: "5px" }}>✓</span>}
                     </>
-                  )}
+                  )} */}
                 </div>
               </span>
             </div>

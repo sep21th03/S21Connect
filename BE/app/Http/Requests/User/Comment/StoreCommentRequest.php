@@ -22,16 +22,17 @@ class StoreCommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'post_id' => 'required|exists:posts,id',
+            'id' => 'required|exists:posts,id',
             'content' => 'nullable|string',
+            'parent_id' => 'nullable|exists:comments,id'
         ];
     }
 
     public function messages()
     {
         return [
-            'post_id.required' => 'Bài viết không tồn tại.',
-            'post_id.exists' => 'Bài viết không tồn tại.',
+            'id.required' => 'Bài viết không tồn tại.',
+            'id.exists' => 'Bài viết không tồn tại.',
             'content.string' => 'Nội dung không hợp lệ.',
         ];
     }

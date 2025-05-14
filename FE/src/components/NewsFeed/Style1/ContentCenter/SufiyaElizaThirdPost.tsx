@@ -4,14 +4,18 @@ import CommonUserHeading from "@/Common/CommonUserHeading";
 import DetailBox from "@/Common/DetailBox";
 import { CelebrationNewAlbum, CelebrationSpan, ImagePath } from "../../../../utils/constant";
 import Image from "next/image";
-import { FC } from "react";
-import { SufiyaElizaThirdPostInterface } from "../Style1Types";
+import { FC, useState } from "react";
+import { SufiyaElizaThirdPostInterface, Post } from "../Style1Types";
 
 
-const SufiyaElizaThirdPost: FC<SufiyaElizaThirdPostInterface> = ({fourthPost,userImage,iframeLink}) => {
+const SufiyaElizaThirdPost: FC<SufiyaElizaThirdPostInterface> = ({fourthPost,post}) => {
+  const [localPost, setLocalPost] = useState(post);
+  const [isDeleted, setIsDeleted] = useState(false);
+  if (isDeleted) return null; 
+  
   return (
     <div className="post-wrapper col-grid-box section-t-space d-block">
-      <CommonUserHeading image={userImage} id="SufiyaElizaThirdPost" />
+      <CommonUserHeading id="SufiyaElizaThirdPost" postUser={localPost}  onPostUpdated={(updatedPost: Post) => setLocalPost(updatedPost)} onPostDeleted={() => setIsDeleted(true)}/>
       <div className="post-details">
         <div className="img-wrapper">
           {fourthPost ? (
@@ -20,17 +24,17 @@ const SufiyaElizaThirdPost: FC<SufiyaElizaThirdPostInterface> = ({fourthPost,use
             <div
               style={{ width: "100%", height: 0, paddingBottom: "56%", position: "relative",}}
             >
-              <iframe 
-                src={iframeLink}
+                <iframe 
+                src={localPost?.content}
                 style={{ position: "absolute" }} 
                 className="giphy-embed w-100 h-100"
                 allowFullScreen/>
             </div>
           )}
         </div>
-        <DetailBox heading={CelebrationNewAlbum} span={CelebrationSpan} />
-        <CommonLikePanel />
-        <CommonPostReact />
+        <DetailBox heading={CelebrationNewAlbum} span={CelebrationSpan} post={localPost} />
+        <CommonLikePanel reactionCount={localPost?.reaction_counts} total_reactions={localPost?.total_reactions} commentCount={localPost?.total_comments} shareCount={localPost?.total_shares} />
+        <CommonPostReact post={localPost} onReactionChange={(data) => setLocalPost({ ...localPost, reaction_counts: data.reaction_counts, total_reactions: data.total_count })} />
       </div>
     </div>
   );

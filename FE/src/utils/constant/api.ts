@@ -17,22 +17,27 @@ export const API_ENDPOINTS = {
   },
 
   POSTS: {
-    BASE: "/posts",
+    CREATE_POST: "/posts",
+    GET_MY_POSTS: "/posts/my_post",
+    EDIT_POST: "/posts/edit",
+    GET_POSTS: (username: string) => `/posts/${username}`,
+    GET_FRIEND_POSTS: (id: string) => `/posts/get_friend/${id}`,
     TOGGLE_COMMENTS: (id: number | string) => `/posts/${id}/toggle-comments`,
     TOGGLE_REACTIONS: (id: number | string) => `/posts/${id}/toggle-reactions`,
+    DELETE_POST: (id: number | string) => `/posts/${id}`,
     COMMENTS: {
-      ADD: (postId: number | string) => `/posts/${postId}/comments`,
+      ADD: "/posts/comments/add",
+      GET_COMMENTS: (postId: string) => `/posts/comments/${postId}`,
       DELETE: (postId: number | string, commentId: number | string) =>
         `/posts/${postId}/comments/${commentId}`,
     },
     REACTIONS: {
-      ADD: (postId: number | string) => `/posts/${postId}/reactions`,
-      DELETE: (postId: number | string, reactionId: number | string) =>
-        `/posts/${postId}/reactions/${reactionId}`,
+      TOGGLE: (id: number | string) => `/posts/${id}/reactions/toggle`,
+      GET: (id: number | string) => `/posts/${id}/reactions/get`
     },
     SHARES: {
-      CREATE: (postId: number | string) => `/posts/${postId}/shares`,
-      GET_ALL: (postId: number | string) => `/posts/${postId}/shares`,
+      SHARE:  "/posts/shares/post",
+      GET_SHARE: (postId: number | string) => `/posts/shares/${postId}`,
     },
   },
 
