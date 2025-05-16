@@ -31,7 +31,7 @@ export interface SufiyaElizaThirdPostInterface {
 }
 
 export interface CommonGalleryImageProps {
-  imageName: number | undefined;
+  imageUrl: string;
   onClickHandle: () => void;
 }
 
@@ -58,7 +58,7 @@ export interface EventsCardInterFace{
 
 export interface BirthdayReminderInterFace  {
   mainClass?:string
-
+  userInforBirthday?: UserInforBirthday
 }
 
 export interface SufiyaElizaMultiplePostInterFace {

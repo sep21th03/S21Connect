@@ -73,4 +73,15 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Last active updated successfully']);
     }
+
+    public function getStats(Request $request)
+    {
+        $userId = $request->user()->id;
+
+        $stats = $this->userService->getUserStats($userId);
+
+        return response()->json([
+            'data' => $stats
+        ]);
+    }
 }

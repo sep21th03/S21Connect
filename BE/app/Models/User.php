@@ -93,6 +93,10 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     }
 
     // Relationships
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
     public function conversations()
     {
         return $this->belongsToMany(Conversation::class, 'conversation_user')
@@ -126,7 +130,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             ->where('user_id', $this->id)
             ->first()
             ->pivot;
-            
+
         return $pivot->nickname ?? $this->name;
     }
 

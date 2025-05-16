@@ -86,15 +86,30 @@ export interface CallOfferDetails {
   call_type: "audio" | "video";
 }
 
-export function useSocket(onOnlineList: (users: User[]) => void) {
+export interface Notification {
+  id: string;
+  userId: string;
+  type: "birthday" | "reaction" | "comment" | "share" | "friend_request";
+  content: string;
+  link: string | null;
+  is_read: boolean;
+  from_user: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+}
+
+export function useSocket(onOnlineList: (users: User[]) => void, onNotification: (data: Notification) => void) {
   const socketRef = useRef<Socket | null>(null);
   const onOnlineListRef = useRef(onOnlineList);
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
-
+  const onNotificationCallbackRef = useRef(onNotification);
   useEffect(() => {
     onOnlineListRef.current = onOnlineList;
-  }, [onOnlineList]);
+    onNotificationCallbackRef.current = onNotification;
+  }, [onOnlineList, onNotification]);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -136,12 +151,24 @@ export function useSocket(onOnlineList: (users: User[]) => void) {
       }
     }, 30000);
 
+    const handleNotification = (data: Notification) => {
+      if (onNotificationCallbackRef.current) {
+        onNotificationCallbackRef.current(data);
+      }
+    };
+    
+    socket.on('notification', handleNotification);
+    
+    socket.on('notification', handleNotification);
+    
+
     return () => {
       clearInterval(heartbeatInterval);
       socket?.off("online_users_list", handleOnlineUsers);
       socket?.off("connect");
       socket?.off("disconnect");
       socket?.off("incoming_call");
+      socket?.off("notification", handleNotification);
     };
   }, []);
 

@@ -6,6 +6,8 @@ use App\Models\Friendship;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 
 class FriendService
@@ -84,7 +86,24 @@ class FriendService
 
     public function getPendingRequests()
     {
-        return Auth::user()->receivedFriendRequests;
+        $friends = Auth::user()->receivedFriendRequests()->orderByDesc('created_at')->get();
+        // Auth::user()->receivedFriendRequests()
+        //     ->where('new', false)
+        //     ->update(['new' => true]);
+        $infoFriends = $friends->map(function ($friendship) {
+            $friend = User::find($friendship->user_id);
+            $mutualFriendIds =  $this->countMutualFriends($friend->id, Auth::id());
+
+            return [
+                'id' => $friend->id,
+                'first_name' => $friend->first_name,
+                'last_name' => $friend->last_name,
+                'avatar' => $friend->avatar,
+                'username' => $friend->username,
+                'mutual_friend' => $mutualFriendIds,
+            ];
+        });
+        return $infoFriends;
     }
 
     private function isFriend($userId, $friendId)
@@ -132,12 +151,21 @@ class FriendService
             ->where(function ($query) use ($userId) {
                 $query->where('user_id', $userId)
                     ->orWhere('friend_id', $userId);
-            })->count();
+            })
+            ->get();
+
+        $uniqueFriendPairs = $friends->map(function ($friend) {
+            $ids = [$friend->user_id, $friend->friend_id];
+            sort($ids);
+            return implode('-', $ids);
+        })->unique();
+
+        $friendCount = $uniqueFriendPairs->count();
 
         return [
             'following' => $following,
             'followers' => $followers,
-            'friends' => $friends,
+            'friends' => $friendCount,
         ];
     }
 
@@ -164,6 +192,9 @@ class FriendService
                     ? $friendship->friend_id
                     : $friendship->user_id;
             })
+            ->filter(fn($id) => $id !== $userId)
+            ->unique()
+            ->values()
             ->toArray();
     }
 
@@ -186,4 +217,40 @@ class FriendService
         return count(array_intersect($friendsOfUser1, $friendsOfUser2));
     }
 
+    public function getUpcomingBirthdays($userId, $daysAhead = 30)
+    {
+        $today = Carbon::today();
+        $endDate = $today->copy()->addDays($daysAhead);
+
+        $friends = Friendship::where('friendships.status', 'accepted')
+            ->where(function ($query) use ($userId) {
+                $query->where('friendships.user_id', $userId)
+                    ->orWhere('friendships.friend_id', $userId);
+            })
+            ->join('users', function ($join) use ($userId) {
+                $join->on(DB::raw("IF(friendships.user_id = '$userId', friendships.friend_id, friendships.user_id)"), '=', 'users.id');
+            })
+            ->leftJoin('user_profiles', 'user_profiles.user_id', '=', 'users.id')
+            ->select('users.id', 'users.first_name', 'users.last_name', 'users.birthday', 'users.avatar', 'users.username', 'users.birthday', 'users.gender', 'user_profiles.location')
+            ->distinct()
+            ->whereNotNull('users.birthday')
+            ->get()
+            ->filter(function ($user) use ($today, $endDate) {
+                $birthday = Carbon::parse($user->birthday)->setYear($today->year);
+                if ($birthday->lessThan($today)) {
+                    $birthday->addYear();
+                }
+                return $birthday->between($today, $endDate);
+            })
+            ->sortBy(function ($user) use ($today) {
+                $birthday = Carbon::parse($user->birthday)->setYear($today->year);
+                if ($birthday->lessThan($today)) {
+                    $birthday->addYear();
+                }
+                return $birthday->dayOfYear;
+            })
+            ->values();
+
+        return $friends;
+    }
 }

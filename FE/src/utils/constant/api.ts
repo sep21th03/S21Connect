@@ -22,6 +22,7 @@ export const API_ENDPOINTS = {
     EDIT_POST: "/posts/edit",
     GET_POSTS: (username: string) => `/posts/${username}`,
     GET_FRIEND_POSTS: (id: string) => `/posts/get_friend/${id}`,
+    GET_NEWSFEED: "/posts/newsfeed",
     TOGGLE_COMMENTS: (id: number | string) => `/posts/${id}/toggle-comments`,
     TOGGLE_REACTIONS: (id: number | string) => `/posts/${id}/toggle-reactions`,
     DELETE_POST: (id: number | string) => `/posts/${id}`,
@@ -51,6 +52,7 @@ export const API_ENDPOINTS = {
     USER_PROFILE: (username: string) => `/profile/${username}`,
     USER_DATA: (userId: string) => `/profile/user/data/${userId}`,
     USER_AVATAR: `/profile/user/avatar`,
+    USER_ABOUT: "/profile/user/about",
   },
 
   FRIENDS: {
@@ -60,6 +62,9 @@ export const API_ENDPOINTS = {
     REJECT: (userId: number | string) => `/cancel/${userId}`,
     UNFRIEND: (userId: number | string) => `/remove/${userId}`,
     CHECK_STATUS: (userId: number | string) => `/status/${userId}`,
+    USER_INFOR_BIRTHDAY: "/friends/birthday",
+    FRIEND_REQUEST: "/friends/requests",
+    FRIEND_REQUEST_COUNT: "/friends/count_new_requests",
   },
 
   USERS: {
@@ -69,6 +74,7 @@ export const API_ENDPOINTS = {
     LIST_FRIENDS_LIMIT: (userId: string) => `/${userId}/list_friends_limit`,
     ONLINE_USERS: (userId: string) => `/${userId}/friends`,
     LAST_ACTIVE: (otherUserId: string) => `/user/update-last-active`,
+    GET_STATS: "/user/get_stats",
   },
 
   MESSAGES: {
@@ -88,4 +94,9 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/images/${id}`,
     DELETE: (id: string) => `/images/${id}`,
   },
+  NOTIFICATIONS: {
+    GET_NOTIFICATION_LIST: "/notifications",
+    MARK_ALL_AS_READ:  "/notifications/read-all",
+  },
 };
+

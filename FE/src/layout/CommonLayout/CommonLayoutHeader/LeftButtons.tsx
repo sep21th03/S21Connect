@@ -15,8 +15,11 @@ const LeftButtons: React.FC = () => {
         </Link>
       </li>
       <li className="header-btn custom-dropdown dropdown-lg add-friend">
-        <a className={`main-link ${showFriendList ? "show" : ""}`} href={Href}>
-          <DynamicFeatherIcon iconName="UserPlus" className="icon-light stroke-width-3 iw-16 ih-16" onClick={() => setShowFriendList(!showFriendList)}/>
+        <a className={`main-link ${showFriendList ? "show" : ""}`} href={Href} onClick={(e) => {
+          e.preventDefault();
+          setShowFriendList(!showFriendList);
+        }}>
+          <DynamicFeatherIcon iconName="UserPlus" className="icon-light stroke-width-3 iw-16 ih-16"/>
         </a>
         <div className={`dropdown-menu ${showFriendList ? "show" : ""}`}>
           <div className="dropdown-header">
@@ -24,8 +27,8 @@ const LeftButtons: React.FC = () => {
             <div className="mobile-close" onClick={() => setShowFriendList(false)}>
               <h5>{Close}</h5>
             </div>
-          </div>
-          <DropdownContent />
+          </div>  
+        {showFriendList && <DropdownContent />}
         </div>
       </li>
     </ul>

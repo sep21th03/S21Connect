@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class Friendship extends Model {
     use HasFactory;
     use HasUuids;
-    protected $fillable = ['user_id', 'friend_id', 'status'];
+    protected $fillable = ['user_id', 'friend_id', 'status', 'new'];
 
     public function user() {
         return $this->belongsTo(User::class, 'user_id');

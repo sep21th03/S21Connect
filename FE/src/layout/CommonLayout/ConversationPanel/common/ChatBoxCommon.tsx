@@ -25,7 +25,6 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  console.log(messages)
   const {
     socket,
     sendMessage,

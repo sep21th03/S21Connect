@@ -59,5 +59,32 @@ class FriendController extends Controller
         return response()->json($mutualFriends);
     }
 
- 
+    public function upcomingBirthdays()
+    {
+        $userId = Auth::id(); 
+        $daysAhead = 30;
+
+        $friends = $this->friendService->getUpcomingBirthdays($userId, $daysAhead);
+
+        return response()->json([
+            'data' => $friends,
+        ]);
+    }
+
+    public function getListRequestFriends()
+    {
+        $pendingRequests = $this->friendService->getPendingRequests();
+
+        return response()->json([
+            'data' => $pendingRequests,
+        ]);
+    }
+
+    public function countNewFriendRequests()
+    {
+        return Auth::user()
+            ->receivedFriendRequests()
+            ->where('new', false)
+            ->count();
+    }
 }
