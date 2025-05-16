@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Reaction;
 use App\Models\Post;
+use App\Events\PostReacted;
 
 class ReactionController extends Controller
 {
@@ -29,6 +30,8 @@ class ReactionController extends Controller
         $postId = $request->post_id;
         $type = $request->type;
 
+        $post = Post::findOrFail($postId);
+
         $existingReaction = Reaction::where('user_id', $userId)
             ->where('post_id', $postId)
             ->first();
@@ -37,13 +40,23 @@ class ReactionController extends Controller
             if ($existingReaction->type === $type) {
                 $existingReaction->delete();
                 return response()->json([
-                    'message' => 'Reaction removed',
+                    'message' => 'Xóa cảm xúc',
                     'status' => 'removed'
                 ]);
             } else {
                 $existingReaction->update(['type' => $type]);
+                // if ($post->user_id !== $userId) {
+                //     $this->createReactionNotification(
+                //         $post->user_id,
+                //         Auth::user()->name,
+                //         $postId
+                //     );
+                // }
+                // if ($post->user_id !== $userId) {
+                //     event(new PostReacted($post, Auth::user(), $type));
+                // }
                 return response()->json([
-                    'message' => 'Reaction updated',
+                    'message' => 'Cập nhật cảm xúc',
                     'status' => 'updated',
                     'reaction' => $existingReaction
                 ]);
@@ -54,9 +67,18 @@ class ReactionController extends Controller
                 'post_id' => $postId,
                 'type' => $type
             ]);
-
+            // if ($post->user_id !== $userId) {
+            //     $this->createReactionNotification(
+            //         $post->user_id,
+            //         Auth::user()->name,
+            //         $postId
+            //     );
+            // }
+            if ($post->user_id !== $userId) {
+                event(new PostReacted($post, Auth::user(), $type));
+            }
             return response()->json([
-                'message' => 'Reaction added',
+                'message' => 'Thả cảm xúc',
                 'status' => 'added',
                 'reaction' => $reaction
             ]);
@@ -76,7 +98,7 @@ class ReactionController extends Controller
         if (Auth::check()) {
             $userReaction = Reaction::where('post_id', $postId)
                 ->where('user_id', Auth::id())
-                ->value('type'); 
+                ->value('type');
         }
 
         return response()->json([

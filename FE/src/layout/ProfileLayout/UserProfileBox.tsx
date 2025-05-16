@@ -24,7 +24,7 @@ const UserProfileBox:FC<UserProfileInterFace> = ({toggle,isOwnProfile,userProfil
           <div className="profile-detail">
             <h2>{userProfile?.user.first_name} {userProfile?.user.last_name}</h2>
             <h5>{userProfile?.user.email}</h5>
-            <UserData />
+            <UserData userData={userProfile?.user} />
             {isOwnProfile && (
               <a href={Href} className="btn btn-solid" onClick={toggle}>{EditProfile}</a>
             )}

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Friendship;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Conversation;
+use App\Models\Post;
 
 class UserService
 {
@@ -223,5 +224,22 @@ class UserService
             $user->save();
         }
         return $user;
+    }
+
+    public function getUserStats(string $userId): array
+    {
+        $totalPosts = Post::where('user_id', $userId)->count();
+
+        $totalFriends = Friendship::where('status', 'accepted')
+            ->where(function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                    ->orWhere('friend_id', $userId);
+            })
+            ->count();
+
+        return [
+            'total_posts' => $totalPosts,
+            'total_friends' => $totalFriends,
+        ];
     }
 }

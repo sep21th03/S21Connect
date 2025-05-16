@@ -16,6 +16,7 @@ use App\Http\Controllers\Messenger\MessengerController;
 use App\Http\Controllers\Messenger\ChatGroupController;
 use App\Http\Controllers\Messenger\ConversationController;
 use App\Http\Controllers\Image\ImageController;
+use App\Http\Controllers\Notification\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +63,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/edit', [PostController::class, 'editPost']);
         Route::post('/{id}', [PostController::class, 'destroy']);
         Route::get('/get_friend/{id}', [PostController::class, 'getFriendPost']); // GET /posts/{id}
+        Route::get('/newsfeed', [PostController::class, 'getNewsFeed']);
 
         Route::post('/{id}/toggle-comments', [PostController::class, 'toggleComments']);
         Route::post('/{id}/reactions', [PostController::class, 'toggleReactions']);
@@ -90,6 +92,9 @@ Route::middleware(['auth:api'])->group(function () {
         Route::delete('/cancel/{id}', [FriendController::class, 'cancelRequest']);
         Route::delete('/remove/{id}', [FriendController::class, 'unfriend']);
         Route::get('/status/{friendId}', [FriendController::class, 'checkStatus']);
+        Route::get('/birthday', [FriendController::class, 'upcomingBirthdays']);
+        Route::get('/requests', [FriendController::class, 'getListRequestFriends']);
+        Route::get('/count_new_requests', [FriendController::class, 'countNewFriendRequests']);
     });
 
 
@@ -109,6 +114,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/about/info', [ProfileController::class, 'updateProfileAbout']);
         Route::get('/user/data/{id}', [FriendController::class, 'getFriendStats']);
         Route::post('/user/avatar', [ProfileController::class, 'updateAvatar']);
+        Route::get('/user/about', [ProfileController::class, 'getMeProfileAbout']);
     });
 
     //hovercard
@@ -119,6 +125,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('{userId}/list_friends_limit', [UserController::class, 'getListFriendLimit']);
         Route::get('{userId}/friends', [UserController::class, 'getFriendsWithMutualCount']);
         Route::post('/update-last-active', [UserController::class, 'updateLastActive']);
+        Route::get('/get_stats', [UserController::class, 'getStats']);
     });
 
     //messenger
@@ -158,6 +165,13 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/', [ImageController::class, 'index']);
     });
 
+    //notifications
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'getNotifications']);
+        Route::post('/read/{id}', [NotificationController::class, 'markAsRead']);
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::delete('/{id}', [NotificationController::class, 'deleteNotification']);
+    });
 
     Route::prefix('chat-groups')->group(function () {
         Route::post('/', [ChatGroupController::class, 'create']);

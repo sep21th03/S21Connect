@@ -34,7 +34,7 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
             id={id}
           >
             <Image
-              src={`https://scontent.fhan15-1.fna.fbcdn.net/v/t39.30808-1/482081889_1365940681250918_8341183158936991854_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=106&ccb=1-7&_nc_sid=e99d92&_nc_ohc=3clD5q_4RNEQ7kNvwH_fSkR&_nc_oc=AdkaVglB6Qkr9E837rb8KUUxgANB6CubRupuIjKzyBMoTKbLn7rkiQIY--8YnhYdA-EMIWv1xbp9MWcO_wMq6MBI&_nc_zt=24&_nc_ht=scontent.fhan15-1.fna&_nc_gid=vMr08z73Jz0dH1lxOchhRA&oh=00_AfIm6beXaoyWYeb5Nsj0FUlbjoKIiowqMgpcGcXJRcYV5Q&oe=68290F9E`}
+              src={postUser?.user?.avatar}
               className="img-fluid lazyload bg-img rounded-circle"
               alt="user"
               width={55}

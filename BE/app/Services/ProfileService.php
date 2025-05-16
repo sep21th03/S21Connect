@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\Friendship;
 
 class ProfileService
 {
@@ -14,6 +15,48 @@ class ProfileService
     {
         try {
             return User::with('profile')->findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            return null;
+        }
+    }
+
+    public function getProfileAbout($userId)
+    {
+        try {
+            $user = User::with('profile')->findOrFail($userId);
+            $following = Friendship::where('user_id', $userId)->count();
+
+            $followers = Friendship::where('friend_id', $userId)->count();
+
+            $friends = Friendship::where('status', 'accepted')
+                ->where(function ($query) use ($userId) {
+                    $query->where('user_id', $userId)
+                        ->orWhere('friend_id', $userId);
+                })
+                ->get();
+
+            $uniqueFriendPairs = $friends->map(function ($friend) {
+                $ids = [$friend->user_id, $friend->friend_id];
+                sort($ids);
+                return implode('-', $ids);
+            })->unique();
+
+            $friendCount = $uniqueFriendPairs->count();
+
+            return [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'bio' => $user->bio,
+                'avatar' => $user->avatar,
+                'user_data' => [
+                    'following' => $following,
+                    'followers' => $followers,
+                    'friends' => $friendCount,
+                ]
+            ];
         } catch (ModelNotFoundException $e) {
             return null;
         }
@@ -142,13 +185,13 @@ class ProfileService
                 ]);
 
                 $user->update([
-                    'bio' => $data['bio'], 
+                    'bio' => $data['bio'],
                     'birthday' => $data['birthday'],
                     'gender' => $data['gender'],
                 ]);
-                
+
                 return [
-                    'user' => $user->fresh(),    
+                    'user' => $user->fresh(),
                     'profile' => $profile->fresh()
                 ];
             });

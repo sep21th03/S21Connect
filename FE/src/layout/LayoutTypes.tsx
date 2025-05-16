@@ -54,6 +54,22 @@ export interface FavoriteLayoutProps {
 
 export interface NotificationListsProps {
   setShowNotification: Dispatch<SetStateAction<boolean>>;
+  notification: NotificationType[];
+}
+
+export interface NotificationType {
+  id: string;
+  userId: string;
+  type: "birthday" | "reaction" | "comment" | "share" | "friend_request";
+  content: string;
+  link: string | null;
+  is_read: boolean;
+  created_at: string;
+  from_user: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
 }
 
 export interface CommonHeaderInterface {

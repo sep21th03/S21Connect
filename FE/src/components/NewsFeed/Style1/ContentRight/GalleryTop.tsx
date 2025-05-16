@@ -3,14 +3,18 @@ import { EditProfile, Gallery, Href, ViewProfile, photos } from "../../../../uti
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import { Dropdown, DropdownToggle, DropdownMenu } from "reactstrap";
 
-const GalleryTop: FC = () => {
+interface GalleryTopProps {
+  galleryLength: number;
+}
+
+const GalleryTop: FC<GalleryTopProps> = ({ galleryLength }) => {
   const [galleryDropDown, setGalleryDropDown] = useState(false);
   const handleDropDown = () => setGalleryDropDown(!galleryDropDown);
   return (
     <div className="gallery-top">
       <div className="card-title">
         <h3>{Gallery}</h3>
-        <h5>156 {photos}</h5>
+        <h5>{galleryLength} {photos}</h5>
         <div className="settings">
           <div className="setting-btn">
             <a href={Href}>

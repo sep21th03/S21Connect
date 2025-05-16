@@ -202,6 +202,8 @@ class PostService
         // return $allPosts;
     }
 
+   
+
 
     public function store(array $data)
     {

@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import { Collapse, Media } from "reactstrap";
+import { Collapse, Media, Spinner } from "reactstrap";
 import { useSession } from "next-auth/react";
 import HoverMessage from "@/Common/HoverMessage";
 import ChatBoxCommon from "./common/ChatBoxCommon";
@@ -55,7 +55,7 @@ const AllFriends = () => {
     }
   };
 
-  const friendsOnline = friends.filter((friend) => !onlineUsers.some((user) => user.id === friend.id));
+  const friendsOnline = friends.filter((friend) => !onlineUsers.some((user) => user.id === friend.other_user.id));
   useEffect(() => {
     if (session?.user?.id) {
       getListFriends(session.user.id);
@@ -138,9 +138,11 @@ const AllFriends = () => {
      
       <Collapse isOpen={isOpen} className="friend-list">
         {isLoading ? (
-          <div className="text-center py-3">Loading friends...</div>
+          <div className="d-flex justify-content-center align-items-center p-3">
+            <Spinner />
+          </div>
         ) : friends.length === 0 ? (
-          <div className="text-center py-3">No friends found</div>
+          <div className="text-center py-3">Không có bạn bè</div>
         ) : (
           <div className="online-friends">
             <ul>

@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect, useState } from "react";
-import { Collapse, Media } from "reactstrap";
+import { Collapse, Media, Spinner } from "reactstrap";
 import { useSession } from "next-auth/react";
 import CustomImage from "@/Common/CustomImage";
 import HoverMessage from "@/Common/HoverMessage";
@@ -21,6 +21,10 @@ interface Friend {
   avatar?: string;
   mutual_friends_count: number;
   username: string;
+  other_user: {
+    id: string;
+    avatar: string;
+  };
 }
 
 const CloseFriends = () => {
@@ -40,11 +44,12 @@ const CloseFriends = () => {
     setIsLoading(true);
     try {
       const response = await axiosInstance.get(
-        API_ENDPOINTS.USERS.BASE + API_ENDPOINTS.USERS.LIST_FRIENDS_LIMIT(userId)
+        API_ENDPOINTS.USERS.BASE +
+          API_ENDPOINTS.USERS.LIST_FRIENDS_LIMIT(userId)
       );
-      
-      const friendsList = Array.isArray(response.data) 
-        ? response.data 
+
+      const friendsList = Array.isArray(response.data)
+        ? response.data
         : response.data.friends || [];
       setFriends(friendsList);
     } catch (error) {
@@ -55,8 +60,9 @@ const CloseFriends = () => {
     }
   };
 
-  const friendsOnline = friends.filter((friend) => onlineUsers.some((user) => user.id === friend.id));
-
+  const friendsOnline = friends.filter((friend) =>
+    onlineUsers.some((user) => user.id === friend.other_user.id)
+  );
   useEffect(() => {
     if (session?.user?.id) {
       getListFriends(session.user.id);
@@ -70,15 +76,12 @@ const CloseFriends = () => {
       image: friend.avatar || `${ImagePath}/user-sm/1.jpg`,
       username: friend.username,
     };
-    
+
     setSelectedUser(chatUser);
     setChatBox(true);
   };
   const renderFriendItem = (friend: Friend, index: number) => (
-    <li
-      key={friend.id || index}
-      className={`friend-box user${index + 1}`}
-    >
+    <li key={friend.id || index} className={`friend-box user${index + 1}`}>
       <Media onClick={() => handleOpenChatBox(friend)}>
         <a
           className="popover-cls user-img bg-size blur-up lazyloaded"
@@ -86,26 +89,25 @@ const CloseFriends = () => {
         >
           <Image
             src={
-              friend.avatar
-                ? friend.avatar
+              friend.other_user.avatar
+                ? friend.other_user.avatar
                 : `${ImagePath}/user-sm/1.jpg`
             }
             className="img-fluid lazyload bg-img rounded-circle"
             alt="user"
-            height={50} width={50}
+            height={50}
+            width={50}
           />
           <span className="available-stats online" />
         </a>
         <Media body>
-          <h5 className="user-name">
-            {friend.name}
-          </h5>
+          <h5 className="user-name">{friend.name}</h5>
           <h6 className="mutual-count">
             {friend.mutual_friends_count} bạn chung
           </h6>
         </Media>
       </Media>
-      <HoverMessage
+      {/* <HoverMessage
         placement={mobileSize ? "right" : "top"}
         target={`friend-${friend.id || index}`}
         data={friend}
@@ -116,7 +118,7 @@ const CloseFriends = () => {
         }
         onMessageClick={() => {handleOpenChatBox(friend)}}
         onFriendRequestClick={() => {}}
-      />
+      /> */}
     </li>
   );
 
@@ -127,25 +129,26 @@ const CloseFriends = () => {
         setIsOpen={setIsOpen}
         heading={`Friends (${friends.length})`}
       />
-     
+
       <Collapse isOpen={isOpen} className="friend-list">
         {isLoading ? (
-          <div className="text-center py-3">Đang tải bạn bè...</div>
+          <div className="d-flex justify-content-center align-items-center p-3">
+            <Spinner />
+          </div>
         ) : friends.length === 0 ? (
           <div className="text-center py-3">Không có bạn bè đang online</div>
         ) : (
           <div className="online-friends">
             <ul>
-              {friendsOnline.map((friend, index) => renderFriendItem(friend, index))}
+              {friendsOnline.map((friend, index) =>
+                renderFriendItem(friend, index)
+              )}
             </ul>
           </div>
         )}
 
         {chatBox && selectedUser && (
-          <ChatBoxCommon
-            setChatBox={setChatBox}
-            data={selectedUser}
-          />
+          <ChatBoxCommon setChatBox={setChatBox} data={selectedUser} />
         )}
       </Collapse>
     </div>

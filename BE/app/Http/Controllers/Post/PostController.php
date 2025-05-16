@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Services\PostService;
 use App\Http\Requests\User\Post\StorePostRequest;
 use App\Http\Requests\User\Post\UpdatePostRequest;
-use Illuminate\Http\Client\Request;
+use Illuminate\Http\Request;
+use App\Models\Post;
+use App\Models\Friendship;
 
 class PostController extends Controller
 {
@@ -75,4 +77,100 @@ class PostController extends Controller
         $data = $this->postService->getPostReactions($postId);
         return response()->json($data);
     }
+
+     public function getNewsFeed(Request $request)
+    {
+        $user = auth()->user();
+        $after = $request->query('after'); 
+        $limit = $request->query('limit', 10);
+
+        $friendIds = Friendship::where('user_id', $user->id)->pluck('friend_id')->toArray();
+
+        $allowedUserIds = array_merge($friendIds, [$user->id]);
+
+        $query = Post::with([
+            'user' => function ($query) {
+                $query->select('id', 'username', 'first_name', 'last_name', 'avatar');
+            },
+            'reactions'
+        ])
+            ->withCount(['comments', 'shares'])
+            ->whereIn('user_id', $allowedUserIds)
+            ->where(function ($q) use ($user) {
+                $q->where('visibility', 'public')
+                    ->orWhere(function ($q2) use ($user) {
+                        $q2->where('visibility', 'friends');
+                    });
+            })
+            ->orderByDesc('created_at');
+
+        if ($after) {
+            $query->where('created_at', '<', $after);
+        }
+
+        $posts = $query->limit($limit)->get();
+
+        $posts = $posts->map(function ($post) {
+            $user_tag = $post->taggedFriends()->get();
+            if ($user_tag) {
+                $user_tag->each(function ($user) {
+                    unset(
+                        $user->gender,
+                        $user->birthday,
+                        $user->email,
+                        $user->email_verified_at,
+                        $user->phone,
+                        $user->phone_verified_at,
+                        $user->bio,
+                        $user->remember_token,
+                        $user->created_at,
+                        $user->updated_at,
+                        $user->is_admin,
+                        $user->status,
+                        $user->cover_photo,
+                        $user->last_active
+                    );
+                });
+                $post->taggedFriends = $user_tag;
+            }
+
+            $post->total_reactions = $post->reactions->count();
+            $post->reaction_counts = $post->reactions
+                ->groupBy('type')
+                ->map(fn($group) => $group->count());
+
+            $post->total_comments = $post->comments->count();
+            $post->total_shares = $post->shares->count();
+
+            unset(
+                $post->reactions,
+                $post->comments_count,
+                $post->shares_count,
+                $post->comments,
+                $post->shares
+            );
+
+            unset(
+                $post->user->gender,
+                $post->user->birthday,
+                $post->user->email,
+                $post->user->email_verified_at,
+                $post->user->phone,
+                $post->user->phone_verified_at,
+                $post->user->bio,
+                $post->user->remember_token,
+                $post->user->created_at,
+                $post->user->updated_at,
+                $post->user->is_admin,
+                $post->user->status,
+                $post->user->cover_photo,
+                $post->user->last_active
+            );
+
+            return $post;
+        });
+
+        return response()->json($posts);
+    }
+
 }

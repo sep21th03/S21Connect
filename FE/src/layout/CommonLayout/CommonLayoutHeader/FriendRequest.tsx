@@ -5,7 +5,7 @@ import Image from "next/image";
 import { NotificationListsProps } from "@/layout/LayoutTypes";
 import { FC } from "react";
 
-const FriendRequest: FC<NotificationListsProps> = ({setShowNotification}) => {
+const FriendRequest: FC<NotificationListsProps> = ({setShowNotification, notification}) => {
   return (
     <li className="d-block" onClick={() => setShowNotification(false)}>
       <div>
@@ -14,7 +14,7 @@ const FriendRequest: FC<NotificationListsProps> = ({setShowNotification}) => {
           <Media body>
             <div>
               <h5 className="mt-0">
-                <span>Paige Turner</span> {SendYouFriendRequest}
+                <span>{notification.content}</span> {SendYouFriendRequest}
               </h5>
               <h6> 1 {MutualFriend}</h6>
               <div className="action-btns">
