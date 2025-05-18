@@ -112,7 +112,7 @@ const filteredUsers = [
   },
 ];
 
-const UserTable: React.FC<Props> = ({ users = filteredUsers }) => {
+const UserTable: React.FC<Props> = () => {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     searchTerm: "",
