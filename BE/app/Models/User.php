@@ -38,6 +38,9 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'avatar',
         'cover_photo',
         'last_active',
+        'vnd',
+        'secret_code',
+        'status',
     ];
 
     /**
@@ -91,8 +94,11 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         $this->notify(new CustomVerifyEmail());
     }
-
     // Relationships
+    public function reportsReceived()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
     public function notifications()
     {
         return $this->hasMany(Notification::class);
@@ -140,6 +146,15 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             $conversation->id,
             ['last_read_at' => now()]
         );
+    }
+
+    public function acceptedFriendships()
+    {
+        return Friendship::where('status', 'accepted')
+            ->where(function ($q) {
+                $q->where('user_id', $this->id)
+                    ->orWhere('friend_id', $this->id);
+            });
     }
     // public function messagesSent()
     // {

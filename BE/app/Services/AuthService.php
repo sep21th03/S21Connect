@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\MyController\MyFunction;
+use App\Models\LoginLog;
+
 
 class AuthService
 {
@@ -37,6 +40,13 @@ class AuthService
         if (is_null($user->email_verified_at)) {
             return response()->json(['error' => 'Email chưa được xác minh'], 403);
         }
+        $my_function = new MyFunction();
+        $ip = $my_function->getIP();
+        LoginLog::create([
+            'user_id' => $user->id,
+            'ip_address' => $ip,
+        ]);
+
         return response()->json(['token' => $token, 'refresh_token' => $refreshToken, 'expires_in' => JWTAuth::factory()->getTTL() * 60]);
     }
 

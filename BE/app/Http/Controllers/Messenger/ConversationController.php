@@ -19,90 +19,98 @@ class ConversationController extends Controller
      */
     public function index()
     {
-        $conversations = Auth::user()->conversations()
-            ->with(['latestMessage', 'latestMessage.sender', 'users' => function ($query) {
-                $query->select('users.id', 'username', 'first_name', 'last_name', 'last_active')
-                    ->where('users.id', '!=', Auth::id());
+        $user = Auth::user();
+        $userId = $user->id;
+
+        // Tối ưu truy vấn ban đầu: Lấy tất cả dữ liệu cần thiết trong một truy vấn với eager loading
+        $conversations = $user->conversations()
+            ->with([
+                'latestMessage',
+                'latestMessage.sender',
+                'image',  // Eager load image để tránh N+1 query
+                'users' => function ($query) use ($userId) {
+                    $query->select('users.id', 'username', 'first_name', 'last_name', 'last_active', 'avatar')
+                        ->where('users.id', '!=', $userId);
+                }
+            ])
+            ->withCount(['unreadMessages' => function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                    ->where('is_read', false);
             }])
-            ->get()
-            ->map(function ($conversation) {
-                // Format the conversation data
-                $data = [
-                    'id' => $conversation->id,
-                    'name' => $conversation->name,
-                    'type' => $conversation->type,
-                    'url' => $conversation->getUrl(),
-                    'unread_count' => $conversation->unreadCount(Auth::user()),
-                    'created_at' => $conversation->created_at,
-                    'updated_at' => $conversation->updated_at
+            ->get();
+
+        // Biến đổi dữ liệu
+        $formattedConversations = $conversations->map(function ($conversation) use ($userId) {
+            // Dữ liệu cơ bản của cuộc trò chuyện
+            $data = [
+                'id' => $conversation->id,
+                'name' => $conversation->name,
+                'type' => $conversation->type,
+                'url' => $conversation->getUrl(),
+                'unread_count' => $conversation->unread_messages_count,
+                'created_at' => $conversation->created_at,
+                'updated_at' => $conversation->updated_at
+            ];
+
+            // Thêm thông tin về hình ảnh nếu có
+            if ($conversation->image) {
+                $data['image'] = [
+                    'url' => $conversation->image->url,
+                    'type' => $conversation->image->type
                 ];
+            }
 
-                // Add image if exists
-                if ($conversation->image) {
-                    $data['image'] = [
-                        'url' => $conversation->image->url,
-                        'type' => $conversation->image->type
+            // Xử lý cuộc trò chuyện riêng tư
+            if ($conversation->type === 'private') {
+                $otherUser = $conversation->users->first();
+
+                if ($otherUser) {
+                    $data['name'] = $otherUser->getDisplayNameInConversation($conversation);
+                    $data['other_user'] = [
+                        'id' => $otherUser->id,
+                        'username' => $otherUser->username,
+                        'name' => trim($otherUser->first_name . ' ' . $otherUser->last_name),
+                        'last_active' => $otherUser->last_active,
+                        'avatar' => $otherUser->avatar,
                     ];
                 }
-
-                // Set name for private conversations
-                if ($conversation->type === 'private') {
-                    $otherUser = $conversation->users->first();
-                    $data['name'] = $otherUser
-                        ? $otherUser->getDisplayNameInConversation($conversation)
-                        : null;
-                    $otherUser['avatar'] = User::where('id', '!=', Auth::id())
-                        ->where('id', $otherUser->id)
-                        ->first()
-                        ?->avatar;
-
-                    // Add other user data for private conversations
-                    if ($otherUser) {
-                        $data['other_user'] = [
-                            'id' => $otherUser->id,
-                            'username' => $otherUser->username,
-                            'name' => trim($otherUser->first_name . ' ' . $otherUser->last_name),
-                            'last_active' => $otherUser->last_active,
-                            'avatar' => $otherUser->avatar,
-                        ];
-                    }
-                } else {
-                    // Group conversations
-                    $data['member_count'] = $conversation->users->count();
-                    $data['members'] = $conversation->users->map(function ($user) use ($conversation) {
-                        return [
-                            'id' => $user->id,
-                            'username' => $user->username,
-                            'name' => trim($user->first_name . ' ' . $user->last_name),
-                            'nickname' => $user->pivot->nickname
-                        ];
-                    });
-                }
-
-                // Add latest message
-                if ($conversation->latestMessage) {
-                    $data['latest_message'] = [
-                        'id' => $conversation->latestMessage->id,
-                        'content' => $conversation->latestMessage->content,
-                        'type' => $conversation->latestMessage->type,
-                        'created_at' => $conversation->latestMessage->created_at,
-                        'sender_id' => $conversation->latestMessage->sender_id,
-                        'sender_name' => $conversation->latestMessage->sender
-                            ? trim($conversation->latestMessage->sender->first_name . ' ' . $conversation->latestMessage->sender->last_name)
-                            : null
+            } else {
+                // Xử lý cuộc trò chuyện nhóm
+                $data['member_count'] = $conversation->users->count();
+                $data['members'] = $conversation->users->map(function ($user) use ($conversation) {
+                    return [
+                        'id' => $user->id,
+                        'username' => $user->username,
+                        'name' => trim($user->first_name . ' ' . $user->last_name),
+                        'nickname' => $user->pivot->nickname
                     ];
-                }
+                });
+            }
 
-                return $data;
-            })
-            ->sortByDesc(function ($conversation) {
-                return $conversation['latest_message']
-                    ? $conversation['latest_message']['created_at']
-                    : $conversation['updated_at'];
-            })
-            ->values();
+            // Thêm thông tin tin nhắn mới nhất
+            if ($conversation->latestMessage) {
+                $sender = $conversation->latestMessage->sender;
+                $data['latest_message'] = [
+                    'id' => $conversation->latestMessage->id,
+                    'content' => $conversation->latestMessage->content,
+                    'type' => $conversation->latestMessage->type,
+                    'created_at' => $conversation->latestMessage->created_at,
+                    'sender_id' => $conversation->latestMessage->sender_id,
+                    'sender_name' => $sender ? trim($sender->first_name . ' ' . $sender->last_name) : null
+                ];
+            }
 
-        return response()->json($conversations);
+            return $data;
+        });
+
+        // Sắp xếp cuộc trò chuyện theo thời gian tin nhắn mới nhất
+        $sortedConversations = $formattedConversations->sortByDesc(function ($conversation) {
+            return $conversation['latest_message']
+                ? $conversation['latest_message']['created_at']
+                : $conversation['updated_at'];
+        })->values();
+
+        return response()->json($sortedConversations);
     }
 
     /**

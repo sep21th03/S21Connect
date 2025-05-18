@@ -7,6 +7,7 @@ import GamesList from "./GamesList";
 import LogoutIcon from "./LogoutIcon";
 import BirthdayList from "./BirthdayList";
 import { CommonLayoutSideBarInterFace } from "@/layout/LayoutTypes";
+import SpayList from "./SpayList";
 
 const LayoutSideBar: FC<CommonLayoutSideBarInterFace> = ({sideBarClassName}) => {
   return (
@@ -18,6 +19,7 @@ const LayoutSideBar: FC<CommonLayoutSideBarInterFace> = ({sideBarClassName}) => 
       </div>
       <ul className="sidebar-icon">
         <SideBarItems />
+        <SpayList />
         <BirthdayList />
         <GamesList />
       </ul>

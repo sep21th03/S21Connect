@@ -1,7 +1,7 @@
 // components/Messenger/ChatUsers.tsx
 import { Nav } from "reactstrap";
 import UserHeader from "./UserHeader";
-import { FC, useCallback } from "react";
+import { FC, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import React from "react";
 import ChatUserItem from "./ChatUserItem";
@@ -17,6 +17,7 @@ const ChatUsers: FC = React.memo(() => {
     onlineUsers,
   } = useMessengerContext();
   const { data: session } = useSession();
+  const [searchTerm, setSearchTerm] = useState("");
   const handleSetActiveTab = useCallback((conversationId: string) => {
     if (activeTab === conversationId) return;
 
@@ -39,11 +40,15 @@ const ChatUsers: FC = React.memo(() => {
     });
   }, [activeTab, setActiveTab, setUserList]);
 
+  const filteredUsers = userList?.filter(user => 
+    user.other_user.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
   return (
     <div className="chat-users">
-      <UserHeader />
+      <UserHeader onSearch={setSearchTerm} />
       <Nav tabs style={{ height: "auto" }}>
-        {userList?.map((data) => (
+        {filteredUsers?.map((data) => (
           <ChatUserItem
             key={data.id} 
             data={data}

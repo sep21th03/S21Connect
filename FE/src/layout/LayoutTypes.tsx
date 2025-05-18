@@ -12,7 +12,7 @@ export interface SideBarDataInterFace {
   path?: string;
   title?: string;
   tooltipTittle?: string;
-  icon: "File" | "Star" | "User" | "Headphones" | "Cloud" | "Calendar";
+  icon: "File" | "Star" | "User" | "Headphones" | "Cloud" | "Calendar" ;
 }
 
 export interface sideBarDataType {

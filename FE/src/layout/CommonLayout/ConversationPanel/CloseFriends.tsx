@@ -39,7 +39,7 @@ const CloseFriends = () => {
 
   useSocket((users: User[]) => {
     setOnlineUsers(users);
-  });
+  }, []);
   const getListFriends = async (userId: string) => {
     setIsLoading(true);
     try {
@@ -135,7 +135,7 @@ const CloseFriends = () => {
           <div className="d-flex justify-content-center align-items-center p-3">
             <Spinner />
           </div>
-        ) : friends.length === 0 ? (
+        ) : friendsOnline.length === 0 ? (
           <div className="text-center py-3">Không có bạn bè đang online</div>
         ) : (
           <div className="online-friends">

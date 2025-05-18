@@ -3,7 +3,6 @@ import { ActiveNow, Close, Href, ImagePath, Profile } from "../../../utils/const
 import { FC, useState } from "react";
 import { Media } from "reactstrap";
 import UserProfileMenu from "./UserProfileMenu";
-import CustomImage from '@/Common/CustomImage';
 import useOutsideDropdown from "@/utils/useOutsideDropdown";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -34,7 +33,7 @@ const UserProfile: FC = () => {
           </div>
         </div>
         <div className="dropdown-content">
-          <UserProfileMenu username={`${session?.user.username}`} />
+          <UserProfileMenu username={`${session?.user.username}`} isAdmin={session?.user.is_admin} />
         </div>
       </div>
     </li>

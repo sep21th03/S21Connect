@@ -92,6 +92,6 @@ export interface User {
   }
 
   export interface UserStats {
-    total_posts: number;
-    total_friends: number;
+    total_posts: number | null;
+    total_friends: number | null;
   }

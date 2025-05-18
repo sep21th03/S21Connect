@@ -1,110 +1,151 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-interface UseInfiniteScrollOptions {
-  initialPage?: number;
-  limit?: number;
+interface UseInfiniteScrollOptions<T> {
+  fetchFn: (cursor?: string) => Promise<{
+    data: T[];
+    next_cursor?: string | null;
+    has_more: boolean;
+  }>;
+  initialData?: T[];
   threshold?: number;
-  onLoadMore: (page: number) => Promise<any[]>;
+  enabled?: boolean;
 }
 
 interface UseInfiniteScrollReturn<T> {
   items: T[];
   loading: boolean;
-  error: string | null;
+  initialLoading: boolean;
+  error: Error | null;
   hasMore: boolean;
   refreshing: boolean;
-  handleRefresh: () => Promise<void>;
-  resetItems: () => void;
+  loadMore: () => Promise<void>;
+  refresh: () => Promise<void>;
+  reset: () => void;
 }
 
-export const useInfiniteScroll = <T>({
-  initialPage = 1,
-  limit = 10,
+export function useInfiniteScroll<T>({
+  fetchFn,
+  initialData = [],
   threshold = 200,
-  onLoadMore,
-}: UseInfiniteScrollOptions): UseInfiniteScrollReturn<T> => {
-  const [items, setItems] = useState<T[]>([]);
-  const [page, setPage] = useState(initialPage);
+  enabled = true,
+}: UseInfiniteScrollOptions<T>): UseInfiniteScrollReturn<T> {
+  const [items, setItems] = useState<T[]>(initialData);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  
+  const loadingRef = useRef(false);
 
-  // Initial load and load more functionality
-  const loadItems = useCallback(async (pageNumber: number, append = true) => {
+  useEffect(() => {
+    if (enabled) {
+      loadInitialData();
+    }
+  }, [enabled]);
+
+  const loadInitialData = useCallback(async () => {
+    if (loadingRef.current) return;
+    
     try {
-      setLoading(true);
+      setInitialLoading(true);
+      loadingRef.current = true;
       setError(null);
       
-      const newItems = await onLoadMore(pageNumber);
-      
-      setItems(prevItems => append ? [...prevItems, ...newItems] : [...newItems]);
-      setHasMore(newItems.length === limit);
-      return newItems;
+      const response = await fetchFn();
+      setItems(response.data);
+      setNextCursor(response.next_cursor || null);
+      setHasMore(response.has_more);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while loading data');
-      return [];
+      setError(err instanceof Error ? err : new Error('Failed to load data'));
+      setItems([]);
+    } finally {
+      setInitialLoading(false);
+      loadingRef.current = false;
+    }
+  }, [fetchFn]);
+
+  const loadMore = useCallback(async () => {
+    if (loading || !hasMore || loadingRef.current || !nextCursor) return;
+    
+    try {
+      setLoading(true);
+      loadingRef.current = true;
+      setError(null);
+      
+      const response = await fetchFn(nextCursor);
+      
+      setItems(prev => [...prev, ...response.data]);
+      setNextCursor(response.next_cursor || null);
+      setHasMore(response.has_more);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to load more data'));
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
-  }, [limit, onLoadMore]);
+  }, [loading, hasMore, nextCursor, fetchFn]);
 
-  // Handle scroll event to load more
+  const refresh = useCallback(async () => {
+    if (loadingRef.current) return;
+    
+    try {
+      setRefreshing(true);
+      loadingRef.current = true;
+      setError(null);
+      
+      const response = await fetchFn();
+      
+      setItems(response.data);
+      setNextCursor(response.next_cursor || null);
+      setHasMore(response.has_more);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to refresh data'));
+    } finally {
+      setRefreshing(false);
+      loadingRef.current = false;
+    }
+  }, [fetchFn]);
+
+  const reset = useCallback(() => {
+    setItems([]);
+    setNextCursor(null);
+    setHasMore(true);
+    setError(null);
+    loadInitialData();
+  }, [loadInitialData]);
+
+  // Scroll event handler
   useEffect(() => {
+    if (!enabled || !hasMore) return;
+    
     const handleScroll = () => {
+      if (loading || loadingRef.current) return;
+      
       const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
       const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
       const clientHeight = document.documentElement.clientHeight || window.innerHeight;
       
-      if (!loading && hasMore && scrollTop + clientHeight >= scrollHeight - threshold) {
-        setPage(prevPage => prevPage + 1);
+      // Load more when scrolled to threshold
+      if (scrollTop + clientHeight >= scrollHeight - threshold) {
+        loadMore();
       }
     };
-
+    
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [loading, hasMore, threshold]);
-
-  // Load more when page changes
-  useEffect(() => {
-    if (page > initialPage) {
-      loadItems(page);
-    }
-  }, [page, initialPage, loadItems]);
-
-  // Initial load
-  useEffect(() => {
-    loadItems(initialPage, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Pull to refresh functionality
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    setPage(initialPage);
-    
-    try {
-      await loadItems(initialPage, false);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  // Reset items
-  const resetItems = () => {
-    setItems([]);
-    setPage(initialPage);
-    setHasMore(true);
-    loadItems(initialPage, false);
-  };
+  }, [loading, hasMore, loadMore, threshold, enabled]);
 
   return {
     items,
     loading,
+    initialLoading,
     error,
     hasMore,
     refreshing,
-    handleRefresh,
-    resetItems
+    loadMore,
+    refresh,
+    reset,
   };
-};
+}

@@ -21,7 +21,7 @@ export const API_ENDPOINTS = {
     GET_MY_POSTS: "/posts/my_post",
     EDIT_POST: "/posts/edit",
     GET_POSTS: (username: string) => `/posts/${username}`,
-    GET_FRIEND_POSTS: (id: string) => `/posts/get_friend/${id}`,
+    GET_FRIEND_POSTS: "/posts/get_friend",
     GET_NEWSFEED: "/posts/newsfeed",
     TOGGLE_COMMENTS: (id: number | string) => `/posts/${id}/toggle-comments`,
     TOGGLE_REACTIONS: (id: number | string) => `/posts/${id}/toggle-reactions`,
@@ -72,9 +72,9 @@ export const API_ENDPOINTS = {
     HOVER_CARD: (userId: string) => `/${userId}/hovercard`,
     LIST_FRIENDS: (userId: string) => `/${userId}/list_friends`,
     LIST_FRIENDS_LIMIT: (userId: string) => `/${userId}/list_friends_limit`,
-    ONLINE_USERS: (userId: string) => `/${userId}/friends`,
     LAST_ACTIVE: (otherUserId: string) => `/user/update-last-active`,
     GET_STATS: "/user/get_stats",
+    FRIEND_SUGGESTION: "/user/suggest_friends",
   },
 
   MESSAGES: {
@@ -97,6 +97,28 @@ export const API_ENDPOINTS = {
   NOTIFICATIONS: {
     GET_NOTIFICATION_LIST: "/notifications",
     MARK_ALL_AS_READ:  "/notifications/read-all",
+  },
+  PAYMENT: {
+    BILL: {
+      CREATE: "/pay/create-bill",
+      GET_LIST: "/pay/get-bill",
+      DELETE: (bill_id: string) => `/pay/delete-bill/${bill_id}`,
+      PAY: (bill_id: string) => `/pay/pay-bill/${bill_id}`,
+      CANCEL: (bill_id: string) => `/pay/cancel-bill/${bill_id}`,
+      UNPAY: (bill_id: string) => `/pay/unpay-bill/${bill_id}`,
+      GET_INFO_BILL: "/get-info-bill",
+      CHECK_BILL: "/check-bill",
+      GET_HISTORY: "/pay/get-history",
+      GET_INFO: "/pay/get_info",
+    },
+  },
+  REPORTS: {
+    POST: (type: string, id: string) => `/report/${type}/${id}`,
+    GET_REASONS: (type: string) => `/report/get-reasons/${type}`,
+  },
+  ADMIN: {
+    GET_STATS: "/admin/get-stats",
+    REPORTS: "/admin/get-report-all",
   },
 };
 

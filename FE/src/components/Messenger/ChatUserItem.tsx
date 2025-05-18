@@ -68,7 +68,7 @@ const ChatUserItem = React.memo(
             <div className="chat">
               <h6 style={{ color: "black", fontWeight: "bold" }}>
                 {data.latest_message?.sender_id === sessionUserId
-                  ? `Bạn: ${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}`
+                  ? `${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}`
                   : renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}
               </h6>
               <span className="count">{data.unread_count}</span>
@@ -76,7 +76,7 @@ const ChatUserItem = React.memo(
           ) : (
             <h6>
               {data.latest_message?.sender_id === sessionUserId
-                ? `Bạn: ${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}`
+                ? `${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}`
                 : renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}
             </h6>
           )}

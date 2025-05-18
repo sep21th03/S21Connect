@@ -173,4 +173,19 @@ class Conversation extends Model
 
         return $query->count();
     }
+
+    public function unreadMessages()
+    {
+        $userId = auth()->id();
+
+        return $this->messages()
+            ->where('sender_id', '!=', $userId)
+            ->where(function ($query) use ($userId) {
+                // Giả sử last_read_at được lưu trong bảng pivot conversation_user
+                $query->where(function ($q) use ($userId) {
+                    $q->whereNull('read_at');
+                    // hoặc so sánh với last_read_at nếu có
+                });
+            });
+    }
 }

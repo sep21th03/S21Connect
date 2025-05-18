@@ -33,7 +33,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
     leaveChat,
     markMessagesAsRead,
     onImageUploadStatus
-  } = useSocket((users) => console.log(users));
+  } = useSocket((users) => console.log(users), (conversationId) => console.log(conversationId));
   
   const { data: session } = useSession();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -249,7 +249,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
           <div
             className="user-img"
             style={{
-              backgroundImage: `url(${data.other_user.avatar ? data.other_user.avatar : `${ImagePath}/user-sm/1.jpg`})`,
+              // backgroundImage: `url(${data.other_user.avatar ? data.other_user.avatar : `${ImagePath}/user-sm/1.jpg`})`,
             }}
           >
             <span

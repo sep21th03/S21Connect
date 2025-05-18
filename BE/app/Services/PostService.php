@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Post;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Share;
+use App\Models\Report;
 
 class PostService
 {
@@ -33,176 +34,187 @@ class PostService
         return response()->json($posts);
     }
 
-    public function getFriendPost(string $user_id)
+    public function getFriendPost(string $user_id, $page = 1, $limit = 10)
     {
-        return Post::where('user_id', $user_id)
+
+        $query = Post::where('user_id', $user_id)
             ->whereIn('visibility', ['public', 'friends'])
             ->orderBy('created_at', 'desc')
             ->with([
                 'user' => function ($query) {
-                    $query->select('id', 'username', 'first_name', 'last_name', 'avatar');
+                    $query->select('users.id', 'username', 'first_name', 'last_name', 'avatar');
                 },
                 'reactions'
             ])
-            ->withCount(['comments', 'shares'])
-            ->get()
-            ->map(function ($post) {
+            ->withCount(['comments', 'shares']);
 
-                $user_tag = $post->taggedFriends()->get();
-                if ($user_tag) {
-                    $user_tag->each(function ($user) {
-                        unset(
-                            $user->gender,
-                            $user->birthday,
-                            $user->email,
-                            $user->email_verified_at,
-                            $user->phone,
-                            $user->phone_verified_at,
-                            $user->bio,
-                            $user->remember_token,
-                            $user->created_at,
-                            $user->updated_at,
-                            $user->is_admin,
-                            $user->status,
-                            $user->cover_photo,
-                            $user->last_active
-                        );
-                    });
-                    $post->taggedFriends = $user_tag;
-                }
-                $post->total_reactions = $post->reactions->count();
-                $post->reaction_counts = $post->reactions
-                    ->groupBy('type')
-                    ->map(function ($group) {
-                        return $group->count();
-                    });
-                $post->total_comments = $post->comments->count();
-                $post->total_shares = $post->shares->count();
+        $offset = ($page - 1) * $limit;
+
+        $posts = $query->skip($offset)->take($limit)->get();
+
+        $posts = $posts->map(function ($post) {
+            $user_tag = $post->taggedFriends()
+                ->select('users.id', 'username', 'first_name', 'last_name', 'avatar')
+                ->get();
+
+            if ($user_tag) {
+                $user_tag->each(function ($user) {
+                    unset(
+                        $user->gender,
+                        $user->birthday,
+                        $user->email,
+                        $user->email_verified_at,
+                        $user->phone,
+                        $user->phone_verified_at,
+                        $user->bio,
+                        $user->remember_token,
+                        $user->created_at,
+                        $user->updated_at,
+                        $user->is_admin,
+                        $user->status,
+                        $user->cover_photo,
+                        $user->last_active
+                    );
+                });
+                $post->taggedFriends = $user_tag;
+            }
+
+            $post->total_reactions = $post->reactions->count();
+            $post->reaction_counts = $post->reactions
+                ->groupBy('type')
+                ->map->count();
+
+            $post->total_comments = $post->comments_count;
+            $post->total_shares = $post->shares_count;
+
+            unset(
+                $post->reactions,
+                $post->comments_count,
+                $post->shares_count,
+                $post->comments,
+                $post->shares
+            );
+
+            if ($post->user) {
                 unset(
-                    $post->reactions,
-                    $post->comments_count,
-                    $post->shares_count,
-                    $post->comments,
-                    $post->shares
+                    $post->user->gender,
+                    $post->user->birthday,
+                    $post->user->email,
+                    $post->user->email_verified_at,
+                    $post->user->phone,
+                    $post->user->phone_verified_at,
+                    $post->user->bio,
+                    $post->user->remember_token,
+                    $post->user->created_at,
+                    $post->user->updated_at,
+                    $post->user->is_admin,
+                    $post->user->status,
+                    $post->user->cover_photo,
+                    $post->user->last_active
                 );
+            }
 
-                if (isset($user_tag)) {
-                    unset($post->user->gender, $post->user->birthday, $post->user->email, $post->user->email_verified_at, $post->user->phone, $post->user->phone_verified_at, $post->user->bio, $post->user->remember_token, $post->user->created_at, $post->user->updated_at, $post->user->is_admin, $post->user->status, $post->user->cover_photo, $post->user->last_active);
-                }
-                return $post;
-            });
+            return $post;
+        });
+
+        return [
+            'data' => $posts,
+        ];
     }
 
 
-    public function getMyPost()
+    public function getMyPost($page = 1, $limit = 10)
     {
         $userId = Auth::id();
-        return Post::where('user_id', $userId)
+
+        $query = Post::where('user_id', $userId)
             ->whereIn('visibility', ['public', 'friends', 'private'])
             ->orderBy('created_at', 'desc')
             ->with([
                 'user' => function ($query) {
-                    $query->select('id', 'username', 'first_name', 'last_name', 'avatar');
+                    $query->select('users.id', 'username', 'first_name', 'last_name', 'avatar');
                 },
                 'reactions'
             ])
-            ->withCount(['comments', 'shares'])
-            ->get()
-            ->map(function ($post) {
-                $user_tag = $post->taggedFriends()->get();
-                if ($user_tag) {
-                    $user_tag->each(function ($user) {
-                        unset(
-                            $user->gender,
-                            $user->birthday,
-                            $user->email,
-                            $user->email_verified_at,
-                            $user->phone,
-                            $user->phone_verified_at,
-                            $user->bio,
-                            $user->remember_token,
-                            $user->created_at,
-                            $user->updated_at,
-                            $user->is_admin,
-                            $user->status,
-                            $user->cover_photo,
-                            $user->last_active
-                        );
-                    });
-                    $post->taggedFriends = $user_tag;
-                }
-                $post->total_reactions = $post->reactions->count();
-                $post->reaction_counts = $post->reactions
-                    ->groupBy('type')
-                    ->map(function ($group) {
-                        return $group->count();
-                    });
-                $post->total_comments = $post->comments->count();
-                $post->total_shares = $post->shares->count();
+            ->withCount(['comments', 'shares']);
 
+        $total = $query->count();
+        $offset = ($page - 1) * $limit;
+
+        $posts = $query->skip($offset)->take($limit)->get();
+
+
+        $posts = $posts->map(function ($post) {
+            $user_tag = $post->taggedFriends()
+                ->select('users.id', 'username', 'first_name', 'last_name', 'avatar')
+                ->get();
+
+            if ($user_tag) {
+                $user_tag->each(function ($user) {
+                    unset(
+                        $user->gender,
+                        $user->birthday,
+                        $user->email,
+                        $user->email_verified_at,
+                        $user->phone,
+                        $user->phone_verified_at,
+                        $user->bio,
+                        $user->remember_token,
+                        $user->created_at,
+                        $user->updated_at,
+                        $user->is_admin,
+                        $user->status,
+                        $user->cover_photo,
+                        $user->last_active
+                    );
+                });
+                $post->taggedFriends = $user_tag;
+            }
+
+            $post->total_reactions = $post->reactions->count();
+            $post->reaction_counts = $post->reactions
+                ->groupBy('type')
+                ->map->count();
+
+            $post->total_comments = $post->comments_count;
+            $post->total_shares = $post->shares_count;
+
+            unset(
+                $post->reactions,
+                $post->comments_count,
+                $post->shares_count,
+                $post->comments,
+                $post->shares
+            );
+
+            if ($post->user) {
                 unset(
-                    $post->reactions,
-                    $post->comments_count,
-                    $post->shares_count,
-                    $post->comments,
-                    $post->shares
+                    $post->user->gender,
+                    $post->user->birthday,
+                    $post->user->email,
+                    $post->user->email_verified_at,
+                    $post->user->phone,
+                    $post->user->phone_verified_at,
+                    $post->user->bio,
+                    $post->user->remember_token,
+                    $post->user->created_at,
+                    $post->user->updated_at,
+                    $post->user->is_admin,
+                    $post->user->status,
+                    $post->user->cover_photo,
+                    $post->user->last_active
                 );
+            }
 
-                if (isset($user_tag)) {
-                    unset($post->user->gender, $post->user->birthday, $post->user->email, $post->user->email_verified_at, $post->user->phone, $post->user->phone_verified_at, $post->user->bio, $post->user->remember_token, $post->user->created_at, $post->user->updated_at, $post->user->is_admin, $post->user->status, $post->user->cover_photo, $post->user->last_active);
-                }
-                return $post;
-            });
-
-        // $sharedPosts = Share::where('user_id', $userId)
-        //     ->with([
-        //         'post.user:id,username,first_name,last_name,avatar',
-        //         'post.reactions',
-        //     ])
-        //     ->get()
-        //     ->map(function ($share) {
-        //         $post = $share->post;
-
-        //         $user_tag = $post?->taggedFriends()?->get();
-
-        //         if ($user_tag) {
-        //             $user_tag->each(function ($user) {
-        //                 unset(
-        //                     $user->gender,
-        //                     $user->birthday,
-        //                     $user->email,
-        //                     $user->email_verified_at,
-        //                     $user->phone,
-        //                     $user->phone_verified_at,
-        //                     $user->bio,
-        //                     $user->remember_token,
-        //                     $user->created_at,
-        //                     $user->updated_at,
-        //                     $user->is_admin,
-        //                     $user->status,
-        //                     $user->cover_photo,
-        //                     $user->last_active
-        //                 );
-        //             });
-        //             $post->taggedFriends = $user_tag;
-        //         }
-        //         if (isset($user_tag)) {
-        //             unset($post->user->gender, $post->user->birthday, $post->user->email, $post->user->email_verified_at, $post->user->phone, $post->user->phone_verified_at, $post->user->bio, $post->user->remember_token, $post->user->created_at, $post->user->updated_at, $post->user->is_admin, $post->user->status, $post->user->cover_photo, $post->user->last_active);
-        //         }
-
-        //         $post->shared_at = $share->created_at;
-        //         $post->shared_message = $share->message;
-        //         return $post;
-        //     });
-
-        // $allPosts = $myPosts->merge($sharedPosts)->sortByDesc(function ($post) {
-        //     return $post->shared_at ?? $post->created_at;
-        // })->values();
-
-        // return $allPosts;
+            return $post;
+        });
+        $hasMore = ($page * $limit) < $total;
+        return [
+            'data' => $posts,
+            'has_more' => $hasMore,
+        ];
     }
 
-   
 
 
     public function store(array $data)
@@ -337,4 +349,6 @@ class PostService
             'shares' => $post->shareSummary(),
         ];
     }
+
+    
 }

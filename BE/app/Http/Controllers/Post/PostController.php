@@ -26,15 +26,25 @@ class PostController extends Controller
         return response()->json($posts);
     }
 
-    public function getFriendPost(string $user_id)
+    public function getFriendPost(Request $request)
     {
-        $posts = $this->postService->getFriendPost($user_id);
+        $user_id = $request->query('user_id');
+        if (!$user_id) {
+            return response()->json(['error' => 'User ID is required'], 400);
+        }
+
+        $page = $request->query('page', 1);
+        $limit = $request->query('limit', 10);
+
+        $posts = $this->postService->getFriendPost($user_id, $page, $limit);
         return response()->json($posts);
     }
 
-    public function getMyPost()
+    public function getMyPost(Request $request)
     {
-        $posts = $this->postService->getMyPost();
+        $page = $request->query('page', 1);
+        $limit = $request->query('limit', 10);
+        $posts = $this->postService->getMyPost($page, $limit);
         return response()->json($posts);
     }
 
@@ -73,74 +83,106 @@ class PostController extends Controller
         ]);
     }
 
-    public function getPostReactions($postId) {
+    public function getPostReactions($postId)
+    {
         $data = $this->postService->getPostReactions($postId);
         return response()->json($data);
     }
 
-     public function getNewsFeed(Request $request)
+    public function getNewsFeed(Request $request)
     {
         $user = auth()->user();
-        $after = $request->query('after'); 
+        $cursor = $request->query('after');
         $limit = $request->query('limit', 10);
 
-        $friendIds = Friendship::where('user_id', $user->id)->pluck('friend_id')->toArray();
+        $friendIds = Friendship::where('user_id', $user->id)
+            ->where('status', 'accepted')
+            ->pluck('friend_id')
+            ->toArray();
 
         $allowedUserIds = array_merge($friendIds, [$user->id]);
 
         $query = Post::with([
             'user' => function ($query) {
-                $query->select('id', 'username', 'first_name', 'last_name', 'avatar');
+                $query->select('users.id', 'username', 'first_name', 'last_name', 'avatar');
             },
-            'reactions'
+            'reactions' => function ($query) use ($user) {
+                $query->limit(100);
+            },
+            'taggedFriends' => function ($query) {
+                $query->select('users.id', 'username', 'first_name', 'last_name', 'avatar');
+            }
         ])
             ->withCount(['comments', 'shares'])
             ->whereIn('user_id', $allowedUserIds)
             ->where(function ($q) use ($user) {
                 $q->where('visibility', 'public')
-                    ->orWhere(function ($q2) use ($user) {
-                        $q2->where('visibility', 'friends');
-                    });
-            })
-            ->orderByDesc('created_at');
+                    ->orWhereIn('visibility', ['friends']);
+            });
 
-        if ($after) {
-            $query->where('created_at', '<', $after);
+        if ($cursor) {
+            $query->where('created_at', '<', $cursor);
         }
 
-        $posts = $query->limit($limit)->get();
+        $posts = $query->orderByDesc('created_at')
+            ->limit($limit + 1)
+            ->get();
 
-        $posts = $posts->map(function ($post) {
-            $user_tag = $post->taggedFriends()->get();
-            if ($user_tag) {
-                $user_tag->each(function ($user) {
-                    unset(
-                        $user->gender,
-                        $user->birthday,
-                        $user->email,
-                        $user->email_verified_at,
-                        $user->phone,
-                        $user->phone_verified_at,
-                        $user->bio,
-                        $user->remember_token,
-                        $user->created_at,
-                        $user->updated_at,
-                        $user->is_admin,
-                        $user->status,
-                        $user->cover_photo,
-                        $user->last_active
-                    );
-                });
-                $post->taggedFriends = $user_tag;
+        $hasMore = $posts->count() > $limit;
+
+        if ($hasMore) {
+            $posts = $posts->slice(0, $limit);
+        }
+
+        $nextCursor = $posts->last() ? $posts->last()->created_at->toIso8601String() : null;
+
+        $posts = $posts->map(function ($post) use ($user) {
+            if ($post->taggedFriends) {
+                $post->taggedFriends->makeHidden([
+                    'gender',
+                    'birthday',
+                    'email',
+                    'email_verified_at',
+                    'phone',
+                    'phone_verified_at',
+                    'bio',
+                    'remember_token',
+                    'created_at',
+                    'updated_at',
+                    'is_admin',
+                    'status',
+                    'cover_photo',
+                    'last_active'
+                ]);
             }
 
-            $post->total_reactions = $post->reactions->count();
-            $post->reaction_counts = $post->reactions
-                ->groupBy('type')
-                ->map(fn($group) => $group->count());
+            $reactionCounts = $post->reactions->groupBy('type')->map->count();
+            $totalReactions = $post->reactions->count();
 
-            $post->total_comments = $post->comments->count();
-            $post->total_shares = $post->shares->count();
+            $userReaction = $post->reactions->where('user_id', $user->id)->first();
+
+            $post->user->makeHidden([
+                'gender',
+                'birthday',
+                'email',
+                'email_verified_at',
+                'phone',
+                'phone_verified_at',
+                'bio',
+                'remember_token',
+                'created_at',
+                'updated_at',
+                'is_admin',
+                'status',
+                'cover_photo',
+                'last_active'
+            ]);
+
+            $post->total_reactions = $totalReactions;
+            $post->reaction_counts = $reactionCounts;
+            $post->user_reaction = $userReaction ? $userReaction->type : null;
+            $post->total_comments = $post->comments_count;
+            $post->total_shares = $post->shares_count;
 
             unset(
                 $post->reactions,
@@ -150,27 +192,13 @@ class PostController extends Controller
                 $post->shares
             );
 
-            unset(
-                $post->user->gender,
-                $post->user->birthday,
-                $post->user->email,
-                $post->user->email_verified_at,
-                $post->user->phone,
-                $post->user->phone_verified_at,
-                $post->user->bio,
-                $post->user->remember_token,
-                $post->user->created_at,
-                $post->user->updated_at,
-                $post->user->is_admin,
-                $post->user->status,
-                $post->user->cover_photo,
-                $post->user->last_active
-            );
-
             return $post;
         });
 
-        return response()->json($posts);
+        return response()->json([
+            'data' => $posts,
+            'next_cursor' => $nextCursor,
+            'has_more' => $hasMore
+        ]);
     }
-
 }

@@ -7,14 +7,38 @@ import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
 import { toast } from "react-toastify";
+import ReportModal from "./ReportModal";
+
+interface Reason {
+  reason_code: string;
+  reason_text: string;
+}
+
+
 const EditModalPostHeader = ({ postUser, onPostUpdated, onPostDeleted }: { postUser: Post, onPostUpdated: (updatedPost: Post) => void, onPostDeleted: () => void }) => {
   const [editModal, setEditModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [showOption, setShowOption] = useState(postUser?.visibility);
   const [deleteModal, setDeleteModal] = useState(false);
+  const [reportModal, setReportModal] = useState(false);
+  const [selectReasons, setSelectReasons] = useState<Reason[]>([]);
 
   const toggleEditModal = () => setEditModal(!editModal);
   const toggleDeleteModal = () => setDeleteModal(!deleteModal);
+
+  const toggleReportModal = async () => {
+    if (!reportModal) { 
+      try {
+        const res = await axiosInstance.get(API_ENDPOINTS.REPORTS.GET_REASONS("Post"));
+        setSelectReasons(res.data);
+        setReportModal(true);
+      } catch (error) {
+        console.error("Lỗi khi lấy lý do báo cáo:", error);
+      }
+    } else {
+      setReportModal(false);
+    }
+  };
 
   const handleDelete = async () => {
     try {
@@ -32,6 +56,23 @@ const EditModalPostHeader = ({ postUser, onPostUpdated, onPostDeleted }: { postU
     }
   };
 
+  const handleReport = async ({reason_code, reason_text}: {reason_code: string, reason_text: string}) => {
+    try {
+      const res = await axiosInstance.post(API_ENDPOINTS.REPORTS.POST("Post", postUser.id.toString()), {
+        reason_code: reason_code,
+        reason_text: reason_text,
+      });
+      if (res.status === 200) {
+        toggleReportModal();
+        toast.success(res.data.message);
+      } else {
+        console.error("Báo cáo thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi khi báo cáo:", error);
+    }
+  };
+
   const postDropDownOption: postDropDownOptionInterface[] = [
     {
       iconName: "Bookmark",
@@ -42,6 +83,11 @@ const EditModalPostHeader = ({ postUser, onPostUpdated, onPostDeleted }: { postU
       iconName: "XSquare",
       post: "Ẩn bài viết",
       onClick: () => console.log("hide post"),
+    },
+    {
+      iconName: "AlertCircle",
+      post: "Báo cáo bài viết",
+      onClick: () => toggleReportModal(),
     },
     {
       iconName: "Edit",
@@ -87,6 +133,13 @@ const EditModalPostHeader = ({ postUser, onPostUpdated, onPostDeleted }: { postU
         isOpen={deleteModal}
         toggle={toggleDeleteModal}
         onConfirm={handleDelete}
+      />
+
+      <ReportModal
+        isOpen={reportModal}
+        toggle={toggleReportModal}
+        onSubmit={handleReport}
+        reasons={selectReasons}
       />
     </>
   );

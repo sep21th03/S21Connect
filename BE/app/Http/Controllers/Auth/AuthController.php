@@ -48,10 +48,10 @@ class AuthController extends Controller
     public function refreshToken(Request $request): JsonResponse
     {
         try {
-            $refreshToken = $request->input('refresh_token');
+            // $refreshToken = $request->input('refresh_token');
 
 
-            $newToken = JWTAuth::refresh($refreshToken);
+            $newToken = JWTAuth::refresh();
 
             return response()->json([
                 'token'   => $newToken,
