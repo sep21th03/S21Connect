@@ -116,9 +116,9 @@ const UserTable: React.FC<Props> = () => {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     searchTerm: "",
-    is_admin: "all", // "all", "0", "1"
-    status: "all", // "all", "active", "inactive", "banned"
-    min_reports: "", // string vì lấy từ input
+    is_admin: "all",
+    status: "all", 
+    min_reports: "", 
   });
 
   const [sortConfig, setSortConfig] = useState({
