@@ -20,7 +20,7 @@ export interface LikePageInterFace {
 }
 
 export interface postDropDownOptionInterface {
-  iconName: "Bookmark" | "XSquare" | "X" | "Edit";
+  iconName: "Bookmark" | "XSquare" | "X" | "Edit" | "AlertCircle";
   post: string;
   onClick?: (postUser: Post) => void;
 }

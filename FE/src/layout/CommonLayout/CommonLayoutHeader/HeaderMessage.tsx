@@ -9,6 +9,7 @@ import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
 import { RecentMessage, useSocket } from "@/hooks/useSocket";
 import ChatBoxCommon from "@/layout/CommonLayout/ConversationPanel/common/ChatBoxCommon";
+import { Spinner } from "reactstrap";
 
 const HeaderMessage: React.FC = () => {
   const { isComponentVisible, ref, setIsComponentVisible } =
@@ -18,24 +19,28 @@ const HeaderMessage: React.FC = () => {
   const [showChatBox, setShowChatBox] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const { socket } = useSocket((users) => {
     setOnlineUsers(users.map((user) => user.id));
   });
   const fetchUserList = async () => {
     try {
+      setIsLoading(true);
       const response = await axiosInstance.get(
         API_ENDPOINTS.MESSAGES.MESSAGES.RECENT_CONVERSATIONS
       );
       setUserList(response.data);
     } catch (error) {
       console.error("Error fetching user list:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchUserList(); 
-  }, []);
+  // useEffect(() => {
+  //   fetchUserList(); 
+  // }, []);
 
   useEffect(() => {
     if (isComponentVisible) {
@@ -121,11 +126,17 @@ const HeaderMessage: React.FC = () => {
             />
             <Input type="text" placeholder="search messages..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
-          <UserMessage
-            userList={filteredUserList || []}
-            onlineUsers={onlineUsers}
-            onUserClick={handleUserClick}
-          />
+          {isLoading ? (
+            <div className="text-center">
+              <Spinner />
+            </div>
+          ) : (
+            <UserMessage
+              userList={filteredUserList || []}
+              onlineUsers={onlineUsers}
+              onUserClick={handleUserClick}
+            />
+          )}
         </div>
       </li>
       {showChatBox && selectedUser && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import axiosInstance from '@/utils/axiosInstance';
 import { API_ENDPOINTS } from '@/utils/constant/api';
@@ -13,36 +13,50 @@ import { PulseLoader } from 'react-spinners';
 
 const PostPanel: React.FC = () => {
   const { data: session } = useSession();
+  const [showFriendSuggestion, setShowFriendSuggestion] = useState(true);
+  
   const refreshRef = useRef<HTMLDivElement>(null);
   const [refreshStartY, setRefreshStartY] = useState<number | null>(null);
   const [refreshDist, setRefreshDist] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showFriendSuggestion, setShowFriendSuggestion] = useState(true);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
-  const fetchPosts = useCallback(async (page: number) => {
-    const response = await axiosInstance.get(
-      `${API_ENDPOINTS.POSTS.GET_NEWSFEED}?page=${page}&limit=5`
-    );
-    return response.data || [];
+  const fetchPosts = useCallback(async (cursor?: string) => {
+    try {
+      const response = await axiosInstance.get(
+        `${API_ENDPOINTS.POSTS.GET_NEWSFEED}?limit=5${cursor ? `&after=${cursor}` : ''}`
+      );
+      
+      return {
+        data: response.data?.data || response.data || [],
+        next_cursor: response.data?.next_cursor || 
+                     (response.data?.[response.data.length - 1]?.created_at) || null,
+        has_more: response.data?.has_more !== undefined 
+                  ? response.data.has_more 
+                  : response.data?.length >= 5
+      };
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      throw error;
+    }
   }, []);
-  
 
   const {
     items: posts,
     loading,
+    initialLoading,
     error,
     hasMore,
     refreshing,
-    handleRefresh,
+    refresh,
+    loadMore,
   } = useInfiniteScroll<Post>({
-    initialPage: 1,
-    limit: 5,
-    onLoadMore: fetchPosts,
+    fetchFn: fetchPosts,
+    threshold: 300,
   });
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-    if (scrollTop === 0) {
+    if (scrollTop <= 5) {
       setRefreshStartY(e.touches[0].clientY);
     }
   };
@@ -64,11 +78,11 @@ const PostPanel: React.FC = () => {
   };
 
   const handleTouchEnd = () => {
-    if (refreshDist > 50) {
-      setIsRefreshing(true);
+    if (refreshDist > 50 && !refreshing && !isManualRefreshing) {
+      setIsManualRefreshing(true);
       
-      handleRefresh().then(() => {
-        setIsRefreshing(false);
+      refresh().finally(() => {
+        setIsManualRefreshing(false);
       });
     }
     
@@ -78,12 +92,13 @@ const PostPanel: React.FC = () => {
 
   const pullToRefreshStyle = {
     height: `${refreshDist}px`,
-    transition: isRefreshing ? 'none' : 'height 0.2s ease-out',
+    transition: isManualRefreshing ? 'none' : 'height 0.2s ease-out',
     overflow: 'hidden',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
   };
+
   const renderPost = (post: Post) => {
     switch (post.type) {
       case 'first':
@@ -104,11 +119,10 @@ const PostPanel: React.FC = () => {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Pull to refresh indicator */}
       <div ref={refreshRef} style={pullToRefreshStyle}>
-        {(refreshDist > 0 || isRefreshing) && (
+        {(refreshDist > 0 || isManualRefreshing) && (
           <div className="refresh-indicator">
-            {isRefreshing ? (
+            {isManualRefreshing || refreshing ? (
               <PulseLoader size={10} color="#1877F2" />
             ) : (
               <div className="pull-text">
@@ -120,8 +134,14 @@ const PostPanel: React.FC = () => {
       </div>
 
       <div className="post-panel infinite-loader-sec section-t-space">
-        {posts.map((post, index) => {
-          // Insert friend suggestion after second post
+        {initialLoading && (
+          <div className="initial-loading text-center my-4 py-4">
+            <PulseLoader size={12} color="#1877F2" />
+            <p className="mt-2">Loading your feed...</p>
+          </div>
+        )}
+        
+        {!initialLoading && posts.map((post, index) => {
           if (index === 1 && showFriendSuggestion) {
             return (
               <React.Fragment key={`fragment-${post.id}`}>
@@ -133,36 +153,32 @@ const PostPanel: React.FC = () => {
           return renderPost(post);
         })}
         
-        {/* Loading indicator */}
-        {loading && (
-          <div className="loading-indicator text-center my-4">
-            <PulseLoader size={10} color="#1877F2" />
+        {loading && !initialLoading && (
+          <div className="loading-indicator text-center my-3 py-2">
+            <PulseLoader size={8} color="#1877F2" />
           </div>
         )}
         
-        {/* Error message */}
         {error && (
           <div className="error-message text-center my-4 text-danger">
-            <p>{error}</p>
+            <p>{error.message || 'An error occurred while loading posts'}</p>
             <button 
               className="btn btn-sm btn-outline-primary" 
-              onClick={() => handleRefresh()}
+              onClick={() => refresh()}
             >
               Try Again
             </button>
           </div>
         )}
         
-        {/* End of feed message */}
         {!loading && !hasMore && posts.length > 0 && (
-          <div className="end-of-feed text-center my-4 text-muted">
+          <div className="end-of-feed text-center my-4 text-muted py-3">
             <p>You've reached the end of your feed</p>
           </div>
         )}
         
-        {/* Empty feed message */}
-        {!loading && posts.length === 0 && (
-          <div className="empty-feed text-center my-4">
+        {!initialLoading && !loading && posts.length === 0 && (
+          <div className="empty-feed text-center my-4 py-4">
             <h5>No posts to display</h5>
             <p>Follow more friends to see their updates</p>
           </div>

@@ -5,9 +5,11 @@ import FriendRequest from "./FriendRequest";
 import useOutsideDropdown from "@/utils/useOutsideDropdown";
 import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 import { NotificationType } from "@/layout/LayoutTypes";
 import { useSocket, Notification as NotificationData } from "@/hooks/useSocket";
+import { Spinner } from "reactstrap";
+
 const Notification: React.FC = () => {
   const { isComponentVisible, ref, setIsComponentVisible } =
     useOutsideDropdown(false);
@@ -16,6 +18,11 @@ const Notification: React.FC = () => {
   );
   const [shouldMarkRead, setShouldMarkRead] = useState(false);
   const [wasOpen, setWasOpen] = useState(false);
+  const FriendRequestMemo = React.memo(FriendRequest);
+  const NotificationListsMemo = React.memo(NotificationLists);
+  const [hasFetched, setHasFetched] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   useSocket(
     (users) => {
       // console.log("Online users updated:", users);
@@ -23,27 +30,39 @@ const Notification: React.FC = () => {
     (notificationData: NotificationData) => {
       setNotificationList((prev: NotificationType[]) => {
         if (
-          prev.some((notification: NotificationType) => notification.id === notificationData.id)
+          prev.some(
+            (notification: NotificationType) =>
+              notification.id === notificationData.id
+          )
         ) {
           return prev;
         }
-        return [notificationData, ...prev]; 
+        return [notificationData, ...prev];
       });
     }
   );
 
   useEffect(() => {
-    const fetchNotificationList = async () => {
-      const response = await axiosInstance.get(
-        API_ENDPOINTS.NOTIFICATIONS.GET_NOTIFICATION_LIST
-      );
-      setNotificationList(response.data);
-    };
-    fetchNotificationList();
-  }, []);
+    if (isComponentVisible && !hasFetched) {
+      const fetchNotificationList = async () => {
+        setIsLoading(true);
+        try {
+          const response = await axiosInstance.get(
+            API_ENDPOINTS.NOTIFICATIONS.GET_NOTIFICATION_LIST
+          );
+          setNotificationList(response.data);
+        } catch (error) {
+          console.error("Lỗi khi lấy thông báo:", error);
+          setNotificationList([]);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchNotificationList();
+    }
+    // }, []);
 
-
-  useEffect(() => {
+    // useEffect(() => {
     if (!isComponentVisible && wasOpen && shouldMarkRead) {
       const markAllAsRead = async () => {
         try {
@@ -65,11 +84,12 @@ const Notification: React.FC = () => {
       setShouldMarkRead(true);
     }
     setWasOpen(isComponentVisible);
-  }, [isComponentVisible]);
+  }, [isComponentVisible, hasFetched]);
 
   const unreadNotificationCount = notificationList.filter(
     (n) => !n.is_read
   ).length;
+
   return (
     <li className="header-btn custom-dropdown dropdown-lg btn-group notification-btn">
       <a className={`main-link ${isComponentVisible ? "show" : ""}`}>
@@ -101,27 +121,33 @@ const Notification: React.FC = () => {
             <h5>{Close}</h5>
           </div>
         </div>
-        <div className="dropdown-content">
-          {isComponentVisible && (
-            <ul className="friend-list">
-              {notificationList
-                .filter((n) => n.type === "friend_request")
-                .map((notification) => (
-                  <FriendRequest
-                    key={notification.id}
-                    notification={notification}
-                    setShowNotification={setIsComponentVisible}
-                  />
-                ))}
-              <NotificationLists
-                setShowNotification={setIsComponentVisible}
-                notification={notificationList.filter(
-                  (n) => n.type !== "friend_request"
-                )}
-              />
-            </ul>
-          )}
-        </div>
+        {isComponentVisible && (
+          <div className="dropdown-content text-center">
+            {isLoading ? (
+                <Spinner />
+            ) : notificationList.length === 0 ? (
+              <div className="no-notifications">Không có thông báo</div>
+            ) : (
+              <ul className="friend-list">
+                {notificationList
+                  .filter((n) => n.type === "friend_request")
+                  .map((notification) => (
+                    <FriendRequestMemo
+                      key={notification.id}
+                      notification={notification}
+                      setShowNotification={setIsComponentVisible}
+                    />
+                  ))}
+                <NotificationListsMemo
+                  setShowNotification={setIsComponentVisible}
+                  notification={notificationList.filter(
+                    (n) => n.type !== "friend_request"
+                  )}
+                />
+              </ul>
+            )}
+          </div>
+        )}
       </div>
     </li>
   );

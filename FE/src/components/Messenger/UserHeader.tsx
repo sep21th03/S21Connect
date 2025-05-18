@@ -3,7 +3,7 @@ import { Href } from "../../utils/constant";
 import Link from "next/link";
 import { Input } from "reactstrap";
 
-const UserHeader = () => {
+const UserHeader = ({ onSearch }: { onSearch: (searchTerm: string) => void }) => {
   return (
     <div className="user-header">
       <Link href="/newsfeed/style1" className="back-btn d-block d-sm-none tesetese">
@@ -11,7 +11,7 @@ const UserHeader = () => {
       </Link>
       <div className="search-bar">
         <DynamicFeatherIcon iconName="Search" className="icon-theme icon iw-16"/>
-        <Input type="text" placeholder="find friends..." />
+        <Input type="text" placeholder="find friends..." onChange={(e) => onSearch(e.target.value)} />
       </div>
       <a className="new-chat" href={Href}>
         <DynamicFeatherIcon iconName="Edit" className="icon-light iw-14 ih-14"/>

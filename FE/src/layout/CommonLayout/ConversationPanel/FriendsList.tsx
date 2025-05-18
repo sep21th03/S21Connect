@@ -10,10 +10,16 @@ import { ImagePath } from "@/utils/constant";
 import { API_ENDPOINTS } from "@/utils/constant/api";
 import Image from "next/image";
 import { useSocket, User } from "@/hooks/useSocket";
+import { useDispatch, useSelector } from "react-redux";
+import { setFriends } from "@/redux-toolkit/slice/friendSlice";
+import { RootState } from "@/redux-toolkit/rootReducer";
 
-interface FriendList {
+interface FriendData {
   id: string;
   mutual_friends_count: number;
+  name?: string;
+  username?: string;
+  avatar?: string;
   other_user: {
     id: string;
     name: string;
@@ -22,19 +28,26 @@ interface FriendList {
   };
 }
 
-const AllFriends = () => {
+interface FriendsListProps {
+  searchTerm?: string;
+}
+
+const FriendsList: FC<FriendsListProps> = ({ searchTerm = "" }) => {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(true);
-  const [selectedUser, setSelectedUser] = useState<FriendList | null>(null);
+  const [selectedUser, setSelectedUser] = useState<FriendData | null>(null);
   const [chatBox, setChatBox] = useState(false);
   const mobileSize = useMobileSize();
-  const [friends, setFriends] = useState<FriendList[]>([]);
+  // const [friends, setFriends] = useState<FriendData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
 
+  const dispatch = useDispatch();
+  const { friends, lastFetched } = useSelector((state: RootState) => state.FriendSlice);
+
   useSocket((users: User[]) => {
     setOnlineUsers(users);
-  });
+  }, []);
   
   const getListFriends = async (userId: string) => {
     setIsLoading(true);
@@ -46,24 +59,36 @@ const AllFriends = () => {
       const friendsList = Array.isArray(response.data) 
         ? response.data 
         : response.data.friends || [];
-      setFriends(friendsList);
+      dispatch(setFriends(friendsList));
     } catch (error) {
       console.error("Failed to fetch friends:", error);
-      setFriends([]);
+      dispatch(setFriends([]));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const friendsOnline = friends.filter((friend) => !onlineUsers.some((user) => user.id === friend.other_user.id));
-  useEffect(() => {
-    if (session?.user?.id) {
-      getListFriends(session.user.id);
-    }
-  }, [session?.user?.id]);
+  const filteredFriends = friends.filter((friend) => 
+    friend.other_user.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const handleOpenChatBox = (friend: FriendList) => {
-    const chatUser: FriendList = {
+  useEffect(() => {
+    if (!session?.user?.id) return;
+  
+    const now = Date.now();
+    const TEN_MINUTES = 10 * 60 * 1000;
+    const shouldFetch =
+      friends.length === 0 || !lastFetched || now - lastFetched > TEN_MINUTES;
+  
+    if (shouldFetch) {
+      getListFriends(session.user.id);
+    } else {
+      setIsLoading(false);
+    }
+  }, [session?.user?.id]);  
+
+  const handleOpenChatBox = (friend: FriendData) => {
+    const chatUser: FriendData = {
       id: friend.id,
       mutual_friends_count: friend.mutual_friends_count,
       other_user: {
@@ -78,9 +103,14 @@ const AllFriends = () => {
     setChatBox(true);
   };
   
-  const renderFriendItem = (friend: FriendList, index: number) => {
-    // Create a unique and safe ID for this friend item
+  const isUserOnline = (userId: string) => {
+    return onlineUsers.some(user => user.id === userId);
+  };
+  
+  const renderFriendItem = (friend: FriendData, index: number) => {
+    // Create a unique ID for this friend item that can be safely used as target
     const friendElementId = `friend-${friend.id || index}`;
+    const isOnline = isUserOnline(friend.other_user.id);
     
     return (
       <li
@@ -102,6 +132,7 @@ const AllFriends = () => {
               alt="user"
               height={50} width={50}
             />
+            {isOnline && <span className="available-stats online" />}
           </a>
           <Media body>
             <h5 className="user-name">
@@ -112,18 +143,23 @@ const AllFriends = () => {
             </h6>
           </Media>
         </Media>
-        {/* <HoverMessage
+        <HoverMessage
           placement={mobileSize ? "right" : "top"}
           target={friendElementId}
-          data={friend}
+          data={{
+            id: friend.id,
+            name: friend.other_user?.name,
+            mutual_friends_count: friend.mutual_friends_count,
+            status: isOnline ? "online" : "offline"
+          }}
           imagePath={
             friend.other_user?.avatar
               ? friend.other_user?.avatar
               : `${ImagePath}/user-sm/1.jpg`
           }
-          onMessageClick={() => {handleOpenChatBox(friend)}}
+          onMessageClick={() => handleOpenChatBox(friend)}
           onFriendRequestClick={() => {}}
-        /> */}
+        />
       </li>
     );
   };
@@ -133,7 +169,7 @@ const AllFriends = () => {
       <CommonHeader
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        heading={`Friends (${friends.length})`}
+        heading={`Friends (${filteredFriends.length})`}
       />
      
       <Collapse isOpen={isOpen} className="friend-list">
@@ -141,12 +177,16 @@ const AllFriends = () => {
           <div className="d-flex justify-content-center align-items-center p-3">
             <Spinner />
           </div>
-        ) : friends.length === 0 ? (
-          <div className="text-center py-3">Không có bạn bè</div>
+        ) : filteredFriends.length === 0 ? (
+          <div className="text-center py-3">
+            {searchTerm 
+              ? "Không có kết quả" 
+              : "Không có bạn bè"}
+          </div>
         ) : (
           <div className="online-friends">
             <ul>
-              {friendsOnline.map((friend, index) => renderFriendItem(friend, index))}
+              {filteredFriends.map((friend, index) => renderFriendItem(friend, index))}
             </ul>
           </div>
         )}
@@ -163,4 +203,4 @@ const AllFriends = () => {
   );
 };
 
-export default AllFriends;
+export default FriendsList;

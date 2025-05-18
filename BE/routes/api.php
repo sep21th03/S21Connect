@@ -16,7 +16,15 @@ use App\Http\Controllers\Messenger\MessengerController;
 use App\Http\Controllers\Messenger\ChatGroupController;
 use App\Http\Controllers\Messenger\ConversationController;
 use App\Http\Controllers\Image\ImageController;
+use App\Http\Controllers\MyController\MyFunction;
 use App\Http\Controllers\Notification\NotificationController;
+use App\Http\Controllers\Pay\PaymentController;
+use App\Http\Controllers\Pay\BillController;
+use App\Http\Controllers\Pay\UserBillController;
+use App\Http\Controllers\Report\ReportController;
+use App\Http\Controllers\Admin\AdminStatsController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +36,18 @@ use App\Http\Controllers\Notification\NotificationController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+//cổng thông tin
+Route::post('/get-info-bill', [BillController::class, 'get_info']);
+Route::post('/check-bill', [BillController::class, 'check']);
+Route::post('/check-id', [BillController::class, 'check_id'])->middleware('throttle');
+// Route::post('/lixi/check', [LixiController::class, 'check']);
+// Route::post('/lixi/get-info', [LixiController::class, 'get_info']);
+Route::get('/cancel-payment', [PaymentController::class, 'cancel_payment']);
+Route::post('/create-url', [PaymentController::class, 'create_url']);
+Route::get('/process-payment', [PaymentController::class, 'processing_payment']);
+Route::post('/get_notification', [PaymentController::class, 'get_notification']);
+Route::post('/payos/webhook', [PaymentController::class, 'webhook_payos']);
+
 //auth
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -46,7 +66,15 @@ Route::prefix('auth')->group(function () {
     Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
 });
 
-Route::middleware(['auth:api'])->group(function () {
+Route::prefix('admin')->middleware(['auth:api', 'admin'])->group(function () {
+    Route::get('/get-stats', [AdminStatsController::class, 'getStats']);
+    Route::get('/get-report-post', [ReportController::class, 'getReportPost']);
+    Route::get('/get-report-user', [ReportController::class, 'getReportUser']);
+    Route::get('/get-report-all', [ReportController::class, 'getReportAll']);
+    Route::get('/users', [AdminStatsController::class, 'manageUser']);
+});
+
+Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
     });
@@ -60,9 +88,9 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/', [PostController::class, 'store']);
         Route::get('/public_post', [PostController::class, 'public_post']);
         Route::get('/my_post', [PostController::class, 'getMyPost']);
+        Route::get('/get_friend', [PostController::class, 'getFriendPost']);
         Route::post('/edit', [PostController::class, 'editPost']);
         Route::post('/{id}', [PostController::class, 'destroy']);
-        Route::get('/get_friend/{id}', [PostController::class, 'getFriendPost']); // GET /posts/{id}
         Route::get('/newsfeed', [PostController::class, 'getNewsFeed']);
 
         Route::post('/{id}/toggle-comments', [PostController::class, 'toggleComments']);
@@ -80,8 +108,8 @@ Route::middleware(['auth:api'])->group(function () {
         });
 
         Route::prefix('/shares')->group(function () {
-            Route::post('/post', [ShareController::class, 'share']);      
-            Route::get('/{postId}', [ShareController::class, 'getSharesByPost']);   
+            Route::post('/post', [ShareController::class, 'share']);
+            Route::get('/{postId}', [ShareController::class, 'getSharesByPost']);
         });
     });
 
@@ -123,19 +151,13 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('{userId}/hovercard', [UserController::class, 'hoverCardData']);
         Route::get('{userId}/list_friends', [UserController::class, 'getListFriend']);
         Route::get('{userId}/list_friends_limit', [UserController::class, 'getListFriendLimit']);
-        Route::get('{userId}/friends', [UserController::class, 'getFriendsWithMutualCount']);
         Route::post('/update-last-active', [UserController::class, 'updateLastActive']);
         Route::get('/get_stats', [UserController::class, 'getStats']);
+        Route::get('/suggest_friends', [UserController::class, 'suggestFriends']);
     });
 
     //messenger
     Route::prefix('messages')->group(function () {
-        // Route::post('/send', [MessengerController::class, 'send']);
-        // Route::post('/mark-as-read', [MessengerController::class, 'markAsRead']);
-        // Route::get('/conversation', [MessengerController::class, 'getConversation']);
-        // Route::get('/recent-conversations', [MessengerController::class, 'getRecentConversations']);
-
-
         Route::post('/send', [MessengerController::class, 'send']);
         Route::post('/read', [MessengerController::class, 'markAsRead']);
         Route::get('/conversation/{conversationId}', [MessengerController::class, 'getMessages']);
@@ -173,33 +195,20 @@ Route::middleware(['auth:api'])->group(function () {
         Route::delete('/{id}', [NotificationController::class, 'deleteNotification']);
     });
 
-    Route::prefix('chat-groups')->group(function () {
-        Route::post('/', [ChatGroupController::class, 'create']);
+    Route::prefix('chat-groups')->group(function () {});
 
-        // Lấy thông tin nhóm
-        Route::get('/{id}', [ChatGroupController::class, 'show']);
-
-        // Cập nhật thông tin nhóm
-        Route::put('/{id}', [ChatGroupController::class, 'update']);
-
-        // Thêm thành viên vào nhóm
-        Route::post('/{id}/add-members', [ChatGroupController::class, 'addMembers']);
-
-        // Xoá thành viên khỏi nhóm
-        Route::post('/{id}/remove-members', [ChatGroupController::class, 'removeMembers']);
-
-        // Rời nhóm
-        Route::post('/{id}/leave', [ChatGroupController::class, 'leaveGroup']);
-
-        // Chuyển quyền chủ nhóm
-        Route::post('/{id}/transfer-ownership', [ChatGroupController::class, 'transferOwnership']);
-
-        // Xoá nhóm
-        Route::delete('/{id}', [ChatGroupController::class, 'delete']);
-
-        // Lấy danh sách nhóm của người dùng
-        Route::get('/', [ChatGroupController::class, 'getUserGroups']);
+    //Cổng thanh toán
+    Route::prefix('pay')->group(function () {
+        Route::post('/create-bill', [BillController::class, 'create_bill']);
+        Route::get('/get-bill', [UserBillController::class, 'get_bill']);
+        Route::get('/get-history', [UserBillController::class, 'get_history']);
+        Route::post('/create_api_bill', [PaymentController::class, 'create_api_bill']);
+        Route::get('/get_info', [UserBillController::class, 'get_info']);
     });
-    // Route::get('/profile/{id}', [Controller::class, 'getProfile'])->middleware('check.blocked');
-    // Route::get('/messages/{id}', [Controller::class, 'getMessages'])->middleware('check.blocked');
+
+    //report
+    Route::prefix('report')->group(function () {
+        Route::post('/{type}/{id}', [ReportController::class, 'report']);
+        Route::get('/get-reasons/{type}', [ReportController::class, 'getReasons']);
+    });
 });

@@ -54,14 +54,6 @@ class UserController extends Controller
         return response()->json($friendList);
     }
 
-    public function getFriendsWithMutualCount($userId)
-    {
-        $listFriend = $this->userService->getFriendsWithMutualCount($userId);
-
-        return response()->json($listFriend);
-    }
-
-
     public function updateLastActive(Request $request)
     {
         $data = $request->validate([
@@ -83,5 +75,10 @@ class UserController extends Controller
         return response()->json([
             'data' => $stats
         ]);
+    }
+
+    public function suggestFriends()
+    {
+        return $this->userService->suggestFriends();
     }
 }

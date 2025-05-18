@@ -1,0 +1,581 @@
+.invoiceCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.invoiceCardBody {
+  padding: 35px 30px 30px 30px;
+  flex: 1 1 auto;
+  align-items: center;
+}
+
+.styleCard {
+  margin-bottom: 1.875rem;
+  background-color: #fff;
+  transition: all 0.5s ease-in-out;
+  position: relative;
+  border: 0px solid transparent;
+  border-radius: 1.5rem;
+  box-shadow: 0px 5px 5px 0px rgba(82, 63, 105, 0.05);
+  height: calc(100% - 30px);
+}
+
+.invoiceCard::after {
+  content: "";
+  position: absolute;
+  height: 120px;
+  width: 120px;
+  transform: rotate(40deg);
+  top: -35px;
+  right: -35px;
+  border-radius: 1rem;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+.cardBx {
+  z-index: 1;
+  border-radius: 1rem;
+  overflow: hidden;
+  padding: 30px 35px;
+  display: flex;
+  justify-content: space-between;
+  background: #496ecc !important;
+}
+
+.styleImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.styleBalance {
+  font-size: 36px;
+  margin-bottom: 0.5rem;
+}
+
+.styleChangeBtn {
+  writing-mode: vertical-rl;
+  position: relative;
+  font-weight: 600;
+  background: #fff;
+  color: #000;
+  border-radius: 1rem;
+  transform: rotate(-180deg);
+  font-size: 17px;
+  padding: 20px 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.styleCanvas {
+  display: block;
+  box-sizing: border-box;
+  height: 200px;
+  width: 100%;
+}
+
+.CardHeader {
+  border-color: #e6e6e6;
+  position: relative;
+  background: transparent;
+  padding: 1.5rem 1.875rem 1.25rem;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.cardTitle {
+  font-size: 1rem;
+  color: #000;
+  text-transform: capitalize;
+}
+
+.cartBtn_primary {
+  background-color: #0389c9;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cartBtn_primary:hover {
+  background-color: #1d95cf;
+  color: #fff;
+}
+
+.thLight {
+  font-weight: 400;
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  color: inherit;
+}
+
+.styleBadge {
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  font-size: 0.875em;
+  font-weight: 500;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.375rem;
+}
+
+.styleBadgeWarning {
+  background-color: #f0ad4e;
+}
+
+.styleBadgeSuccess {
+  background-color: #5cb85c;
+}
+
+.styleBadgeDanger {
+  background-color: #d9534f;
+}
+
+.styleBadgeInfo {
+  background-color: #5bc0de;
+}
+
+.dashboardContainer {
+  background: #f8f9fa;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.dashboardTitle {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.25rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.blueGradient {
+  background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+}
+
+.greenGradient {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.purpleGradient {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.redGradient {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.statCardContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.statInfo {
+  z-index: 1;
+}
+
+.statTitle {
+  font-size: 0.875rem;
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+}
+
+.statValue {
+  font-size: 1.875rem;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.statTrend {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.iconBox {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  padding: 0.75rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chartContainer {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.chartGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.chartTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.legendContainer {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+}
+
+.legendDot {
+  height: 0.75rem;
+  width: 0.75rem;
+  border-radius: 50%;
+  margin-right: 0.25rem;
+}
+
+.legendText {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.tooltipBox {
+  background: white;
+  padding: 0.5rem;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 0.375rem;
+}
+
+.tooltipTitle {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.tooltipItem {
+  margin: 0.125rem 0;
+}
+
+.noPadding {
+  padding: 0 !important;
+}
+
+.fullHeight {
+  height: 100%;
+}
+
+.cardShadow {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+
+.card {
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.dashboardCard {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardHeader {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+}
+
+.tableCustom {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.tableCustom thead th {
+  padding: 1rem;
+  background-color: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.tableCustom tbody tr {
+  transition: background-color 0.2s;
+}
+
+.tableCustom tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.tableCustom td {
+  padding: 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.statusBadge svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.statusBadgePending {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.statusBadgeApproved {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.statusBadgeRejected {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.statusBadgeResponded {
+  background-color: #e0e7ff;
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
+}
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionButtonPrimary {
+  background-color: #3b82f6;
+  border: 1px solid #2563eb;
+  color: #fff;
+}
+
+.actionButtonPrimary:hover {
+  background-color: #2563eb;
+}
+
+.actionButtonInfo {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+}
+
+.actionButtonInfo:hover {
+  background-color: #dbeafe;
+}
+
+.searchInput {
+  position: relative;
+  width: 100%;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.filterSelect {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.filterSelect select {
+  border: none;
+  background: transparent;
+  padding-right: 1.5rem;
+  font-size: 0.875rem;
+  color: #334155;
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+  width: 100%;
+}
+
+.inputControl {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #334155;
+  background-color: #f8fafc;
+  transition: all 0.2s;
+}
+
+.inputControl:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.inputIcon {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.emptyState {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.emptyStateIcon {
+  margin-bottom: 1rem;
+  color: #cbd5e1;
+}
+
+.chartContainer {
+  padding: 1rem;
+  height: 300px;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.modalContent {
+  padding: 1.5rem;
+}
+
+.modalTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modalField {
+  margin-bottom: 1.5rem;
+}
+
+.modalLabel {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #64748b;
+}
+
+.sortIcon {
+  display: inline-flex;
+  margin-left: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .filterGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .cardActions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+}
+
+/* Loading spinner */
+.loadingSpinner {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

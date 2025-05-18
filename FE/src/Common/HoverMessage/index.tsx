@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { UncontrolledPopover, PopoverBody, Media } from "reactstrap";
 import Image from "next/image";
 import ButtonPopover from "./ButtonPopover";
@@ -16,18 +16,26 @@ interface HoverMessageProps {
     email?: string;
     location?: string;
   };
-  target: string | number;
+  target: string;
   placement: "right" | "top" | "bottom" | "left";
   imagePath: string;
   onMessageClick: () => void;
   onFriendRequestClick: () => void;
 }
 
-const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePath, onMessageClick, onFriendRequestClick }) => {
-  const error = console.error;
+const HoverMessage: FC<HoverMessageProps> = ({ 
+  data, 
+  target, 
+  placement, 
+  imagePath, 
+  onMessageClick, 
+  onFriendRequestClick 
+}) => {
+  // Suppress React defaultProps deprecation warning
+  const originalError = console.error;
   console.error = (...args: any) => {
     if (/defaultProps/.test(args[0])) return;
-    error(...args);
+    originalError(...args);
   };
 
   if (!data) return null;
@@ -37,14 +45,11 @@ const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePat
       ? `${data.first_name} ${data.last_name}`
       : data.email || "User");
       
-  // Create a safe target ID for the popover
-  const popoverId = `friend-${target}`;
-  
   return (
     <UncontrolledPopover 
       trigger="hover" 
       placement={placement} 
-      target={popoverId}
+      target={target}
       className="user-hover-card"
     >
       <PopoverBody>

@@ -29,7 +29,7 @@ const UserChat: FC<UserChatInterFace> = ({
     rejectCall,
     endCall,
     onCallRejected,
-  } = useSocket((users) => console.log(users));
+  } = useSocket((users) => console.log(users), (conversationId) => console.log(conversationId));
   useEffect(() => {
     if (user?.other_user.last_active) {
       const lastActiveDate = new Date(user.other_user.last_active);

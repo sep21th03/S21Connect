@@ -103,6 +103,25 @@ export const fullSideBarData = [
   { iconName: "cart", title: "shop" },
 ];
 
+export const spaySideBarData = [
+  { iconName: "home-1", title: "Trang chủ", link: "/spay/home" },
+  { iconName: "wallet-2", title: "Ví", link: "/spay/wallet" },
+  { iconName: "bill", title: "Hóa đơn", link: "/spay/bill" },
+  { iconName: "transactions", title: "Rút tiền", link: "/spay/disbursement" },
+  { iconName: "history", title: "Lịch sử", link: "/spay/history" },
+  { iconName: "setting", title: "Cài đặt", link: "/spay/settings" },
+];
+
+export const adminSideBarData = [
+  { iconName: "friends", title: "Người dùng", link: "/admin/users" },
+  { iconName: "post", title: "Bài viết", link: "/admin/posts" },
+  { iconName: "transactions", title: "Giao dịch", link: "/admin/transactions" },
+  { iconName: "reports", title: "Báo cáo vi phạm", link: "/admin/reports" },
+  { iconName: "comment", title: "Hỗ trợ", link: "/admin/support" },
+  { iconName: "policy", title: "Chính sách", link: "/admin/policy" },
+  { iconName: "notifications", title: "Thông báo", link: "/admin/notifications" },
+];
+
 export const reactions = [
   { tittle: "smile", imageName: "040" },
   { tittle: "love", imageName: 113 },

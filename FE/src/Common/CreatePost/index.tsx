@@ -10,7 +10,7 @@ import { API_ENDPOINTS } from "@/utils/constant/api";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 
-const CreatePost = () => {
+const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
   const colorList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
   const [writePost, setWritePost] = useState(false);
   const [showPostButton, setShowPostButton] = useState(false);
@@ -25,7 +25,7 @@ const CreatePost = () => {
   const [selectedBg, setSelectedBg] = useState<string>("");
   const [postContent, setPostContent] = useState("");
   const [tagInput, setTagInput] = useState("");
-
+  const [selectedTag, setSelectedTag] = useState<string>("");
 
   const creatPost = async () => {
     const response = await axiosInstance.post(API_ENDPOINTS.POSTS.CREATE_POST, {
@@ -53,6 +53,7 @@ const CreatePost = () => {
     } else {
       toast.error("Đăng bài thất bại");
     }
+    onPostCreated();
   };
 
   const handleCreatePost = () => {
@@ -71,14 +72,21 @@ const CreatePost = () => {
         setListFriends(response.data);
       }
     };
-    fetchListFriends();
-  }, [userId]);
+    if (selectedTag === "friends") {
+      fetchListFriends();
+    }
+  }, [userId, selectedTag]);
 
   const handleShowPost = (value: string) => {
     setWritePost(true);
     setShowPostButton(true);
     setPostClass(value);
     setSelectedBg(value);
+  };
+
+  const handleTagClick = (value: string) => {
+    setOptionInput(value);   
+    setSelectedTag(value);   
   };
   return (
     <div className="create-post">
@@ -138,7 +146,7 @@ const CreatePost = () => {
           </h5>
         </li>
         {createPostData.map((data, index) => (
-          <li key={index} onClick={() => setOptionInput(data.value)}>
+          <li key={index} onClick={() => handleTagClick(data.value)}>
             <h5>
               <DynamicFeatherIcon
                 iconName={data.icon}

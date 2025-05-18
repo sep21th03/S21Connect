@@ -6,25 +6,16 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req });
   const { pathname } = req.nextUrl;
 
-  const isAuthPage = pathname.startsWith("/auth/");
-  const isProtectedRoute =
-    !isAuthPage &&
-    !pathname.startsWith("/_next") &&
-    !pathname.startsWith("/static") &&
-    !pathname.startsWith("/favicon.ico");
+  const publicPaths = ["/auth", "/payment"];
+  const isPublicRoute = publicPaths.some((path) => pathname.startsWith(path));
 
   const isAuthenticated = !!token;
 
-  // console.log("Middleware Debug Info:");
-  // console.log("Current path:", pathname);
-  // console.log("Is auth page:", isAuthPage);
-  // console.log("Is protected route:", isProtectedRoute);
-  // console.log("Is authenticated:", isAuthenticated);
-  if (isAuthPage && isAuthenticated) {
+  if (pathname.startsWith("/auth") && isAuthenticated) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  if (isProtectedRoute && !isAuthenticated) {
+  if (!isPublicRoute && !isAuthenticated) {
     return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
