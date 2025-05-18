@@ -1,14 +1,16 @@
-import { fullSideBarData } from "@/Data/common";
+import { spaySideBarData } from "@/Data/common";
 import React, { FC } from "react";
-import { Href, SvgPath } from "../../../utils/constant/index";
+import { SvgPath } from "../../../utils/constant/index";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 const SideBarMenus: FC = () => {
+  const pathname = usePathname();
   return (
     <ul className="sidebar-icon">
-      {fullSideBarData.map((data, index) => (
-        <li className={index=== 0 ?"active":""} key={index}>
-          <a href={Href}>
+      {spaySideBarData.map((data, index) => (
+        <li className={pathname === data.link ? "active" : ""} key={index}>
+          <a href={data.link}>
             <Image
               width={22}
               height={22}

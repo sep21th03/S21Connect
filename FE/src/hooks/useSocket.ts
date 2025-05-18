@@ -13,26 +13,103 @@ export interface User {
 
 export interface Message {
   id: string;
-  content: string;
   sender_id: string;
-  receiver_id?: string;
-  group_id?: string;
+  receiver_id: string;
+  conversation_id: string;
+  group_id: string | null;
+  content: string;
   type: "text" | "image" | "video" | "sticker" | "file";
-  file_paths?: string[];
+  file_paths: string[] | null;
   is_read: boolean;
-  read_at?: string;
+  read_at: string | null;
   created_at: string;
   updated_at: string;
-  sender?: User;
+  sender: {
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    last_active: string;
+  };
 }
 
-export function useSocket(onOnlineList: (users: any[]) => void) {
+export interface SendMessagePayload {
+  content: string; 
+  receiver_id: string; 
+  conversation_id: string; 
+  type?: "text" | "image" | "video" | "sticker" | "file"; 
+  file_paths?: string[];
+  file_name?: string;
+  file_type?: string;
+}
+
+export interface RecentMessage {
+  id: string;
+  name: string | null;
+  type: "private" | "group";
+  url: string;
+  unread_count: number;
+  created_at: string;
+  updated_at: string;
+  other_user: {
+    id: string;
+    username: string;
+    name: string;
+    last_active?: string;
+    avatar?: string;
+  };
+  latest_message?: {
+    id: string;
+    content: string;
+    type: string;
+    created_at: string;
+    sender_id: string;
+    sender_name: string;
+  };
+}
+
+export interface TypingUser {
+  user_id: string;
+  username: string;
+  conversation_id: string;
+  is_typing: boolean;
+}
+
+export interface IncomingCall {
+  caller_id: string;
+  caller_name: string;
+  call_type: "audio" | "video";
+}
+
+export interface CallOfferDetails {
+  offer: RTCSessionDescriptionInit;
+  call_type: "audio" | "video";
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: "birthday" | "reaction" | "comment" | "share" | "friend_request";
+  content: string;
+  link: string | null;
+  is_read: boolean;
+  from_user: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+}
+
+export function useSocket(onOnlineList: (users: User[]) => void, onNotification: (data: Notification) => void) {
   const socketRef = useRef<Socket | null>(null);
   const onOnlineListRef = useRef(onOnlineList);
-
+  const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const onNotificationCallbackRef = useRef(onNotification);
   useEffect(() => {
     onOnlineListRef.current = onOnlineList;
-  }, [onOnlineList]);
+    onNotificationCallbackRef.current = onNotification;
+  }, [onOnlineList, onNotification]);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -46,6 +123,16 @@ export function useSocket(onOnlineList: (users: any[]) => void) {
     }
     socketRef.current = socket;
 
+    socket.on("connect", () => {
+      setIsConnected(true);
+      socket?.emit("join_all_conversations");
+      socket?.emit("get_online_users");
+    });
+
+    socket.on("disconnect", () => {
+      setIsConnected(false);
+    });
+
     socket.emit("get_online_users");
 
     const handleOnlineUsers = (users: any) => {
@@ -54,30 +141,57 @@ export function useSocket(onOnlineList: (users: any[]) => void) {
 
     socket.on("online_users_list", handleOnlineUsers);
 
+    socket.on("incoming_call", (call: IncomingCall) => {
+      console.log("Incoming call:", call);
+      setIncomingCall(call);
+    });
+    const heartbeatInterval = setInterval(() => {
+      if (socket?.connected) {
+        socket.emit("heartbeat");
+      }
+    }, 30000);
+
+    const handleNotification = (data: Notification) => {
+      if (onNotificationCallbackRef.current) {
+        onNotificationCallbackRef.current(data);
+      }
+    };
+    
+    socket.on('notification', handleNotification);
+    
+    socket.on('notification', handleNotification);
+    
+
     return () => {
+      clearInterval(heartbeatInterval);
       socket?.off("online_users_list", handleOnlineUsers);
+      socket?.off("connect");
+      socket?.off("disconnect");
+      socket?.off("incoming_call");
+      socket?.off("notification", handleNotification);
     };
   }, []);
 
-  const joinChat = (params: { user_id?: string; group_id?: string }) => {
+  // Fix 1: Updated to accept string directly
+  const joinChat = (conversationId: string) => {
     if (!socket?.connected) return;
-    socket.emit("join_chat", params);
+    console.log("Joining chat:", conversationId);
+    socket.emit("join_chat", { conversation_id: conversationId });
   };
 
-  const leaveChat = (params: { user_id?: string; group_id?: string }) => {
+  // Fix 2: Updated to accept string directly
+  const leaveChat = (conversationId: string) => {
     if (!socket?.connected) return;
-    socket.emit("leave_chat", params);
+    console.log("Leaving chat:", conversationId);
+    socket.emit("leave_chat", { conversation_id: conversationId });
   };
 
-  const sendMessage = (message: {
-    content: string;
-    receiver_id?: string;
-    group_id?: string;
-    type?: "text" | "image" | "video" | "sticker" | "file";
-    file_paths?: string[];
-  }) => {
-    if (!socket?.connected) return false;
-
+  const sendMessage = (message: SendMessagePayload) => {
+    if (!socket?.connected) {
+      console.error("Cannot send message: socket not connected");
+      return false;
+    }
+    
     socket.emit("send_message", message);
     return true;
   };
@@ -96,11 +210,165 @@ export function useSocket(onOnlineList: (users: any[]) => void) {
     };
   };
 
+  const setTypingStatus = (data: { conversation_id: string, is_typing: boolean }) => {
+    if (!socket?.connected) return;
+    socket.emit("typing", data);
+  };
+  
+  const onUserTyping = (callback: (typingData: TypingUser) => void) => {
+    if (!socket?.connected) return;
+    
+    socket.on("user_typing", callback);
+    
+    return () => {
+      socket?.off("user_typing", callback);
+    };
+  };
+  
+  const markMessagesAsRead = (conversationId: string) => {
+    if (!socket?.connected) return;
+    console.log("Marking messages as read for conversation:", conversationId);
+    socket.emit("mark_as_read", { conversation_id: conversationId });
+  };
+
+  const onMessagesRead = (callback: (data: { conversation_id: string, user_id: string }) => void) => {
+    if (!socket?.connected) return;
+    
+    socket.on("messages_read", callback);
+    
+    return () => {
+      socket?.off("messages_read", callback);
+    };
+  };
+  
+  const onUserStatusChanged = (callback: (data: { userId: string, username: string, status: 'online' | 'offline' }) => void) => {
+    if (!socket?.connected) return;
+    
+    socket.on("user_status_changed", callback);
+    
+    return () => {
+      socket?.off("user_status_changed", callback);
+    };
+  };
+
+  const onImageUploadStatus = (callback: (data: { status: string; url?: string; message?: string }) => void) => {
+    if (!socket?.connected) return;
+    socket?.on("image-upload-status", callback);
+  
+    return () => {
+      socket?.off("image_upload_status", callback);
+    };
+  };
+
+   const initiateCall = (receiverId: string, offer: RTCSessionDescriptionInit, callType: "audio" | "video") => {
+    if (!socket?.connected) return false;
+    socket.emit("call_offer", { 
+      receiver_id: receiverId, 
+      offer, 
+      call_type: callType 
+    });
+    return true;
+  };
+  
+  const getCallOffer = (callerId: string, callback: (offerDetails: CallOfferDetails) => void) => {
+    if (!socket?.connected) return false;
+    
+    socket.emit("get_call_offer", { caller_id: callerId });
+    
+    const handleOfferDetails = (details: CallOfferDetails) => {
+      callback(details);
+      socket?.off("call_offer_details", handleOfferDetails);
+    };
+    
+    socket.on("call_offer_details", handleOfferDetails);
+    return true;
+  };
+  
+  const answerCall = (callerId: string, answer: RTCSessionDescriptionInit) => {
+    if (!socket?.connected) return false;
+    socket.emit("call_answer", { caller_id: callerId, answer });
+    setIncomingCall(null);
+    return true;
+  };
+  
+  const rejectCall = (callerId: string) => {
+    if (!socket?.connected) return false;
+    socket.emit("call_reject", { caller_id: callerId });
+    setIncomingCall(null);
+    return true;
+  };
+  
+  const sendIceCandidate = (peerId: string, candidate: RTCIceCandidateInit) => {
+    if (!socket?.connected) return false;
+    socket.emit("call_ice_candidate", { peer_id: peerId, candidate });
+    return true;
+  };
+  
+  const onCallAnswer = (callback: (data: { answer: RTCSessionDescriptionInit, user_id: string }) => void) => {
+    if (!socket) return;
+    socket.on("call_answer", callback);
+    return () => {
+      socket?.off("call_answer", callback);
+    };
+  };
+  
+  const onIceCandidate = (callback: (data: { candidate: RTCIceCandidateInit, from_user_id: string }) => void) => {
+    if (!socket) return;
+    socket.on("call_ice_candidate", callback);
+    return () => {
+      socket?.off("call_ice_candidate", callback);
+    };
+  };
+  
+  const endCall = (peerId: string) => {
+    if (!socket?.connected) return false;
+    socket.emit("call_end", { peer_id: peerId });
+    return true;
+  };
+  
+  const onCallEnded = (callback: (data: { from_user_id: string }) => void) => {
+    if (!socket) return;
+    socket.on("call_end", callback);
+    return () => {
+      socket?.off("call_end", callback);
+    };
+  };
+  
+  const onCallRejected = (callback: (data: { reason: string; user_id: string }) => void) => {
+    if (!socket) return;
+    socket.on("call_rejected", callback);
+    return () => {
+      socket?.off("call_rejected", callback);
+    };
+  };
+
+  const onCallError = (callback: (data: { message: string }) => void) => {
+    if (!socket) return;
+    socket.on("call_error", callback);
+    return () => {
+      socket?.off("call_error", callback);
+    };
+  };
+
   return {
-    socketRef: socketRef.current,
+    socket: socketRef.current,
+    isConnected,
     joinChat,
     leaveChat,
     sendMessage,
     onNewMessage,
+    setTypingStatus,
+    onUserTyping,
+    markMessagesAsRead,
+    onMessagesRead,
+    onUserStatusChanged,
+    onImageUploadStatus,
+    initiateCall,
+    getCallOffer,
+    answerCall,
+    rejectCall,
+    endCall,
+    onCallRejected,
+    incomingCall
   };
 }

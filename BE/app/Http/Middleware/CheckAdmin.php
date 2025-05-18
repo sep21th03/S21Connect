@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
 
 class CheckAdmin
 {
@@ -15,9 +16,11 @@ class CheckAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user() || !$request->user()->is_admin) {
-            return response()->json(['error' => 'Bạn không có quyền truy cập!'], 403);
+       $user = Auth::user();
+         if (!$user || !$user->is_admin) {
+            return response()->json(['message' => 'Unauthorized. Admin only.'], 403);
         }
+
         return $next($request);
     }
 }

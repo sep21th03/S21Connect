@@ -1,19 +1,22 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import PanelHeader from "./PanelHeader";
 import SearchBar from "./SearchBar";
-import CloseFriends from "./CloseFriends";
-import AllFriends from "./AllFriends";
+import FriendsList from "./FriendsList";
 import RecentChats from "./RecentChats";
-import { closeFriendsData, recentChatsData } from "@/Data/Layout";
 import { ConversationPanelInterFace } from "@/layout/LayoutTypes";
 
-const ConversationPanel: FC<ConversationPanelInterFace> = ({sidebarClassName}) => {
+const ConversationPanel: FC<ConversationPanelInterFace> = ({ sidebarClassName }) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+  
   return (
-    <div className={`conversation-panel ${sidebarClassName?sidebarClassName:"xl-light"}`}>
+    <div className={`conversation-panel ${sidebarClassName ? sidebarClassName : "xl-light"}`}>
       <PanelHeader />
-      <SearchBar />
-      <CloseFriends/>
-      <AllFriends/>
+      <SearchBar onSearch={handleSearch} />
+      <FriendsList searchTerm={searchQuery} />
     </div>
   );
 };

@@ -6,9 +6,13 @@ import { FC, FormEvent, useState } from "react";
 import {Button,Dropdown,DropdownMenu,DropdownToggle,Input} from "reactstrap";
 import { BirthdayReminderInterFace } from "../Style1Types";
 
-const BirthdayReminder: FC<BirthdayReminderInterFace> = ({mainClass}) => {
+const BirthdayReminder: FC<BirthdayReminderInterFace> = ({mainClass, userInforBirthday}) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const toggle = () => setDropdownOpen((prevState) => !prevState);
+  if (!userInforBirthday || userInforBirthday.length === 0) return null;
+
+  const birthdayUser = userInforBirthday[0];
+
   return (
     <div className={`birthday-section bg-size blur-up lazyloaded section-t-space ${mainClass?mainClass:""}`}> 
       <CustomImage className="img-fluid blur-up lazyload bg-img" src={`${ImagePath}/birthday-bg.jpg`}/>
@@ -50,18 +54,20 @@ const BirthdayReminder: FC<BirthdayReminderInterFace> = ({mainClass}) => {
             <img src={`${ImagePath}/icon/cake.png`} className="img-fluid blur-up lazyloaded" alt="cake"/>
           </div>
           <div className="center-profile bg-size blur-up lazyloaded">
-            <CustomImage className="img-fluid blur-up lazyload bg-img" src={`${ImagePath}/user-sm/4.jpg`}/>
+            {birthdayUser?.avatar && (
+              <Image className="img-fluid lazyload bg-img rounded-circle" src={birthdayUser.avatar} alt={birthdayUser.first_name} width={100} height={100}/>
+            )}
           </div>
           <div className="icon">
             <h5>20+</h5>
           </div>
         </div>
         <div className="details">
-          <h3>sufiya elija</h3>
-          <h6>glasgow, scotland</h6>
-          <p> Lorem 5th Sept 2019 dummy text of the printing and typesetting industry.</p>
+          <h3>{birthdayUser?.first_name} {birthdayUser?.last_name}</h3>
+          <h6>{birthdayUser?.location}</h6>
+          <p> Gửi lời chúc đến {userInforBirthday[0]?.gender == "male" ? "anh" : "chị"} ấy!</p>
           <form onSubmit={(event: FormEvent<HTMLFormElement>)=>event.preventDefault()}>
-            <Input type="text" placeholder="wish birthday to your friend" />
+            <Input type="text" placeholder="Gửi lời chúc đến bạn bè" />
             <Button>
               <DynamicFeatherIcon iconName="ArrowRight" className="icon-light icon stroke-width-3 iw-13 ih-13"/>
             </Button>

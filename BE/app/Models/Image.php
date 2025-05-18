@@ -24,4 +24,9 @@ class Image extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function conversations()
+    {
+        return $this->hasMany(Conversation::class, 'image_id');
+    }
 }

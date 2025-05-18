@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { UncontrolledPopover, PopoverBody, Media } from "reactstrap";
 import Image from "next/image";
 import ButtonPopover from "./ButtonPopover";
@@ -23,47 +23,33 @@ interface HoverMessageProps {
   onFriendRequestClick: () => void;
 }
 
-const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePath, onMessageClick, onFriendRequestClick }) => {
-  // Suppress ReactStrap deprecated warnings
-  const error = console.error;
+const HoverMessage: FC<HoverMessageProps> = ({ 
+  data, 
+  target, 
+  placement, 
+  imagePath, 
+  onMessageClick, 
+  onFriendRequestClick 
+}) => {
+  // Suppress React defaultProps deprecation warning
+  const originalError = console.error;
   console.error = (...args: any) => {
     if (/defaultProps/.test(args[0])) return;
-    error(...args);
+    originalError(...args);
   };
 
   if (!data) return null;
   
-  // Xử lý tên đầy đủ từ các nguồn khác nhau
   const fullName = data.name || 
     (data.first_name && data.last_name 
       ? `${data.first_name} ${data.last_name}`
       : data.email || "User");
-  
-  // Tính thời gian hoạt động cuối
-  const lastActive = data.last_active ? new Date(data.last_active) : null;
-  const getLastActiveText = () => {
-    if (!lastActive) return "";
-    
-    const now = new Date();
-    const diffMs = now.getTime() - lastActive.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffMins < 1) return "vừa hoạt động";
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} ngày trước`;
-  };
-  const lastActiveText = data.status === "online" ? "Đang hoạt động" : getLastActiveText();
-
+      
   return (
     <UncontrolledPopover 
       trigger="hover" 
       placement={placement} 
-      target={target} 
+      target={target}
       className="user-hover-card"
     >
       <PopoverBody>
@@ -80,18 +66,6 @@ const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePat
           </div>
           <Media body>
             <h4>{fullName}</h4>
-            {lastActiveText && (
-              <h6 className="last-active">
-                <Image 
-                  height={15} 
-                  width={15} 
-                  src={`${SvgPath}/clock.svg`} 
-                  className="img-fluid" 
-                  alt="last active" 
-                />
-                {lastActiveText}
-              </h6>
-            )}
             <h6>
               <Image 
                 height={15} 
@@ -102,18 +76,6 @@ const HoverMessage: FC<HoverMessageProps> = ({ data, target, placement, imagePat
               />
               {data.mutual_friends_count || 0} bạn chung
             </h6>
-            {data.location && (
-              <h6>
-                <Image 
-                  height={15} 
-                  width={15} 
-                  src={`${SvgPath}/map-pin.svg`} 
-                  className="img-fluid" 
-                  alt="location" 
-                />
-                {data.location}
-              </h6>
-            )}
             {data.email && (
               <h6>
                 <Image 

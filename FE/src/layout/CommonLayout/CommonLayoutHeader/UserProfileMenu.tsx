@@ -13,20 +13,28 @@ import { useAppDispatch } from "@/redux-toolkit/hooks";
 
 interface UserProfileMenuProps {
   username: string;
+  isAdmin?: number;
 }
 
-const UserProfileMenu: FC<UserProfileMenuProps> = ({username}) => {
-  // const { data: session } = useSession();
-  // const username = session?.user?.username || "User";
+const UserProfileMenu: FC<UserProfileMenuProps> = ({username, isAdmin}) => {
   const dispatch = useAppDispatch();
   const handleLogOut = () => {
     dispatch(logout());
     signOut();
   };
+  const menuDataWithAdmin = [...userMenuData];
+  if (isAdmin) {
+    menuDataWithAdmin.push({
+      navigate: "/admin",
+      icon: "List", 
+      heading: "Admin Dashboard",
+      headingDetail: "Manage system & users",
+    });
+  }
 
   return (
     <ul className='friend-list'>
-      {userMenuData.map((data, index) => {
+      {menuDataWithAdmin.map((data, index) => {
         const dynamicNavigate =
           data.navigate.includes("/profile/") ? `${data.navigate}/${username}` : data.navigate;
 

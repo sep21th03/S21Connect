@@ -17,22 +17,28 @@ export const API_ENDPOINTS = {
   },
 
   POSTS: {
-    BASE: "/posts",
+    CREATE_POST: "/posts",
+    GET_MY_POSTS: "/posts/my_post",
+    EDIT_POST: "/posts/edit",
+    GET_POSTS: (username: string) => `/posts/${username}`,
+    GET_FRIEND_POSTS: "/posts/get_friend",
+    GET_NEWSFEED: "/posts/newsfeed",
     TOGGLE_COMMENTS: (id: number | string) => `/posts/${id}/toggle-comments`,
     TOGGLE_REACTIONS: (id: number | string) => `/posts/${id}/toggle-reactions`,
+    DELETE_POST: (id: number | string) => `/posts/${id}`,
     COMMENTS: {
-      ADD: (postId: number | string) => `/posts/${postId}/comments`,
+      ADD: "/posts/comments/add",
+      GET_COMMENTS: (postId: string) => `/posts/comments/${postId}`,
       DELETE: (postId: number | string, commentId: number | string) =>
         `/posts/${postId}/comments/${commentId}`,
     },
     REACTIONS: {
-      ADD: (postId: number | string) => `/posts/${postId}/reactions`,
-      DELETE: (postId: number | string, reactionId: number | string) =>
-        `/posts/${postId}/reactions/${reactionId}`,
+      TOGGLE: (id: number | string) => `/posts/${id}/reactions/toggle`,
+      GET: (id: number | string) => `/posts/${id}/reactions/get`
     },
     SHARES: {
-      CREATE: (postId: number | string) => `/posts/${postId}/shares`,
-      GET_ALL: (postId: number | string) => `/posts/${postId}/shares`,
+      SHARE:  "/posts/shares/post",
+      GET_SHARE: (postId: number | string) => `/posts/shares/${postId}`,
     },
   },
 
@@ -46,6 +52,7 @@ export const API_ENDPOINTS = {
     USER_PROFILE: (username: string) => `/profile/${username}`,
     USER_DATA: (userId: string) => `/profile/user/data/${userId}`,
     USER_AVATAR: `/profile/user/avatar`,
+    USER_ABOUT: "/profile/user/about",
   },
 
   FRIENDS: {
@@ -55,6 +62,9 @@ export const API_ENDPOINTS = {
     REJECT: (userId: number | string) => `/cancel/${userId}`,
     UNFRIEND: (userId: number | string) => `/remove/${userId}`,
     CHECK_STATUS: (userId: number | string) => `/status/${userId}`,
+    USER_INFOR_BIRTHDAY: "/friends/birthday",
+    FRIEND_REQUEST: "/friends/requests",
+    FRIEND_REQUEST_COUNT: "/friends/count_new_requests",
   },
 
   USERS: {
@@ -62,7 +72,9 @@ export const API_ENDPOINTS = {
     HOVER_CARD: (userId: string) => `/${userId}/hovercard`,
     LIST_FRIENDS: (userId: string) => `/${userId}/list_friends`,
     LIST_FRIENDS_LIMIT: (userId: string) => `/${userId}/list_friends_limit`,
-    ONLINE_USERS: (userId: string) => `/${userId}/friends`,
+    LAST_ACTIVE: (otherUserId: string) => `/user/update-last-active`,
+    GET_STATS: "/user/get_stats",
+    FRIEND_SUGGESTION: "/user/suggest_friends",
   },
 
   MESSAGES: {
@@ -72,12 +84,9 @@ export const API_ENDPOINTS = {
       SEND_MESSAGE: `/send`,
       GET_GROUP_MESSAGES: (groupId: string) => `/group/${groupId}`,
       SEND_GROUP_MESSAGE: (groupId: string) => `/group`,
-      RECENT_CONVERSATIONS: "/recent-conversations",
-      UNREAD_MESSAGES: "/mark-as-read",
-    },
-    CHAT_GROUP: {
-      BASE: "/chat-groups",
-      GET_CHAT_GROUP: (groupId: string) => `/${groupId}`,
+      RECENT_CONVERSATIONS: "/conversations",
+      UNREAD_MESSAGES: "/read",
+      GET_USER_GALLERY: (conversationId: string) => `/conversations/${conversationId}/media`,
     },
   },
   IMAGES: {
@@ -85,4 +94,31 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (id: string) => `/images/${id}`,
     DELETE: (id: string) => `/images/${id}`,
   },
+  NOTIFICATIONS: {
+    GET_NOTIFICATION_LIST: "/notifications",
+    MARK_ALL_AS_READ:  "/notifications/read-all",
+  },
+  PAYMENT: {
+    BILL: {
+      CREATE: "/pay/create-bill",
+      GET_LIST: "/pay/get-bill",
+      DELETE: (bill_id: string) => `/pay/delete-bill/${bill_id}`,
+      PAY: (bill_id: string) => `/pay/pay-bill/${bill_id}`,
+      CANCEL: (bill_id: string) => `/pay/cancel-bill/${bill_id}`,
+      UNPAY: (bill_id: string) => `/pay/unpay-bill/${bill_id}`,
+      GET_INFO_BILL: "/get-info-bill",
+      CHECK_BILL: "/check-bill",
+      GET_HISTORY: "/pay/get-history",
+      GET_INFO: "/pay/get_info",
+    },
+  },
+  REPORTS: {
+    POST: (type: string, id: string) => `/report/${type}/${id}`,
+    GET_REASONS: (type: string) => `/report/get-reasons/${type}`,
+  },
+  ADMIN: {
+    GET_STATS: "/admin/get-stats",
+    REPORTS: "/admin/get-report-all",
+  },
 };
+

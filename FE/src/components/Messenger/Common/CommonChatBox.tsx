@@ -7,12 +7,15 @@ import SvgIconCommon from "@/Common/SvgIconCommon";
 import UserGallery from "./UserGallery";
 import UserChat from "./UserChat";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { formatTime } from "@/utils/formatTime";
 
 const CommonChatBox: FC<CommonChatBoxInterFace> = ({
   userList,
   setUserList,
   setActiveTab,
   onlineUsers,
+  initialConversationId,
 }) => {
   const socialMedias = [
     { link: "https://www.facebook.com/", name: "facebook" },
@@ -36,6 +39,7 @@ const CommonChatBox: FC<CommonChatBoxInterFace> = ({
         setUserList={setUserList}
         setActiveTab={setActiveTab}
         onlineUsers={onlineUsers}
+        initialConversationId={initialConversationId}
       />
       <div className="user-info">
         <div
@@ -45,20 +49,22 @@ const CommonChatBox: FC<CommonChatBoxInterFace> = ({
           <DynamicFeatherIcon iconName="X" className="icon-theme" />
         </div>
         <div className="user-image bg-size blur-up lazyloaded">
-          <CustomImage
-            src={`${ImagePath}/user/${userList?.id}.jpg`}
-            className="img-fluid blur-up lazyload bg-img"
+          <Image
+            src={userList?.other_user?.avatar || `${ImagePath}/icon/user.png`}
+            className="img-fluid lazyload bg-img rounded-circle"
             alt=""
+            width={120}
+            height={120}
           />
         </div>
         <div className="user-name">
-          <h5>{userList?.name}</h5>
-          <h6>london, united kingdom</h6>
-          <p>
+          <h5>{userList?.other_user?.name}</h5>
+          {/* <h6>{userList?.other_user?.last_active ? formatTime(userList?.other_user?.last_active) : ''}</h6> */}
+          {/* <p>
             Lorem ipsum dolor sit amet, consectetur adipisicing elit. Tempora
             possimus magnam adipisci aspernatur.
-          </p>
-          <div className="social-btn">
+          </p> */}
+          <div className="social-btn" style={{ marginTop: "20px" }}>
             <ul>
               {socialMedias.map((data, index) => (
                 <li className={data.name} key={index}>
@@ -70,7 +76,7 @@ const CommonChatBox: FC<CommonChatBoxInterFace> = ({
             </ul>
           </div>
         </div>
-        <UserGallery />
+        <UserGallery conversationId={initialConversationId || ""} />
       </div>
     </div>
   );

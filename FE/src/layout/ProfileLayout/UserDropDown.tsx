@@ -13,7 +13,7 @@ const UserDropDown:FC<UserDropDownInterFace> = ({dropDownOpen,toggleDropDown,isO
     <Dropdown isOpen={dropDownOpen} toggle={toggleDropDown} className="setting-dropdown btn-group custom-dropdown arrow-none dropdown-sm">
         {isOwnProfile && (
         <DropdownToggle color="transparent">
-          <a className="btn-white btn-cover" href="#">edit cover</a>
+          <a className="btn-white btn-cover" href="#">Chỉnh sửa</a>
         </DropdownToggle>
         )}
         <DropdownMenu>
@@ -34,7 +34,7 @@ const UserDropDown:FC<UserDropDownInterFace> = ({dropDownOpen,toggleDropDown,isO
           </ul>
         </DropdownMenu>
       </Dropdown>
-      <UpdateImageModal isOpen={dropDown} toggle={toggle} updateBackGround />
+      <UpdateImageModal isOpen={dropDown} toggle={toggle} updateBackGround={()=>{}} />
 
     </>
   )

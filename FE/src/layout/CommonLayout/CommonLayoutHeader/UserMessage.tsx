@@ -2,16 +2,16 @@ import { userMessageData } from "@/Data/Layout";
 import { Href, ImagePath } from "../../../utils/constant";
 import Image from "next/image";
 import { Media } from "reactstrap";
-import { SingleUser } from "@/components/Messenger/MessengerType";
+import { RecentMessage } from "@/hooks/useSocket";
 
 const UserMessage = ({
   userList,
   onlineUsers,
   onUserClick,
 }: {
-  userList: SingleUser[] | null;
+  userList: RecentMessage[] | null;
   onlineUsers: string[];
-  onUserClick: (user: SingleUser) => void;
+  onUserClick: (user: RecentMessage) => void;
 }) => {
   return (
     <div className="dropdown-content">
@@ -21,19 +21,51 @@ const UserMessage = ({
             <a href={Href} onClick={() => onUserClick(data)}>
               <Media>
                 <Image
-                  width={40}
-                  height={40}
-                  src={`${ImagePath}/user-sm/${index + 1}.jpg`}
+                  src={data.other_user.avatar || `${ImagePath}/icon/user.png`}
+                  className="img-fluid blur-up bg-img lazyloaded rounded-circle"
                   alt="user"
+                  width={100}
+                  height={100}
                 />
                 <Media body>
-                  <h5 className="mt-0">{data.name}</h5>
+                  <h5 className="mt-0">{data.other_user.name}</h5>
                   <div>
-                    {data.id === data.latest_Messenger?.sender_id ? (
-                      <h6>{data.latest_Messenger?.content}</h6>
-                    ) : (
-                      <h6>Bạn: {data.latest_Messenger?.content}</h6>
-                    )}
+                    {(() => {
+                      const isImage = data.latest_message?.type === "image";
+                      const isSenderOther =
+                        data.other_user.id === data.latest_message?.sender_id;
+                      if (isImage) {
+                        return (
+                          <h6
+                            className={data.unread_count > 0 ? "fw-bold" : ""}
+                          >
+                            {isSenderOther
+                              ? `${
+                                  data.other_user.name || "Người kia"
+                                } đã gửi 1 ảnh`
+                              : "Bạn đã gửi 1 ảnh"}
+                          </h6>
+                        );
+                      } else {
+                        return (
+                          <>
+                          <h6
+                            className={data.unread_count > 0 ? "fw-bold" : ""}
+                          >
+                            {isSenderOther
+                              ? data.latest_message?.content
+                              : `Bạn: ${data.latest_message?.content}`}
+                            
+                          </h6>
+                          {data.unread_count > 0 && (
+                            <span className="badge bg-danger unread-dot">
+                              !
+                            </span>
+                          )}
+                        </>
+                        );
+                      }
+                    })()}
                   </div>
                 </Media>
               </Media>

@@ -6,12 +6,17 @@ import {
 } from "@/Common/CommonInterFace";
 import { EdiPost, HidePost, SavePost } from "../../utils/constant";
 
+// export const createPostDropDown: CreatePostInterface[] = [
+//   { icon: "Globe", name: "Public" },
+//   { icon: "Users", name: "Friends" },
+//   { icon: "User", name: "friends except" },
+//   { icon: "User", name: "specific friends" },
+//   { icon: "User", name: "only me" },
+// ];
 export const createPostDropDown: CreatePostInterface[] = [
-  { icon: "Globe", name: "Public" },
-  { icon: "Users", name: "Friends" },
-  { icon: "User", name: "friends except" },
-  { icon: "User", name: "specific friends" },
-  { icon: "User", name: "only me" },
+  { icon: "Globe", name: "Public", slug: "public" },
+  { icon: "Users", name: "Friends", slug: "friends" },
+  { icon: "Lock", name: "only me", slug: "private" },
 ];
 
 export const userDropDownData: userDropDownDataInterFace[] = [
@@ -98,6 +103,25 @@ export const fullSideBarData = [
   { iconName: "cart", title: "shop" },
 ];
 
+export const spaySideBarData = [
+  { iconName: "home-1", title: "Trang chủ", link: "/spay/home" },
+  { iconName: "wallet-2", title: "Ví", link: "/spay/wallet" },
+  { iconName: "bill", title: "Hóa đơn", link: "/spay/bill" },
+  { iconName: "transactions", title: "Rút tiền", link: "/spay/disbursement" },
+  { iconName: "history", title: "Lịch sử", link: "/spay/history" },
+  { iconName: "setting", title: "Cài đặt", link: "/spay/settings" },
+];
+
+export const adminSideBarData = [
+  { iconName: "friends", title: "Người dùng", link: "/admin/users" },
+  { iconName: "post", title: "Bài viết", link: "/admin/posts" },
+  { iconName: "transactions", title: "Giao dịch", link: "/admin/transactions" },
+  { iconName: "reports", title: "Báo cáo vi phạm", link: "/admin/reports" },
+  { iconName: "comment", title: "Hỗ trợ", link: "/admin/support" },
+  { iconName: "policy", title: "Chính sách", link: "/admin/policy" },
+  { iconName: "notifications", title: "Thông báo", link: "/admin/notifications" },
+];
+
 export const reactions = [
   { tittle: "smile", imageName: "040" },
   { tittle: "love", imageName: 113 },
@@ -106,3 +130,52 @@ export const reactions = [
   { tittle: "angry", imageName: "039" },
   { tittle: "haha", imageName: "042" },
 ];
+
+
+export const feelingMap: Record<string, { emoji: string; title: string }> = {
+  happy: {
+    emoji:
+      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f970.png",
+    title: "Hạnh phúc",
+  },
+  sad: {
+    emoji:
+      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f61e.png",
+    title: "Buồn",
+  },
+  angry: {
+    emoji:
+      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f621.png",
+    title: "Tức giận",
+  },
+  worried: {
+    emoji:
+      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f616.png",
+    title: "Lo lắng",
+  },
+  shy: {
+    emoji:
+      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f631.png",
+    title: "Ngại ngùng",
+  },
+  excited: {
+    emoji:
+      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f606.png",
+    title: "Phấn khích",
+  },
+  surprised: {
+    emoji:
+      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f632.png",
+    title: "Ngạc nhiên",
+  },
+  silly: {
+    emoji:
+      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f974.png",
+    title: "Ngớ ngẩn",
+  },
+  embarrassed: {
+    emoji:
+      "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1fae3.png",
+    title: "Xấu hổ",
+  },
+};

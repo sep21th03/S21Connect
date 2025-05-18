@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./page.module.css";
+import Image404 from "../../../../public/assets/images/404.jpg";
 
 const UserNotFound = () => {
   const router = useRouter();
@@ -25,7 +26,7 @@ const UserNotFound = () => {
             <CardBody className={styles.cardBody}>
               <div className={styles.image}>
                 <Image
-                  src="/assets/images/404.png"
+                  src={Image404}
                   alt="404"
                   width={300}
                   height={300}
@@ -33,20 +34,17 @@ const UserNotFound = () => {
                 />
               </div>
               <CardTitle tag="h2" className={styles.cardTitle}>
-                Không tìm thấy người dùng
+                Người dùng không tồn tại
               </CardTitle>
-              <CardText className={styles.cardText}>
-                Người dùng bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.
-              </CardText>
               <div className="d-flex justify-content-center gap-3">
                 <Link href="/" passHref>
-                  <Button color="primary" className={styles.button}>
+                  <Button color="primary" className={styles.button_primary}>
                     Về trang chủ
                   </Button>
                 </Link>
                 <Button
                   color="secondary"
-                  className={styles.button}
+                  className={styles.button_secondary}
                   onClick={() => router.back()}
                 >
                   Quay lại

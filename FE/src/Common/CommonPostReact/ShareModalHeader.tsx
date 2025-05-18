@@ -3,16 +3,21 @@ import {Dropdown,DropdownMenu,DropdownToggle} from "reactstrap";
 import DynamicFeatherIcon from "../DynamicFeatherIcon";
 import { Href, ShareAsPost } from "../../utils/constant";
 
-const ShareModalHeader: FC = () => {
+interface ShareModalHeaderProps {
+  shareOption: string;
+  setShareOption: (option: string) => void;
+}
+
+const ShareModalHeader: FC<ShareModalHeaderProps> = ({ shareOption, setShareOption }) => {
   const [postDropDown, setPostDropDown] = useState(false);
-  const dropDownList = ["share as post","on friend's feed","in a group","share as message",];
+  const dropDownList = ["public","friends","private"];
 
   return (
     <div className="setting-dropdown">
       <Dropdown isOpen={postDropDown} toggle={() => setPostDropDown(!postDropDown)} className="custom-dropdown arrow-none dropdown-sm btn-group">
         <DropdownToggle color="transparent">
           <h5>
-            {ShareAsPost}
+            {shareOption}
             <DynamicFeatherIcon iconName="ChevronDown" className="iw-14" />
           </h5>
         </DropdownToggle>
@@ -20,7 +25,9 @@ const ShareModalHeader: FC = () => {
           <ul>
             {dropDownList.map((data, index) => (
               <li key={index}>
-                <a href={Href}>{data}</a>
+                <a href={Href} onClick={() => {setShareOption(data); setPostDropDown(false);}} className={shareOption === data ? "active" : ""}>
+                  {data}
+                </a>
               </li>
             ))}
           </ul>

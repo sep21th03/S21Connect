@@ -1,19 +1,21 @@
-import { Href, ImagePath, ViewProfile } from "../../utils/constant/index";
+import { Domain, Href, ImagePath, ViewProfile } from "../../utils/constant/index";
 import Link from "next/link";
 import ProfileSetting from "./ProfileSetting";
 import CounterStats from "./CounterStats";
 import Image from "next/image";
 import CustomImage from "../CustomImage";
+import { UserAbout } from "@/utils/interfaces/user";
+import { FC } from "react";
 
-const UserProFile = () => {
+const UserProFile: FC<{ userProfile: UserAbout | null }> = ({ userProfile }) => {
   return (
     <div className="profile-box">
       <ProfileSetting />
       <div className="profile-content">
-        <Link href="/profile/timeline" className="image-section">
+        <Link href={`/profile/timeline/${userProfile?.username}`} className="image-section">
           <div className="profile-img">
             <div className="bg-size blur-up lazyloaded">
-              <CustomImage src={`${ImagePath}/story/8.jpg`} className="img-fluid blur-up bg-img lazyloaded" alt="profile"/>
+              <img width={125} height={125} src={userProfile?.avatar} className="img-fluid bg-img lazyloaded rounded-circle" alt="profile"/>
             </div>
             <span className="stats">
               <Image width={15} height={15} src={`${ImagePath}/icon/verified.png`} className="img-fluid blur-up lazyloaded" alt="verified"/>
@@ -22,14 +24,14 @@ const UserProFile = () => {
         </Link>
         <div className="profile-detail">
           <Link href="/profile">
-            <h2>kelin jasen <span>❤</span></h2>
+            <h2>{userProfile?.first_name} {userProfile?.last_name} <span>❤</span></h2>
           </Link>
-          <h5>kelin.jasen156@gmail.com</h5>
+          <h5>{userProfile?.username}</h5>
           <div className="description">
-            <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+            <p>{userProfile?.bio}</p>
           </div>
-          <CounterStats />
-          <a href={Href} className="btn btn-solid">{ViewProfile}</a>
+          <CounterStats userData={userProfile?.user_data} />
+          <a href={`${Domain}/profile/timeline/${userProfile?.username}`} className="btn btn-solid">{ViewProfile}</a>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect, useState } from "react";
-import { Collapse, Media } from "reactstrap";
+import { Collapse, Media, Spinner } from "reactstrap";
 import { useSession } from "next-auth/react";
 import CustomImage from "@/Common/CustomImage";
 import HoverMessage from "@/Common/HoverMessage";
@@ -10,9 +10,22 @@ import axiosInstance from "@/utils/axiosInstance";
 import { ImagePath } from "@/utils/constant";
 import { OnlineUser, SingleData, commonInterFace } from "@/layout/LayoutTypes";
 import { API_ENDPOINTS } from "@/utils/constant/api";
-import { useSocket } from "@/hooks/useSocket";
+import { User, useSocket } from "@/hooks/useSocket";
+import Image from "next/image";
 
 const MAX_DISPLAY_USERS = 20;
+
+interface Friend {
+  id: string;
+  name: string;
+  avatar?: string;
+  mutual_friends_count: number;
+  username: string;
+  other_user: {
+    id: string;
+    avatar: string;
+  };
+}
 
 const CloseFriends = () => {
   const { data: session } = useSession();
@@ -20,145 +33,92 @@ const CloseFriends = () => {
   const [selectedUser, setSelectedUser] = useState<SingleData | null>(null);
   const [chatBox, setChatBox] = useState(false);
   const mobileSize = useMobileSize();
-  const [listFriends, setListFriends] = useState<any[]>([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [closeFriendsOnline, setCloseFriendsOnline] = useState<OnlineUser[]>([]);
-  const [userOnline, setUserOnline] = useState<any[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
 
-  const handleOnlineUsers = useCallback((users: any) => {
-    setUserOnline(users);
+  useSocket((users: User[]) => {
+    setOnlineUsers(users);
   }, []);
-  
-  const socket = useSocket(handleOnlineUsers);
-  
   const getListFriends = async (userId: string) => {
     setIsLoading(true);
     try {
-      const data = await axiosInstance.get<{ friends: OnlineUser[] }>(
-        API_ENDPOINTS.USERS.BASE + API_ENDPOINTS.USERS.ONLINE_USERS(userId)
+      const response = await axiosInstance.get(
+        API_ENDPOINTS.USERS.BASE +
+          API_ENDPOINTS.USERS.LIST_FRIENDS_LIMIT(userId)
       );
-      setListFriends(data.data);
+
+      const friendsList = Array.isArray(response.data)
+        ? response.data
+        : response.data.friends || [];
+      setFriends(friendsList);
     } catch (error) {
       console.error("Failed to fetch friends:", error);
-      setListFriends([]);
+      setFriends([]);
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Chỉ load danh sách bạn bè khi có session
+
+  const friendsOnline = friends.filter((friend) =>
+    onlineUsers.some((user) => user.id === friend.other_user.id)
+  );
   useEffect(() => {
     if (session?.user?.id) {
       getListFriends(session.user.id);
     }
   }, [session?.user?.id]);
 
-  // Xử lý chỉ lấy bạn bè đang online và giới hạn 20 người
-  useEffect(() => {
-    if (!listFriends.length) {
-      setCloseFriendsOnline([]);
-      return;
-    }
-  
-    // Tạo map để tra cứu nhanh hơn
-    const onlineUsersMap = userOnline.length 
-      ? Object.fromEntries(userOnline.map((user) => [user.id, user]))
-      : {};
-  
-    // Chỉ lấy bạn bè đang online
-    const online: OnlineUser[] = [];
-    
-    listFriends.forEach(friend => {
-      const onlineData = onlineUsersMap[friend.id];
-      
-      if (onlineData) {
-        // Bạn bè đang online
-        online.push({
-          ...friend,
-          status: "online",
-          avatar: onlineData.avatar || friend.avatar,
-          lastActive: onlineData.lastActive || new Date()
-        });
-      }
-    });
-  
-    // Sắp xếp bạn bè online theo thời gian hoạt động gần nhất
-    online.sort((a, b) => {
-      const dateA = a.lastActive ? new Date(a.lastActive).getTime() : 0;
-      const dateB = b.lastActive ? new Date(b.lastActive).getTime() : 0;
-      return dateB - dateA;
-    });
-    
-    // Giới hạn chỉ hiển thị tối đa 20 người
-    setCloseFriendsOnline(online.slice(0, MAX_DISPLAY_USERS));
-  }, [listFriends, userOnline]);
-
-  // Cập nhật thông tin người dùng đang được chọn nếu có thay đổi
-  useEffect(() => {
-    if (selectedUser) {
-      const updatedUser = closeFriendsOnline.find(
-        (friend) => friend.id === selectedUser.id
-      );
-      if (updatedUser) {
-        setSelectedUser({
-          ...selectedUser,
-          ...updatedUser,
-        });
-      }
-    }
-  }, [closeFriendsOnline, selectedUser]);
-
-  const handleOpenChatBox = (user: OnlineUser) => {
-    // Chuyển đổi từ OnlineUser sang SingleData để phù hợp với ChatBoxCommon
+  const handleOpenChatBox = (friend: Friend) => {
     const chatUser: SingleData = {
-      ...user,
-      image: user.avatar || 'default',
+      id: friend.id,
+      name: friend.name,
+      image: friend.avatar || `${ImagePath}/user-sm/1.jpg`,
+      username: friend.username,
     };
-    
+
     setSelectedUser(chatUser);
     setChatBox(true);
   };
-
-  const renderFriendItem = (friend: OnlineUser, index: number) => (
-    <li
-      key={friend.id || index}
-      className={`friend-box user${index + 1}`}
-    >
+  const renderFriendItem = (friend: Friend, index: number) => (
+    <li key={friend.id || index} className={`friend-box user${index + 1}`}>
       <Media onClick={() => handleOpenChatBox(friend)}>
         <a
           className="popover-cls user-img bg-size blur-up lazyloaded"
           id={`friend-${friend.id || index}`}
         >
-          <CustomImage
+          <Image
             src={
-              friend.avatar
-                ? `${ImagePath}/user-sm/${friend.avatar}.jpg`
-                : `${ImagePath}/user-sm/default.jpg`
+              friend.other_user.avatar
+                ? friend.other_user.avatar
+                : `${ImagePath}/user-sm/1.jpg`
             }
-            className="img-fluid blur-up lazyload bg-img"
+            className="img-fluid lazyload bg-img rounded-circle"
             alt="user"
+            height={50}
+            width={50}
           />
           <span className="available-stats online" />
         </a>
         <Media body>
-          <h5 className="user-name">
-            {friend.name}
-          </h5>
+          <h5 className="user-name">{friend.name}</h5>
           <h6 className="mutual-count">
             {friend.mutual_friends_count} bạn chung
           </h6>
         </Media>
       </Media>
-      <HoverMessage
+      {/* <HoverMessage
         placement={mobileSize ? "right" : "top"}
         target={`friend-${friend.id || index}`}
         data={friend}
         imagePath={
           friend.avatar
-            ? `user-sm/${friend.avatar}.jpg`
-            : "user-sm/default.jpg"
+            ? friend.avatar
+            : `${ImagePath}/user-sm/1.jpg`
         }
-      />
+        onMessageClick={() => {handleOpenChatBox(friend)}}
+        onFriendRequestClick={() => {}}
+      /> */}
     </li>
   );
 
@@ -167,27 +127,28 @@ const CloseFriends = () => {
       <CommonHeader
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        heading={`Online Friends (${closeFriendsOnline.length})`}
+        heading={`Friends (${friends.length})`}
       />
-     
+
       <Collapse isOpen={isOpen} className="friend-list">
         {isLoading ? (
-          <div className="text-center py-3">Loading friends...</div>
-        ) : closeFriendsOnline.length === 0 ? (
-          <div className="text-center py-3">No friends online</div>
+          <div className="d-flex justify-content-center align-items-center p-3">
+            <Spinner />
+          </div>
+        ) : friendsOnline.length === 0 ? (
+          <div className="text-center py-3">Không có bạn bè đang online</div>
         ) : (
           <div className="online-friends">
             <ul>
-              {closeFriendsOnline.map((friend, index) => renderFriendItem(friend, index))}
+              {friendsOnline.map((friend, index) =>
+                renderFriendItem(friend, index)
+              )}
             </ul>
           </div>
         )}
 
         {chatBox && selectedUser && (
-          <ChatBoxCommon
-            setChatBox={setChatBox}
-            data={selectedUser}
-          />
+          <ChatBoxCommon setChatBox={setChatBox} data={selectedUser} />
         )}
       </Collapse>
     </div>

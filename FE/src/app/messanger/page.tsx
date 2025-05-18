@@ -1,18 +1,13 @@
 "use client";
 import MessengerSection from "@/components/Messenger";
-import CommonLayoutHeader from "@/layout/CommonLayout/CommonLayoutHeader";
-import ThemeCustomizer from "@/layout/CommonLayout/ThemeCustomizer";
+// import MessengerLayout from "@/layout/MessengerLayout";
 import { FC } from "react";
-import LoadingLoader from "@/layout/LoadingLoader";
 
 const Messenger: FC = () => {
   return (
-    <>
-      <LoadingLoader />
-      <CommonLayoutHeader headerClassName="d-none d-sm-block" />
+    // <MessengerLayout>
       <MessengerSection />
-      <ThemeCustomizer />
-    </>
+    // </MessengerLayout>
   );
 };
 

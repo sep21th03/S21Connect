@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 
 class Messenger extends Model
 {
@@ -21,6 +22,7 @@ class Messenger extends Model
         'file_paths',
         'is_read',
         'read_at',
+        'conversation_id',
     ];
 
     protected $casts = [
@@ -44,5 +46,29 @@ class Messenger extends Model
     public function group()
     {
         return $this->belongsTo(ChatGroup::class, 'group_id');
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($message) {
+            $message->id = Str::uuid();
+        });
+    }
+        
+    public function getFilesAttribute()
+    {
+        if (empty($this->file_paths)) {
+            return [];
+        }
+        
+        return json_decode($this->file_paths, true);
+    }
+
+    /**
+     * Get URL for accessing this specific message
+     */
+    public function getUrl()
+    {
+        return url("/chat/{$this->conversation_id}?message={$this->id}");
     }
 }

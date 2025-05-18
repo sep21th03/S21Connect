@@ -5,6 +5,10 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Friendship;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Conversation;
+use App\Models\Post;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class UserService
 {
@@ -82,112 +86,91 @@ class UserService
             })
             ->toArray();
 
-        return User::whereIn('id', $listFriend)->get();
+        return User::whereIn('id', $listFriend)->take(20)->get();
     }
 
     public function getListFriendLimit($userId, $limit = 20)
     {
-        $userFriendIds = Friendship::where('status', 'accepted')
+        $friendIds = Friendship::where('status', 'accepted')
             ->where(function ($q) use ($userId) {
                 $q->where('user_id', $userId)
                     ->orWhere('friend_id', $userId);
             })
-            ->pluck('user_id', 'friend_id')
-            ->flatMap(function ($item, $key) use ($userId) {
-                return [$item, $key];
+            ->get()
+            ->map(function ($f) use ($userId) {
+                return $f->user_id === $userId ? $f->friend_id : $f->user_id;
             })
-            ->filter(fn($id) => $id != $userId)
             ->unique()
             ->values()
             ->toArray();
 
-        $friends = User::select('id', 'first_name', 'last_name', 'avatar')
-            ->whereIn('id', $userFriendIds)
+        $friends = User::whereIn('id', $friendIds)
+            ->select('id', 'first_name', 'last_name', 'avatar', 'username')
             ->limit($limit)
             ->get();
 
-        $friendIds = $friends->pluck('id')->toArray();
-        $allFriendships = Friendship::where('status', 'accepted')
+        $userFriendIds = $friendIds;
+
+        $friendFriendships = Friendship::where('status', 'accepted')
             ->where(function ($q) use ($friendIds) {
                 $q->whereIn('user_id', $friendIds)
                     ->orWhereIn('friend_id', $friendIds);
             })
-            ->get();
+            ->get(['user_id', 'friend_id']);
 
         $friendFriendMap = [];
-        foreach ($friendIds as $fid) {
-            $friendFriendMap[$fid] = [];
+        foreach ($friendIds as $id) {
+            $friendFriendMap[$id] = [];
         }
-        foreach ($allFriendships as $fs) {
-            $friend_id_1 = $fs->user_id;
-            $friend_id_2 = $fs->friend_id;
-            if (in_array($friend_id_1, $friendIds)) {
-                $friendFriendMap[$friend_id_1][] = $friend_id_2;
+
+        foreach ($friendFriendships as $f) {
+            if (in_array($f->user_id, $friendIds)) {
+                $friendFriendMap[$f->user_id][] = $f->friend_id;
             }
-            if (in_array($friend_id_2, $friendIds)) {
-                $friendFriendMap[$friend_id_2][] = $friend_id_1;
+            if (in_array($f->friend_id, $friendIds)) {
+                $friendFriendMap[$f->friend_id][] = $f->user_id;
             }
         }
 
         return $friends->map(function ($friend) use ($userFriendIds, $friendFriendMap) {
             $friendFriends = $friendFriendMap[$friend->id] ?? [];
             $mutualCount = count(array_intersect($userFriendIds, $friendFriends));
+            $conversationId = $this->getConversationFriends($friend->id);
 
             return [
-                'id' => $friend->id,
-                'name' => "{$friend->first_name} {$friend->last_name}",
-                'avatar' => $friend->avatar ?? null,
+                'id' => $conversationId,
                 'mutual_friends_count' => $mutualCount,
+                'other_user' => [
+                    'id' => $friend->id,
+                    'name' => "{$friend->first_name} {$friend->last_name}",
+                    'avatar' => $friend->avatar,
+                    'username' => $friend->username,
+                ],
             ];
         });
     }
 
 
-
-    public function getFriendsWithMutualCount($viewerId)
+    public function getConversationFriends($userId)
     {
-        // Lấy mảng ID bạn bè của viewer
-        $viewerFriendIds = Friendship::where('status', 'accepted')
-            ->where(function ($q) use ($viewerId) {
-                $q->where('user_id', $viewerId)
-                    ->orWhere('friend_id', $viewerId);
+        $userId1 = Auth::user()->id;
+        $userId2 = $userId;
+        $conversation = Conversation::where('type', 'private')
+            ->whereHas('users', function ($q) use ($userId1, $userId2) {
+                $q->whereIn('user_id', [$userId1, $userId2]);
+            }, '=', 2)
+            ->whereHas('users', function ($q) use ($userId1) {
+                $q->where('user_id', $userId1);
             })
-            ->get()
-            ->map(fn($f) => $f->user_id === $viewerId ? $f->friend_id : $f->user_id)
-            ->toArray();
+            ->whereHas('users', function ($q) use ($userId2) {
+                $q->where('user_id', $userId2);
+            })
+            ->first();
 
-        // Lấy tất cả dữ liệu user bạn bè
-        $friends = User::select('id', 'first_name', 'last_name')
-            ->whereIn('id', $viewerFriendIds)
-            ->get();
-
-        // Với mỗi friend, tính số mutual friends
-        $result = $friends->map(function ($friend) use ($viewerFriendIds, $viewerId) {
-            // Lấy mảng ID bạn bè của friend
-            $friendFriendIds = Friendship::where('status', 'accepted')
-                ->where(function ($q) use ($friend) {
-                    $q->where('user_id', $friend->id)
-                        ->orWhere('friend_id', $friend->id);
-                })
-                ->get()
-                ->map(fn($f) => $f->user_id === $friend->id ? $f->friend_id : $f->user_id)
-                ->toArray();
-
-            // Tính giao của hai mảng bạn bè để lấy mutual friends
-            // Chỉ tính các bạn bè chung một chiều (không tính ngược lại)
-            $mutualCount = count(array_intersect($viewerFriendIds, $friendFriendIds));
-
-            return [
-                'id' => $friend->id,
-                'name' => "{$friend->first_name} {$friend->last_name}",
-                'mutual_friends_count' => $mutualCount,
-                'avatar' => $friend->avatar ?? null,
-                'status' => 'offline'
-            ];
-        });
-
-        return $result;
+        return $conversation?->id;
     }
+
+
 
     public function updateLastActive($data)
     {
@@ -199,5 +182,92 @@ class UserService
             $user->save();
         }
         return $user;
+    }
+
+    public function getUserStats(string $userId): array
+    {
+          $start = microtime(true);
+        return Cache::remember("user_stats_{$userId}", 60, function () use ($userId) {
+            $totalPosts = Post::where('user_id', $userId)->count();
+
+            $totalFriends = Friendship::where('status', 'accepted')
+                ->where(function ($query) use ($userId) {
+                    $query->where('user_id', $userId)
+                        ->orWhere('friend_id', $userId);
+                })
+                ->count();
+
+            return [
+                'total_posts' => $totalPosts,
+                'total_friends' => $totalFriends,
+            ];
+        });
+    }
+
+    public function suggestFriends()
+    {
+        $userId = Auth::user()->id;
+        $friendIds = DB::table('friendships')
+            ->where('user_id', $userId)
+            ->where('status', 'accepted')
+            ->pluck('friend_id')
+            ->toArray();
+
+        $mutuals = DB::table('friendships as f1')
+            ->join('friendships as f2', 'f1.friend_id', '=', 'f2.friend_id')
+            ->join('users', 'users.id', '=', 'f2.user_id')
+            ->where('f1.user_id', $userId)
+            ->where('f2.user_id', '!=', $userId)
+            ->where('f2.status', 'accepted')
+            ->whereNotIn('f2.user_id', $friendIds)
+            ->whereNotIn('f2.user_id', [$userId])
+            ->select('users.id', 'users.first_name', 'users.last_name', 'users.avatar', DB::raw('COUNT(*) as mutual_count'))
+            ->groupBy('users.id', 'users.first_name', 'users.last_name', 'users.avatar')
+            ->get();
+
+        $latestIp = DB::table('login_logs')
+            ->where('user_id', $userId)
+            ->orderByDesc('created_at')
+            ->value('ip_address');
+
+        $sameIpUsers = collect();
+        if ($latestIp) {
+            $sameIpUsers = DB::table('login_logs')
+                ->join('users', 'users.id', '=', 'login_logs.user_id')
+                ->where('login_logs.ip_address', $latestIp)
+                ->where('users.id', '!=', $userId)
+                ->whereNotIn('users.id', $friendIds)
+                ->select('users.id', 'users.first_name', 'users.last_name', 'users.avatar')
+                ->distinct()
+                ->get();
+        }
+
+        $profile = DB::table('user_profiles')->where('user_id', $userId)->first();
+
+        $similarProfiles = collect();
+        if ($profile) {
+            $similarProfiles = DB::table('user_profiles')
+                ->join('users', 'users.id', '=', 'user_profiles.user_id')
+                ->where('user_profiles.user_id', '!=', $userId)
+                ->where(function ($query) use ($profile) {
+                    $query->orWhere('user_profiles.location', $profile->location)
+                        ->orWhere('user_profiles.current_school', $profile->current_school)
+                        ->orWhere('user_profiles.past_school', $profile->past_school)
+                        ->orWhere('user_profiles.workplace', $profile->workplace);
+                })
+                ->whereNotIn('users.id', $friendIds)
+                ->select('users.id', 'users.first_name', 'users.last_name', 'users.avatar')
+                ->distinct()
+                ->get();
+        }
+
+        $allSuggestions = collect()
+            ->merge($mutuals)
+            ->merge($sameIpUsers)
+            ->merge($similarProfiles)
+            ->unique('id')
+            ->values();
+
+        return response()->json($allSuggestions);
     }
 }

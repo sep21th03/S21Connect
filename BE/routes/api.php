@@ -14,7 +14,17 @@ use App\Http\Controllers\Post\ProfilePostController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Messenger\MessengerController;
 use App\Http\Controllers\Messenger\ChatGroupController;
+use App\Http\Controllers\Messenger\ConversationController;
 use App\Http\Controllers\Image\ImageController;
+use App\Http\Controllers\MyController\MyFunction;
+use App\Http\Controllers\Notification\NotificationController;
+use App\Http\Controllers\Pay\PaymentController;
+use App\Http\Controllers\Pay\BillController;
+use App\Http\Controllers\Pay\UserBillController;
+use App\Http\Controllers\Report\ReportController;
+use App\Http\Controllers\Admin\AdminStatsController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +36,18 @@ use App\Http\Controllers\Image\ImageController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+//cổng thông tin
+Route::post('/get-info-bill', [BillController::class, 'get_info']);
+Route::post('/check-bill', [BillController::class, 'check']);
+Route::post('/check-id', [BillController::class, 'check_id'])->middleware('throttle');
+// Route::post('/lixi/check', [LixiController::class, 'check']);
+// Route::post('/lixi/get-info', [LixiController::class, 'get_info']);
+Route::get('/cancel-payment', [PaymentController::class, 'cancel_payment']);
+Route::post('/create-url', [PaymentController::class, 'create_url']);
+Route::get('/process-payment', [PaymentController::class, 'processing_payment']);
+Route::post('/get_notification', [PaymentController::class, 'get_notification']);
+Route::post('/payos/webhook', [PaymentController::class, 'webhook_payos']);
+
 //auth
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -44,7 +66,15 @@ Route::prefix('auth')->group(function () {
     Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
 });
 
-Route::middleware(['auth:api'])->group(function () {
+Route::prefix('admin')->middleware(['auth:api', 'admin'])->group(function () {
+    Route::get('/get-stats', [AdminStatsController::class, 'getStats']);
+    Route::get('/get-report-post', [ReportController::class, 'getReportPost']);
+    Route::get('/get-report-user', [ReportController::class, 'getReportUser']);
+    Route::get('/get-report-all', [ReportController::class, 'getReportAll']);
+    Route::get('/users', [AdminStatsController::class, 'manageUser']);
+});
+
+Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
     });
@@ -55,29 +85,31 @@ Route::middleware(['auth:api'])->group(function () {
 
     //post
     Route::prefix('posts')->group(function () {
-        // 📌 Post resource
-        Route::apiResource('/', PostController::class)->parameters(['' => 'post']);
+        Route::post('/', [PostController::class, 'store']);
+        Route::get('/public_post', [PostController::class, 'public_post']);
+        Route::get('/my_post', [PostController::class, 'getMyPost']);
+        Route::get('/get_friend', [PostController::class, 'getFriendPost']);
+        Route::post('/edit', [PostController::class, 'editPost']);
+        Route::post('/{id}', [PostController::class, 'destroy']);
+        Route::get('/newsfeed', [PostController::class, 'getNewsFeed']);
 
-        // 🔧 Toggle options
         Route::post('/{id}/toggle-comments', [PostController::class, 'toggleComments']);
         Route::post('/{id}/reactions', [PostController::class, 'toggleReactions']);
 
-        // 💬 Comments on a post
-        Route::prefix('{postId}/comments')->group(function () {
-            Route::post('/', [CommentController::class, 'store']);      // POST /posts/{postId}/comments
-            Route::delete('/{id}', [CommentController::class, 'destroy']); // DELETE /posts/{postId}/comments/{id}
+        Route::prefix('/comments')->group(function () {
+            Route::post('/add', [CommentController::class, 'store']);
+            Route::get('/{postId}', [CommentController::class, 'getCommentsByPostId']);
+            Route::delete('/{id}', [CommentController::class, 'destroy']);
         });
 
-        // 😊 Reactions on a post
         Route::prefix('{postId}/reactions')->group(function () {
-            Route::post('/', [ReactionController::class, 'store']);       // POST /posts/{postId}/reactions
-            Route::delete('/{id}', [ReactionController::class, 'destroy']); // DELETE /posts/{postId}/reactions/{id}
+            Route::post('/toggle', [ReactionController::class, 'toggleReaction']);
+            Route::get('/get', [ReactionController::class, 'getPostReactions']);
         });
 
-        // 🔁 Shares of a post
-        Route::prefix('{postId}/shares')->group(function () {
-            Route::post('/', [ShareController::class, 'store']);        // POST /posts/{postId}/shares
-            Route::get('/', [ShareController::class, 'getShares']);     // GET  /posts/{postId}/shares
+        Route::prefix('/shares')->group(function () {
+            Route::post('/post', [ShareController::class, 'share']);
+            Route::get('/{postId}', [ShareController::class, 'getSharesByPost']);
         });
     });
 
@@ -88,6 +120,9 @@ Route::middleware(['auth:api'])->group(function () {
         Route::delete('/cancel/{id}', [FriendController::class, 'cancelRequest']);
         Route::delete('/remove/{id}', [FriendController::class, 'unfriend']);
         Route::get('/status/{friendId}', [FriendController::class, 'checkStatus']);
+        Route::get('/birthday', [FriendController::class, 'upcomingBirthdays']);
+        Route::get('/requests', [FriendController::class, 'getListRequestFriends']);
+        Route::get('/count_new_requests', [FriendController::class, 'countNewFriendRequests']);
     });
 
 
@@ -107,6 +142,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::post('/about/info', [ProfileController::class, 'updateProfileAbout']);
         Route::get('/user/data/{id}', [FriendController::class, 'getFriendStats']);
         Route::post('/user/avatar', [ProfileController::class, 'updateAvatar']);
+        Route::get('/user/about', [ProfileController::class, 'getMeProfileAbout']);
     });
 
     //hovercard
@@ -115,18 +151,34 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('{userId}/hovercard', [UserController::class, 'hoverCardData']);
         Route::get('{userId}/list_friends', [UserController::class, 'getListFriend']);
         Route::get('{userId}/list_friends_limit', [UserController::class, 'getListFriendLimit']);
-        Route::get('{userId}/friends', [UserController::class, 'getFriendsWithMutualCount']);
         Route::post('/update-last-active', [UserController::class, 'updateLastActive']);
+        Route::get('/get_stats', [UserController::class, 'getStats']);
+        Route::get('/suggest_friends', [UserController::class, 'suggestFriends']);
     });
 
     //messenger
     Route::prefix('messages')->group(function () {
         Route::post('/send', [MessengerController::class, 'send']);
-        Route::post('/mark-as-read', [MessengerController::class, 'markAsRead']);
-        Route::get('/conversation', [MessengerController::class, 'getConversation']);
+        Route::post('/read', [MessengerController::class, 'markAsRead']);
+        Route::get('/conversation/{conversationId}', [MessengerController::class, 'getMessages']);
         Route::get('/recent-conversations', [MessengerController::class, 'getRecentConversations']);
+        Route::get('/{id}', [MessengerController::class, 'getMessage']);
+        Route::delete('/{id}', [MessengerController::class, 'delete']);
+        Route::post('/upload', [MessengerController::class, 'uploadFiles']);
+        Route::get('/search/{conversationId}', [MessengerController::class, 'search']);
     });
 
+    Route::prefix('conversations')->group(function () {
+        Route::get('/', [ConversationController::class, 'index']);
+        Route::post('/', [ConversationController::class, 'create']);
+        Route::get('/{id}', [ConversationController::class, 'show']);
+        Route::put('/{id}', [ConversationController::class, 'update']);
+        Route::post('/{id}/users', [ConversationController::class, 'addUsers']);
+        Route::delete('/{id}/users/{userId}', [ConversationController::class, 'removeUser']);
+        Route::put('/{id}/users/{userId}/nickname', [ConversationController::class, 'updateNickname']);
+        Route::delete('/{id}/leave', [ConversationController::class, 'leave']);
+        Route::get('/{id}/media', [ConversationController::class, 'getMedia']);
+    });
     //image
     Route::prefix('images')->group(function () {
         Route::post('/upload', [ImageController::class, 'store']);
@@ -135,34 +187,28 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/', [ImageController::class, 'index']);
     });
 
-
-    Route::prefix('chat-groups')->group(function () {
-        Route::post('/', [ChatGroupController::class, 'create']);
-
-        // Lấy thông tin nhóm
-        Route::get('/{id}', [ChatGroupController::class, 'show']);
-
-        // Cập nhật thông tin nhóm
-        Route::put('/{id}', [ChatGroupController::class, 'update']);
-
-        // Thêm thành viên vào nhóm
-        Route::post('/{id}/add-members', [ChatGroupController::class, 'addMembers']);
-
-        // Xoá thành viên khỏi nhóm
-        Route::post('/{id}/remove-members', [ChatGroupController::class, 'removeMembers']);
-
-        // Rời nhóm
-        Route::post('/{id}/leave', [ChatGroupController::class, 'leaveGroup']);
-
-        // Chuyển quyền chủ nhóm
-        Route::post('/{id}/transfer-ownership', [ChatGroupController::class, 'transferOwnership']);
-
-        // Xoá nhóm
-        Route::delete('/{id}', [ChatGroupController::class, 'delete']);
-
-        // Lấy danh sách nhóm của người dùng
-        Route::get('/', [ChatGroupController::class, 'getUserGroups']);
+    //notifications
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'getNotifications']);
+        Route::post('/read/{id}', [NotificationController::class, 'markAsRead']);
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::delete('/{id}', [NotificationController::class, 'deleteNotification']);
     });
-    // Route::get('/profile/{id}', [Controller::class, 'getProfile'])->middleware('check.blocked');
-    // Route::get('/messages/{id}', [Controller::class, 'getMessages'])->middleware('check.blocked');
+
+    Route::prefix('chat-groups')->group(function () {});
+
+    //Cổng thanh toán
+    Route::prefix('pay')->group(function () {
+        Route::post('/create-bill', [BillController::class, 'create_bill']);
+        Route::get('/get-bill', [UserBillController::class, 'get_bill']);
+        Route::get('/get-history', [UserBillController::class, 'get_history']);
+        Route::post('/create_api_bill', [PaymentController::class, 'create_api_bill']);
+        Route::get('/get_info', [UserBillController::class, 'get_info']);
+    });
+
+    //report
+    Route::prefix('report')->group(function () {
+        Route::post('/{type}/{id}', [ReportController::class, 'report']);
+        Route::get('/get-reasons/{type}', [ReportController::class, 'getReasons']);
+    });
 });

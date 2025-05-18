@@ -14,10 +14,16 @@ class CommentController extends Controller
         $this->commentService = $commentService;
     }
 
+    public function getCommentsByPostId(string $post_id)
+    {
+        $comments = $this->commentService->getCommentsByPostId($post_id);
+        return response()->json($comments);
+    }
+
     public function store(StoreCommentRequest $request)
     {
-        $this->commentService->store($request->validated());
-        return response()->json(['message' => 'Bình luận thành công!']);
+        $comment = $this->commentService->store($request->validated());
+        return response()->json(['message' => 'Bình luận thành công!', 'data' => $comment]);
     }
 
     public function update(StoreCommentRequest $request, string $id)

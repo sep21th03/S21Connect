@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
-            $table->enum('type', ['like', 'love', 'haha', 'wow', 'sad', 'angry']);
+            $table->enum('type', ['smile','love','cry','wow','angry','haha']);
             $table->timestamps();
         });
     }

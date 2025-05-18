@@ -2,7 +2,7 @@ import { first } from 'lodash';
 // types/user.ts
 
 export interface User {
-    id: number;
+    id: string;
     username: string;
     first_name: string;
     last_name: string;
@@ -66,3 +66,32 @@ export interface User {
   | 'separated'
   | 'divorced'
   | 'widowed';
+
+  export interface UserAbout {
+    id: string;
+    first_name: string;
+    last_name: string;
+    username: string;
+    bio: string;
+    user_data: {
+      followers: number;
+      following: number;
+      friends: number;
+    }
+  }
+
+  export interface UserInforBirthday {
+    id: string;
+    first_name: string;
+    last_name: string;
+    username: string;
+    birthday: string;
+    avatar: string;
+    location: string;
+    gender: string;
+  }
+
+  export interface UserStats {
+    total_posts: number | null;
+    total_friends: number | null;
+  }

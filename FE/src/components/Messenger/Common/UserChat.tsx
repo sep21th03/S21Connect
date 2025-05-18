@@ -6,18 +6,33 @@ import { Media } from "reactstrap";
 import { ImagePath } from "../../../utils/constant";
 import { Href } from "../../../utils/constant/index";
 import ChatHistory from "./ChatHistory";
-import { formatTime } from "@/utils/formatTime";
-
+import Image from "next/image";
+import { useRef } from "react";
+import { useSocket } from "@/hooks/useSocket";
 const UserChat: FC<UserChatInterFace> = ({
   user,
   setUserList,
   setActiveTab,
   onlineUsers,
+  initialConversationId,
 }) => {
   const [lastActive, setLastActive] = useState<string>("");
+  const [peerConnection, setPeerConnection] =
+    useState<RTCPeerConnection | null>(null);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+
+  const {
+    socket,
+    incomingCall,
+    answerCall,
+    rejectCall,
+    endCall,
+    onCallRejected,
+  } = useSocket((users) => console.log(users), (conversationId) => console.log(conversationId));
   useEffect(() => {
-    if (user?.last_active) {
-      const lastActiveDate = new Date(user.last_active);
+    if (user?.other_user.last_active) {
+      const lastActiveDate = new Date(user.other_user.last_active);
       const now = new Date();
       const diffInMinutes = Math.floor(
         (now.getTime() - lastActiveDate.getTime()) / (1000 * 60)
@@ -31,8 +46,7 @@ const UserChat: FC<UserChatInterFace> = ({
         setLastActive(`${Math.floor(diffInMinutes / 1440)}d ago`);
       }
     }
-  }, [user?.last_active]);
-
+  }, [user?.other_user.last_active]);
   return (
     <div className="user-chat">
       <div className="user-title">
@@ -45,22 +59,28 @@ const UserChat: FC<UserChatInterFace> = ({
         <Media className="list-media">
           <div className="story-img">
             <div className="user-img bg-size blur-up lazyloaded">
-              <CustomImage
-                src={user ? `${ImagePath}/user/${user.id}.jpg` : ""}
-                className="img-fluid blur-up lazyload bg-img"
+              <Image
+                src={
+                  user
+                    ? user.other_user?.avatar || `${ImagePath}/icon/user.png`
+                    : ""
+                }
+                className="img-fluid lazyload bg-img rounded-circle"
                 alt="user"
+                width={120}
+                height={120}
               />
             </div>
           </div>
           <Media body>
-            <h5>{user?.name}</h5>
+            <h5>{user?.other_user.name}</h5>
             <h6>
-              {onlineUsers.includes(user?.id || "") ? (
+              {onlineUsers.includes(user?.other_user.id || "") ? (
                 <span className="status online">
                   <span className="status-dot"></span> online
                 </span>
               ) : (
-                `last seen ${lastActive}`
+                `Hoạt động lần cuối ${lastActive}`
               )}
             </h6>
           </Media>
@@ -93,6 +113,7 @@ const UserChat: FC<UserChatInterFace> = ({
       <ChatHistory
         user={user}
         setUserList={setUserList}
+        initialConversationId={initialConversationId}
       />
     </div>
   );

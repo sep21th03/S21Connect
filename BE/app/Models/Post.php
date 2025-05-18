@@ -10,26 +10,34 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'post_id', 'content', 'images', 'videos', 'visibility', 'is_comment_disabled'];
+    protected $fillable = ['user_id', 'post_id', 'content', 'images', 'videos', 'visibility', 'is_comment_disabled', 'feeling', 'checkin', 'bg_id', 'type'];
 
     protected $casts = [
         'images' => 'array',
-        'videos' => 'array', 
+        'videos' => 'array',
     ];
+
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    protected static function boot() {
+    public function taggedFriends()
+    {
+        return $this->belongsToMany(User::class, 'post_user_tags');
+    }
+
+    protected static function boot()
+    {
         parent::boot();
         static::creating(function ($post) {
             $post->post_id = self::generateUniquePostId();
         });
     }
 
-    public static function generateUniquePostId() {
+    public static function generateUniquePostId()
+    {
         do {
             $uniqueId = 'pfbid' . Str::random(40);
         } while (self::where('post_id', $uniqueId)->exists());
@@ -37,30 +45,38 @@ class Post extends Model
         return $uniqueId;
     }
 
-    public function getRouteKeyName() {
+    public function getRouteKeyName()
+    {
         return 'post_id';
     }
 
-    public function comments() {
+    public function comments()
+    {
         return $this->hasMany(Comment::class);
     }
 
-    public function reactions() {
+    public function reactions()
+    {
         return $this->hasMany(Reaction::class);
     }
 
-    public function shares() {
+    public function shares()
+    {
         return $this->hasMany(Share::class);
     }
 
-    public function reactionSummary() {
-        return $this->reactions()
-            ->selectRaw('type, COUNT(*) as count')
-            ->groupBy('type')
-            ->pluck('count', 'type');
-    }
-    
-    public function shareSummary() {
+    public function shareSummary()
+    {
         return $this->shares()->count();
+    }
+
+    public function getReactionCountByType($type)
+    {
+        return $this->reactions()->where('type', $type)->count();
+    }
+
+    public function getTotalReactionCount()
+    {
+        return $this->reactions()->count();
     }
 }

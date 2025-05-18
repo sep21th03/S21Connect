@@ -13,7 +13,7 @@ import { API_ENDPOINTS } from "@/utils/constant/api";
 import { useSession } from "next-auth/react";
 
 const ProfileLayout: FC<ProfileLayoutInterFace> = ({ children, title,profileTab,loaderName }) => {
-
+  const [friendshipStatus, setFriendshipStatus] = useState("none"); 
   const { data: session } = useSession();
   const params = useParams();
   const username = params.username as string;
@@ -31,7 +31,7 @@ const ProfileLayout: FC<ProfileLayoutInterFace> = ({ children, title,profileTab,
   return (
     <CommonLayout mainClass="custom-padding profile-page" loaderName={loaderName}>
       <div className="page-center">
-        <UserProfile toggle={toggle} userProfile={userProfile} isOwnProfile={isOwnProfile} />
+        <UserProfile toggle={toggle} userProfile={userProfile} isOwnProfile={isOwnProfile}  setFriendshipStatus={setFriendshipStatus} friendshipStatus={friendshipStatus}/>
         <UserProfileBox toggle={toggle} userProfile={userProfile} isOwnProfile={isOwnProfile} />
         {!profileTab && <ProfileMenu title={title?title:""} username={username}/>}
         {children}

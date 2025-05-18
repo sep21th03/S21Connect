@@ -43,6 +43,31 @@ class ProfileController extends Controller
         }
     }
 
+    public function getMeProfileAbout(): JsonResponse
+    {
+        try {
+            $userId = Auth::id();
+            $profile = $this->profileService->getProfileAbout($userId);
+
+            if (!$profile) {
+                return response()->json([
+                    'message' => 'Hồ sơ không tồn tại',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Lấy hồ sơ thành công',
+                'data' => $profile
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi lấy hồ sơ',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function updateMeProfile(Request $request): JsonResponse
     {
         try {

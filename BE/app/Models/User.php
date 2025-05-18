@@ -38,6 +38,9 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'avatar',
         'cover_photo',
         'last_active',
+        'vnd',
+        'secret_code',
+        'status',
     ];
 
     /**
@@ -91,19 +94,77 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         $this->notify(new CustomVerifyEmail());
     }
-
     // Relationships
+    public function reportsReceived()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+    public function conversations()
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_user')
+            ->withPivot('nickname', 'last_read_at')
+            ->withTimestamps();
+    }
 
-
-    public function messagesSent()
+    public function sentMessages()
     {
         return $this->hasMany(Messenger::class, 'sender_id');
     }
 
-    public function messagesReceived()
+    public function receivedMessages()
     {
         return $this->hasMany(Messenger::class, 'receiver_id');
     }
+
+    public function avatar()
+    {
+        return $this->hasOne(Image::class)->where('type', 'avatar');
+    }
+
+    public function startConversationWith(User $otherUser)
+    {
+        return Conversation::createPrivateConversation($this, $otherUser);
+    }
+
+    public function getDisplayNameInConversation(Conversation $conversation)
+    {
+        $pivot = $conversation->users()
+            ->where('user_id', $this->id)
+            ->first()
+            ->pivot;
+
+        return $pivot->nickname ?? $this->name;
+    }
+
+    public function markConversationAsRead(Conversation $conversation)
+    {
+        $this->conversations()->updateExistingPivot(
+            $conversation->id,
+            ['last_read_at' => now()]
+        );
+    }
+
+    public function acceptedFriendships()
+    {
+        return Friendship::where('status', 'accepted')
+            ->where(function ($q) {
+                $q->where('user_id', $this->id)
+                    ->orWhere('friend_id', $this->id);
+            });
+    }
+    // public function messagesSent()
+    // {
+    //     return $this->hasMany(Messenger::class, 'sender_id');
+    // }
+
+    // public function messagesReceived()
+    // {
+    //     return $this->hasMany(Messenger::class, 'receiver_id');
+    // }
 
     public function groups()
     {
@@ -118,6 +179,11 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function posts()
     {
         return $this->hasMany(Post::class);
+    }
+
+    public function taggedInPosts()
+    {
+        return $this->belongsToMany(Post::class, 'post_user_tags');
     }
 
     public function comments()
