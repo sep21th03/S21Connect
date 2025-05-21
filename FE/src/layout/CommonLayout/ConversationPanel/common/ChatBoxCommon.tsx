@@ -25,6 +25,9 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  // Thêm state mới để theo dõi tin nhắn đang gửi
+  const [pendingMessages, setPendingMessages] = useState<{ id: string; content: string; type: string; tempUrl?: string }[]>([]);
+  
   const {
     socket,
     sendMessage,
@@ -45,12 +48,12 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
   
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, pendingMessages]);
   
   useEffect(() => {
     if (!data) return;
   
-    const userId = data.other_user.id ;
+    const userId = data.other_user.id;
     const conversationId = data.id;
   
     const fetchMessages = async () => {
@@ -79,6 +82,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
     }
   
     const cleanup = onNewMessage((message) => {
+      console.log("message", message);
       if (
         (message.sender_id === userId || message.sender_id === session?.user?.id) &&
         message.conversation_id === data.id
@@ -86,6 +90,13 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
         setMessages((prevMessages) => {
           const alreadyExists = prevMessages.some((msg) => msg.id === message.id);
           if (alreadyExists) return prevMessages;
+          
+          if (message.client_temp_id) {
+            setPendingMessages((prev) =>
+              prev.filter((msg) => msg.id !== message.client_temp_id)
+            );
+            setIsUploading(false);
+          }
           return [...prevMessages, message];
         });
         
@@ -97,13 +108,24 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
     
     const uploadStatusCleanup = onImageUploadStatus(
       (status: { status: string; url?: string; message?: string }) => {
-        if (status.status === "success") {
-          console.log("Image uploaded successfully:", status.url);
+        if (status.status === "success" && status.url) {
           setIsUploading(false);
+          
+          // Cập nhật URL của ảnh đang trong trạng thái chờ
+          setPendingMessages(prev => prev.map(msg => {
+            if (msg.type === "image" && msg.tempUrl) {
+              return { ...msg, content: status.url || "" };
+            }
+            return msg;
+          }));
         } else if (status.status === "error") {
           console.error("Image upload failed:", status.message);
           setIsUploading(false);
-          alert("Failed to upload image: " + status.message);
+          
+          // Xóa tin nhắn ảnh đang chờ nếu upload thất bại
+          setPendingMessages(prev => prev.filter(msg => msg.type !== "image"));
+          
+          toast.error("Không thể tải ảnh lên: " + status.message);
         }
       }
     );
@@ -158,12 +180,12 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert("Image size must be less than 5MB");
+        toast.error("Ảnh phải nhỏ hơn 5MB");
         return;
       }
 
       if (!file.type.startsWith("image/")) {
-        alert("Only image files are allowed");
+        toast.error("Chỉ chấp nhận file ảnh");
         return;
       }
 
@@ -174,8 +196,19 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
   const handleSendMessage = () => {
     if ((!newMessage.trim() && !pendingImage) || !data) return;
     
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
     if (pendingImage) {
       setIsUploading(true);
+      
+      const tempUrl = URL.createObjectURL(pendingImage);
+      
+      setPendingMessages(prev => [...prev, {
+        id: tempId,
+        content: tempUrl,
+        type: "image",
+        tempUrl: tempUrl
+      }]);
       const reader = new FileReader();
       reader.onloadend = () => {
         try {
@@ -183,6 +216,8 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
           if (!base64Data) {
             console.error("Failed to convert image to base64");
             setIsUploading(false);
+            
+            setPendingMessages(prev => prev.filter(msg => msg.id !== tempId));
             return;
           }
           
@@ -193,18 +228,25 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
             type: "image",
             file_name: pendingImage.name,
             file_type: pendingImage.type,
+            client_temp_id: tempId
           });
 
-          if (success) {
-            console.log("Image sent to server for processing");
-            setPendingImage(null);
-          } else {
+          if (!success) {
             console.error("Failed to send image message");
+            setIsUploading(false);
+            
+            // Xóa tin nhắn ảnh tạm thời nếu gửi thất bại
+            setPendingMessages(prev => prev.filter(msg => msg.id !== tempId));
+            toast.error("Không thể gửi ảnh, vui lòng thử lại");
           }
         } catch (error) {
           console.error("Error sending image:", error);
+          setIsUploading(false);
+          
+          // Xóa tin nhắn ảnh tạm thời nếu có lỗi
+          setPendingMessages(prev => prev.filter(msg => msg.id !== tempId));
+          toast.error("Đã xảy ra lỗi khi gửi ảnh");
         }
-        setIsUploading(false);
         setPendingImage(null);
       };
       reader.readAsDataURL(pendingImage);
@@ -212,6 +254,13 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
     }
     
     if (newMessage.trim() !== "") {
+      // Thêm tin nhắn văn bản vào danh sách chờ trước khi gửi
+      setPendingMessages(prev => [...prev, {
+        id: tempId,
+        content: newMessage.trim(),
+        type: "text"
+      }]);
+      
       const success = sendMessage({
         content: newMessage.trim(),
         receiver_id: data.other_user.id,
@@ -221,6 +270,10 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
 
       if (success) {
         setNewMessage("");
+      } else {
+        // Xóa tin nhắn tạm thời nếu gửi thất bại
+        setPendingMessages(prev => prev.filter(msg => msg.id !== tempId));
+        toast.error("Không thể gửi tin nhắn, vui lòng thử lại");
       }
     }
   };
@@ -242,6 +295,47 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
     }
     return message.content;
   };
+  
+  const renderPendingMessage = (message: { id: string; content: string; type: string; tempUrl?: string }) => {
+    if (message.type === "image") {
+      return (
+        <div className="message-image-container">
+          <div style={{ position: "relative" }}>
+            <img
+              src={message.content}
+              alt="Đang tải ảnh..."
+              className="message-image"
+              style={{ 
+                width: "100px", 
+                height: "100px", 
+                objectFit: "cover", 
+                opacity: "0.7" 
+              }}
+            />
+            {isUploading && (
+              <div style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)"
+              }}>
+                <div className="spinner" style={{ 
+                  width: "20px", 
+                  height: "20px", 
+                  border: "2px solid #ccc", 
+                  borderTopColor: "#333", 
+                  borderRadius: "50%", 
+                  animation: "spin 1s linear infinite" 
+                }} />
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+    return message.content;
+  };
+  
   return (
     <div className="chat-box" style={{ right: 370 }}>
       <a href={Href} className="chat-header">
@@ -279,6 +373,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
       </a>
       <div className={`chat-wrap ${smallChat ? "d-none" : ""}`}>
         <div className="chat-body">
+          {/* Hiển thị tin nhắn từ server */}
           {messages.map((message, index) => (
             <div
               key={index}
@@ -298,11 +393,31 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
               </span>
             </div>
           ))}
+
+          {/* Hiển thị tin nhắn đang chờ xử lý */}
+          {pendingMessages.map((message, index) => (
+            <div
+              key={`pending-${message.id}`}
+              className="msg-right pending-message"
+            >
+              <span>
+                {renderPendingMessage(message)}
+                <div className="timestamp" style={{ 
+                  fontSize: "10px", 
+                  marginTop: "5px", 
+                  color: "#999", 
+                  fontStyle: "italic" 
+                }}>
+                  Đang gửi...
+                </div>
+              </span>
+            </div>
+          ))}
           <div ref={messagesEndRef} />
           <div className="msg_push" />
         </div>
         <div className="chat-footer">
-          <div className="emoji-picker-container" style={{ position: "relative" }}>
+          <div className="emoji-picker-container" style={{ position: "relative", marginLeft: "8px" }}>
             <DynamicFeatherIcon
               iconName="Smile"
               className="emoji-button"
@@ -361,19 +476,19 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
             value={newMessage}
             onChange={handleInputChange}
             onKeyDown={handleKeyPress}
-            placeholder="Type your message here..."
+            placeholder="Nhập tin nhắn..."
             className="chat-input form-control emojiPicker"
             disabled={isUploading}
           />
           
-          <div className={`add-extent ${showOption ? "show" : ""}`}>
+          <div className={`add-extent ${showOption ? "show" : ""}`} style={{ marginRight: "0px" }}>
             <DynamicFeatherIcon
               iconName="PlusCircle"
               className="animated-btn"
               onClick={() => setShowOption(!showOption)}
               style={{ cursor: "pointer" }}
             />
-            <div className="options">
+            <div className="options" style={{ right: "30px" }}>
               <ul>
                 <li onClick={handleImageClick} style={{ cursor: "pointer" }}>
                   <img src="../assets/svg/image.svg" alt="image" />
@@ -396,7 +511,6 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
               border: "none",
               background: "transparent",
               cursor: isUploading ? "not-allowed" : "pointer",
-              marginLeft: "10px"
             }}
           >
             {isUploading ? (
@@ -421,6 +535,10 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
           to {
             transform: rotate(360deg);
           }
+        }
+        
+        .pending-message {
+          opacity: 0.8;
         }
       `}</style>
     </div>

@@ -15,6 +15,7 @@ import {
 import { useSession } from "next-auth/react";
 import { formatTime } from "@/utils/index";
 import Image from "next/image";
+import { toast } from "react-toastify";
 
 const ChatHistory: FC<ChatHistoryInterFace> = ({
   user,
@@ -28,6 +29,9 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [pendingMessages, setPendingMessages] = useState<
+    { id: string; content: string; type: string; tempUrl?: string }[]
+  >([]);
 
   const {
     socket,
@@ -37,7 +41,10 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
     leaveChat,
     markMessagesAsRead,
     onImageUploadStatus,
-  } = useSocket((users) => console.log(users));
+  } = useSocket(
+    (users) => console.log(users),
+    (message) => console.log(message)
+  );
   const { data: session } = useSession();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -130,6 +137,12 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
               (msg) => msg.id === message.id
             );
             if (alreadyExists) return prevMessages;
+            if (message.client_temp_id) {
+              setPendingMessages((prev) =>
+                prev.filter((msg) => msg.id !== message.client_temp_id)
+              );
+              setIsUploading(false);
+            }
             return [...prevMessages, message];
           });
 
@@ -142,11 +155,23 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
       const uploadStatusCleanup = onImageUploadStatus(
         (status: { status: string; url?: string; message?: string }) => {
           if (status.status === "success") {
-            console.log("Image uploaded successfully:", status.url);
             setIsUploading(false);
+            setPendingImage(null);
+            setPendingMessages((prev) =>
+              prev.map((msg) => {
+                if (msg.type === "image" && msg.tempUrl) {
+                  return { ...msg, content: status.url || "" };
+                }
+                return msg;
+              })
+            );
           } else if (status.status === "error") {
             console.error("Image upload failed:", status.message);
             setIsUploading(false);
+            setPendingImage(null);
+            setPendingMessages((prev) =>
+              prev.filter((msg) => msg.type !== "image")
+            );
             alert("Failed to upload image: " + status.message);
           }
         }
@@ -201,8 +226,23 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
 
   const handleSendMessage = () => {
     if ((!newMessage.trim() && !pendingImage) || !user) return;
+
+    const tempId = `temp-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+
     if (pendingImage) {
       setIsUploading(true);
+      const tempUrl = URL.createObjectURL(pendingImage);
+      setPendingMessages((prev) => [
+        ...prev,
+        {
+          id: tempId,
+          content: tempUrl,
+          type: "image",
+          tempUrl: tempUrl,
+        },
+      ]);
       const reader = new FileReader();
       reader.onloadend = () => {
         try {
@@ -219,21 +259,28 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
             type: "image",
             file_name: pendingImage.name,
             file_type: pendingImage.type,
+            client_temp_id: tempId,
           });
 
-          if (success) {
-            console.log("Image sent to server for processing");
-            setPendingImage(null); 
-            setIsUploading(false);
-          } else {
-            setIsUploading(false);
+          if (!success) {
             console.error("Failed to send image message");
+            setIsUploading(false);
+
+            // Xóa tin nhắn ảnh tạm thời nếu gửi thất bại
+            setPendingMessages((prev) =>
+              prev.filter((msg) => msg.id !== tempId)
+            );
+            toast.error("Không thể gửi ảnh, vui lòng thử lại");
           }
         } catch (error) {
           console.error("Error sending image:", error);
           setIsUploading(false);
-        } setPendingImage(null); 
-        setIsUploading(false);
+
+          // Xóa tin nhắn ảnh tạm thời nếu có lỗi
+          setPendingMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+          toast.error("Đã xảy ra lỗi khi gửi ảnh");
+        }
+        setPendingImage(null);
       };
       reader.readAsDataURL(pendingImage);
       return;
@@ -271,6 +318,56 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
     }
     return message.content;
   };
+  const renderPendingMessage = (message: {
+    id: string;
+    content: string;
+    type: string;
+    tempUrl?: string;
+  }) => {
+    if (message.type === "image") {
+      return (
+        <div className="message-image-container">
+          <div style={{ position: "relative" }}>
+            <img
+              src={message.content}
+              alt="Đang tải ảnh..."
+              className="message-image"
+              style={{
+                width: "100px",
+                height: "100px",
+                objectFit: "cover",
+                opacity: "0.7",
+              }}
+            />
+            {isUploading && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                }}
+              >
+                <div
+                  className="spinner"
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    border: "2px solid #ccc",
+                    borderTopColor: "#333",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+    return message.content;
+  };
+
   return (
     <div className="chat-history">
       <div className="avenue-messenger">
@@ -324,6 +421,28 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
                   )}
                 </Fragment>
               ))}
+
+            {pendingMessages.map((message, index) => (
+              <div
+                key={`pending-${message.id}`}
+                className="message message-personal new"
+              >
+                <span>
+                  {renderPendingMessage(message)}
+                  <div
+                    className="timestamp"
+                    style={{
+                      fontSize: "10px",
+                      marginTop: "5px",
+                      color: "#999",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    Đang gửi...
+                  </div>
+                </span>
+              </div>
+            ))}
             {/* <div ref={messagesEndRef} /> */}
           </div>
           <div className="message-box">

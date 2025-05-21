@@ -128,11 +128,11 @@ async function uploadToCloudinary(base64Image, fileName) {
     const formData = new FormData();
     formData.append("file", base64Image);
 
-    formData.append("upload_preset", "message_image");
+    formData.append("upload_preset", "upload_preset");
     formData.append("folder", "message/image");
 
     const response = await fetch(
-      "https://api.cloudinary.com/v1_1/dxzwfef7y/image/upload",
+      "https://api.cloudinary.com/v1_1/dyksxiq0e/image/upload",
       {
         method: "POST",
         body: formData,
@@ -273,6 +273,7 @@ io.on("connection", (socket) => {
           last_name: socket.user.last_name || "",
           last_active: now.toISOString(),
         },
+        client_temp_id: data.client_temp_id || null, 
       };
 
       const allRooms = io.sockets.adapter.rooms;
