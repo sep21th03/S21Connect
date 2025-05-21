@@ -31,6 +31,7 @@ export interface Message {
     last_name: string;
     last_active: string;
   };
+  client_temp_id?: string;
 }
 
 export interface SendMessagePayload {
@@ -41,6 +42,7 @@ export interface SendMessagePayload {
   file_paths?: string[];
   file_name?: string;
   file_type?: string;
+  client_temp_id?: string;
 }
 
 export interface RecentMessage {

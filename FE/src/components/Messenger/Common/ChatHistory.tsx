@@ -50,7 +50,6 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Fix 1: This function isn't using updated messages state
   const markMessagesAsUnread = async (
     userId: string,
     messagesData: Message[]

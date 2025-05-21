@@ -383,18 +383,11 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
                 {renderMessageContent(message)}
                 <div className="timestamp" style={{ fontSize: "10px", marginTop: "5px", color: "#999" }}>
                   {formatTime(message.created_at || "")}
-                  {/* {message.sender_id === session?.user?.id && (
-                    <>
-                      <span className="checkmark-sent-delivered" style={{ marginLeft: "5px", paddingLeft: "5px" }}>✓</span>
-                      {message.is_read && <span className="checkmark-read" style={{ marginLeft: "1px", paddingLeft: "5px" }}>✓</span>}
-                    </>
-                  )} */}
                 </div>
               </span>
             </div>
           ))}
 
-          {/* Hiển thị tin nhắn đang chờ xử lý */}
           {pendingMessages.map((message, index) => (
             <div
               key={`pending-${message.id}`}
