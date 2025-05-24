@@ -70,6 +70,7 @@ export interface NotificationType {
     name: string;
     avatar: string;
   };
+  post_id: string;
 }
 
 export interface CommonHeaderInterface {

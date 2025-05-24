@@ -4,6 +4,7 @@ import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import Image from "next/image";
 import CommonVideoModal from "@/Common/Modals/CommonVideoModal";
 import { PostDetailInterFace } from "../../../Style1Types";
+import CloudinaryImage from "@/components/image/CloudinaryImage";
 
 const PostImage: FC<PostDetailInterFace> = ({post,localPost,setLocalPost}) => {
   const [showModal, setShowModal] = useState(false)
@@ -11,13 +12,16 @@ const PostImage: FC<PostDetailInterFace> = ({post,localPost,setLocalPost}) => {
   const imageList = post?.images?.split("|") || [];
   return (
     <div className="img-wrapper">
-      {/* <Image
-        height={225}
-        width={385}
-        src={`${imageList[0]}`}
-        className="img-fluid blur-up lazyloaded"
-        alt="image"
-      /> */}
+     {imageList[0] && (
+        <CloudinaryImage
+          src={imageList[0]}
+          alt="post-image"
+          width={385}
+          height={225}
+          className="img-fluid rounded"
+          onClick={modalToggle}
+        />
+      )}
       {/* <div className="controler">
         <a href={Href} className="play"  onClick={modalToggle}>
           <DynamicFeatherIcon iconName="PlayCircle" className="iw-50 ih-50" />

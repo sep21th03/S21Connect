@@ -2,9 +2,9 @@ import { FC } from "react";
 
 const UserData: FC<{ userData: { followers: number | null; following: number | null; friends: number | null } }> = ({ userData }) => {
   const displayData = [
-    { title: "Following", value: userData?.following || 0 },
-    { title: "Followers", value: userData?.followers || 0 },
-    { title: "Friends", value: userData?.friends || 0 },
+    { title: "Đang theo dõi", value: userData?.following || 0 },
+    { title: "Bạn bè", value: userData?.friends || 0 },
+    { title: "Người theo dõi", value: userData?.followers || 0 },
   ];
 
   return (

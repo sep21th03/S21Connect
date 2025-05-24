@@ -23,6 +23,7 @@ use App\Http\Controllers\Pay\BillController;
 use App\Http\Controllers\Pay\UserBillController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Admin\AdminStatsController;
+use App\Http\Controllers\Story\StoryController;
 
 
 
@@ -86,12 +87,14 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
     //post
     Route::prefix('posts')->group(function () {
         Route::post('/', [PostController::class, 'store']);
-        Route::get('/public_post', [PostController::class, 'public_post']);
+        // Route::get('/public_post', [PostController::class, 'public_post']);
         Route::get('/my_post', [PostController::class, 'getMyPost']);
         Route::get('/get_friend', [PostController::class, 'getFriendPost']);
         Route::post('/edit', [PostController::class, 'editPost']);
         Route::post('/{id}', [PostController::class, 'destroy']);
         Route::get('/newsfeed', [PostController::class, 'getNewsFeed']);
+        // Route::get('/{id}', [PostController::class, 'getPostById']);
+        Route::get('/show/{id}', [PostController::class, 'show']);
 
         Route::post('/{id}/toggle-comments', [PostController::class, 'toggleComments']);
         Route::post('/{id}/reactions', [PostController::class, 'toggleReactions']);
@@ -156,6 +159,15 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::get('/suggest_friends', [UserController::class, 'suggestFriends']);
     });
 
+    //story
+    Route::prefix('stories')->group(function () {
+        Route::post('/create', [StoryController::class, 'store']);
+        Route::get('/{id}', [StoryController::class, 'show']);
+        Route::get('/user/{userId}', [StoryController::class, 'getUserStories']);
+        Route::delete('/{id}', [StoryController::class, 'destroy']);
+        Route::get('/recent', [StoryController::class, 'getRecentStories']);
+    });
+
     //messenger
     Route::prefix('messages')->group(function () {
         Route::post('/send', [MessengerController::class, 'send']);
@@ -178,6 +190,7 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::put('/{id}/users/{userId}/nickname', [ConversationController::class, 'updateNickname']);
         Route::delete('/{id}/leave', [ConversationController::class, 'leave']);
         Route::get('/{id}/media', [ConversationController::class, 'getMedia']);
+        Route::get('/message/count', [ConversationController::class, 'new_message_count']);
     });
     //image
     Route::prefix('images')->group(function () {

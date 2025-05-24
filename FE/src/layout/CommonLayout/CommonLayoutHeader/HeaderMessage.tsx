@@ -7,23 +7,20 @@ import useOutsideDropdown from "@/utils/useOutsideDropdown";
 import { FC, useEffect, useState } from "react";
 import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
-import { RecentMessage, useSocket } from "@/hooks/useSocket";
+import { RecentMessage } from "@/hooks/useSocket";
 import ChatBoxCommon from "@/layout/CommonLayout/ConversationPanel/common/ChatBoxCommon";
 import { Spinner } from "reactstrap";
 
-const HeaderMessage: React.FC = () => {
+const HeaderMessage: React.FC<{unreadMessageUpdate: RecentMessage | null, onlineUsers: string[]}> = ({unreadMessageUpdate, onlineUsers}) => {
   const { isComponentVisible, ref, setIsComponentVisible } =
     useOutsideDropdown(false);
   const [userList, setUserList] = useState<RecentMessage[] | null>(null);
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [showChatBox, setShowChatBox] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
-  const { socket } = useSocket((users) => {
-    setOnlineUsers(users.map((user) => user.id));
-  });
   const fetchUserList = async () => {
     try {
       setIsLoading(true);
@@ -38,15 +35,50 @@ const HeaderMessage: React.FC = () => {
     }
   };
 
-  // useEffect(() => {
-  //   fetchUserList(); 
-  // }, []);
+  const fetchUnreadMessageCount = async () => {
+    try {
+      const response = await axiosInstance.get(
+        API_ENDPOINTS.MESSAGES.MESSAGES.GET_UNREAD_MESSAGES_COUNT
+      );
+      setUnreadMessageCount(response.data.unread_count);
+    } catch (error) {
+      console.error("Error fetching unread message count:", error);
+    }
+  };
+  
+
 
   useEffect(() => {
     if (isComponentVisible) {
       fetchUserList();
     }
+    fetchUnreadMessageCount();
   }, [isComponentVisible]);
+
+  useEffect(() => {
+    if (!unreadMessageUpdate || !userList) return;
+    if (unreadMessageUpdate.unread_count === 0) {
+      setUnreadMessageCount(prev => prev + 1);
+    }
+    setUserList((prev) => {
+      if (!prev) return prev;
+  
+      const updatedList = prev.map((item) => {
+        if (item.other_user.id === unreadMessageUpdate.other_user.id) {
+          return {
+            ...item,
+            unread_count: unreadMessageUpdate.unread_count,
+            latest_message: unreadMessageUpdate.latest_message, 
+          };
+        }
+        return item;
+      });
+  
+      return [...updatedList]; 
+    });
+  }, [unreadMessageUpdate]);
+  
+  
   
   const handleUserClick = (user: RecentMessage) => {
     setSelectedUser(user);
@@ -94,9 +126,9 @@ const HeaderMessage: React.FC = () => {
             iconName="MessageCircle"
             className="icon-light stroke-width-3 iw-16 ih-16"
           />
-          {filteredUserList?.filter((user) => user.unread_count > 0).length > 0 && (
+          {unreadMessageCount > 0 && (
             <span className="count success">
-              {filteredUserList?.filter((user) => user.unread_count > 0).length}
+              {unreadMessageCount}
             </span>
           )}
         </a>
@@ -124,7 +156,7 @@ const HeaderMessage: React.FC = () => {
               className="icon iw-16 ih-16"
               onClick={() => setIsComponentVisible(!isComponentVisible)}
             />
-            <Input type="text" placeholder="search messages..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <Input type="text" placeholder="Tìm kiếm tin nhắn..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
           {isLoading ? (
             <div className="text-center">

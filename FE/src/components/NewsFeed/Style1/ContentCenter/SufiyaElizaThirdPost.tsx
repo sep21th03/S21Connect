@@ -34,7 +34,7 @@ const SufiyaElizaThirdPost: FC<SufiyaElizaThirdPostInterface> = ({fourthPost,pos
         </div>
         <DetailBox heading={CelebrationNewAlbum} span={CelebrationSpan} post={localPost} />
         <CommonLikePanel reactionCount={localPost?.reaction_counts} total_reactions={localPost?.total_reactions} commentCount={localPost?.total_comments} shareCount={localPost?.total_shares} />
-        <CommonPostReact post={localPost} onReactionChange={(data) => setLocalPost({ ...localPost, reaction_counts: data.reaction_counts, total_reactions: data.total_count })} />
+        <CommonPostReact post={localPost} onReactionChange={(data) => setLocalPost({ ...localPost, reaction_counts: data.reaction_counts, total_reactions: data.total_count })} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />
       </div>
     </div>
   );

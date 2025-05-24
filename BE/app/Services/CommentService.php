@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Comment;
 use Illuminate\Support\Facades\Auth;
+use App\Events\PostComment;
+use App\Models\Post;
 
 class CommentService
 {
@@ -16,8 +18,11 @@ class CommentService
         $comment->parent_id = $data['parent_id'] ?? null;
         $comment->save();
 
-        $comment->load('user');
+        $comment->load([
+            'user:id,avatar,username,first_name,last_name'
+        ]);
 
+        event(new PostComment($comment, Auth::user()));
         return $comment;
     }
 
@@ -54,7 +59,7 @@ class CommentService
                 'replies' => function ($query) {
                     $query->with('user:id,username,avatar,first_name,last_name')
                         ->orderBy('created_at', 'desc');
-                },  
+                },
             ])
             ->orderBy('created_at', 'desc')
             ->get();

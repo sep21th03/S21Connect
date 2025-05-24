@@ -20,6 +20,22 @@ export const API_ENDPOINTS = {
     CREATE_POST: "/posts",
     GET_MY_POSTS: "/posts/my_post",
     EDIT_POST: "/posts/edit",
+    SHOW_POST: (
+      postId: string,
+      commentId?: string,
+      replyCommentId?: string,
+      reactionId?: string,
+      notificationId?: string
+    ) => {
+      const params = new URLSearchParams();
+
+      if (commentId) params.append("comment_id", commentId);
+      if (replyCommentId) params.append("reply_comment_id", replyCommentId);
+      if (reactionId) params.append("reaction_id", reactionId);
+      if (notificationId) params.append("notification_id", notificationId);
+
+      return `/posts/show/${postId}?${params.toString()}`;
+    },
     GET_POSTS: (username: string) => `/posts/${username}`,
     GET_FRIEND_POSTS: "/posts/get_friend",
     GET_NEWSFEED: "/posts/newsfeed",
@@ -87,6 +103,7 @@ export const API_ENDPOINTS = {
       RECENT_CONVERSATIONS: "/conversations",
       UNREAD_MESSAGES: "/read",
       GET_USER_GALLERY: (conversationId: string) => `/conversations/${conversationId}/media`,
+      GET_UNREAD_MESSAGES_COUNT: "/conversations/message/count",
     },
   },
   IMAGES: {

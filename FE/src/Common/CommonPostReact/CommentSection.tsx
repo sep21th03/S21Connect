@@ -1,25 +1,39 @@
 // React Components for Comments
 
-import React, { FC, useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
-import { Href } from '../../utils/constant';
-import DynamicFeatherIcon from '../DynamicFeatherIcon';
-import { Input } from 'reactstrap';
-import Picker, { EmojiClickData } from 'emoji-picker-react';
-import MainComment from './MainComment';
-import SubComment from './SubComment';
-import { LoadMoreReplies } from '../../utils/constant';
-import axiosInstance from '@/utils/axiosInstance';
-import { API_ENDPOINTS } from '@/utils/constant/api';
+import React, {
+  FC,
+  useState,
+  useEffect,
+  ChangeEvent,
+  KeyboardEvent,
+} from "react";
+import { Href } from "../../utils/constant";
+import DynamicFeatherIcon from "../DynamicFeatherIcon";
+import { Input } from "reactstrap";
+import Picker, { EmojiClickData } from "emoji-picker-react";
+import MainComment from "./MainComment";
+import SubComment from "./SubComment";
+import { LoadMoreReplies } from "../../utils/constant";
+import axiosInstance from "@/utils/axiosInstance";
+import { API_ENDPOINTS } from "@/utils/constant/api";
 
 interface CommentSectionProps {
   showComment: boolean;
   postId: number;
   onCommentAdded?: () => void;
+  highlightCommentId: number | null;
+  highlightReplyId: number | null;
 }
 
-const CommentSection: FC<CommentSectionProps> = ({ showComment, postId, onCommentAdded }) => {
+const CommentSection: FC<CommentSectionProps> = ({
+  showComment,
+  postId,
+  onCommentAdded,
+  highlightCommentId,
+  highlightReplyId,
+}) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [messageInput, setMessageInput] = useState('');
+  const [messageInput, setMessageInput] = useState("");
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -27,33 +41,57 @@ const CommentSection: FC<CommentSectionProps> = ({ showComment, postId, onCommen
     name: string;
     commentId: number;
   } | null>(null);
-  const [replyText, setReplyText] = useState('');
+  const [replyText, setReplyText] = useState("");
   const [isReplying, setIsReplying] = useState(false);
-  
+
   useEffect(() => {
     if (showComment && postId) {
       fetchComments();
     }
   }, [showComment, postId]);
-  
+
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const fetchedComments = await axiosInstance.get(API_ENDPOINTS.POSTS.COMMENTS.GET_COMMENTS(postId));
+      const fetchedComments = await axiosInstance.get(
+        API_ENDPOINTS.POSTS.COMMENTS.GET_COMMENTS(postId)
+      );
       setComments(fetchedComments.data);
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      console.error("Error fetching comments:", error);
     } finally {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (comments.length > 0 && (highlightCommentId || highlightReplyId)) {
+      setTimeout(() => {
+        const elementId = highlightReplyId
+          ? `reply-modal-${highlightReplyId}`
+          : `comment-modal-${highlightCommentId}`;
 
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+
+          element.classList.add("highlighted-comment");
+
+          setTimeout(() => {
+            element.classList.remove("highlighted-comment");
+          }, 3000);
+        }
+      }, 500);
+    }
+  }, [comments, highlightCommentId, highlightReplyId]);
   const toggleReply = () => {
     setIsReplying(!isReplying);
-    setReplyText('');
+    setReplyText("");
     setReplyingTo(null);
   };
-  
+
   const toggleEmojiPicker = () => {
     setShowEmojiPicker(!showEmojiPicker);
   };
@@ -61,34 +99,39 @@ const CommentSection: FC<CommentSectionProps> = ({ showComment, postId, onCommen
   const addEmoji = (emoji: EmojiClickData) => {
     setMessageInput(messageInput + emoji.emoji);
   };
-  
+
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     setMessageInput(event.target.value);
   };
-  
-  const handleSubmitComment = async (event?: KeyboardEvent<HTMLInputElement>) => {
-    if (event && event.key !== 'Enter') return;
+
+  const handleSubmitComment = async (
+    event?: KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event && event.key !== "Enter") return;
     if (!messageInput.trim()) return;
-    
+
     setSubmitting(true);
     try {
-      const newComment = await axiosInstance.post(API_ENDPOINTS.POSTS.COMMENTS.ADD, {
-        id: postId,
-        content: messageInput,
-      });
+      const newComment = await axiosInstance.post(
+        API_ENDPOINTS.POSTS.COMMENTS.ADD,
+        {
+          id: postId,
+          content: messageInput,
+        }
+      );
       console.log(newComment);
-      setComments(prevComments => [newComment.data.data, ...prevComments]);
-      setMessageInput('');
+      setComments((prevComments) => [newComment.data.data, ...prevComments]);
+      setMessageInput("");
       if (onCommentAdded) {
         onCommentAdded();
       }
     } catch (error) {
-      console.error('Error adding comment:', error);
+      console.error("Error adding comment:", error);
     } finally {
       setSubmitting(false);
     }
   };
-  
+
   const handleReply = async (parentId: number, content: string) => {
     try {
       const reply = await axiosInstance.post(API_ENDPOINTS.POSTS.COMMENTS.ADD, {
@@ -96,73 +139,89 @@ const CommentSection: FC<CommentSectionProps> = ({ showComment, postId, onCommen
         content: content,
         parent_id: parentId,
       });
-      
-      setComments(prevComments => 
+
+      setComments((prevComments) =>
         prevComments.map((comment: any) => {
           if (comment.id === parentId) {
             return {
               ...comment,
-              replies: comment.replies ? [...comment.replies, reply.data.data] : [reply.data]
+              replies: comment.replies
+                ? [...comment.replies, reply.data.data]
+                : [reply.data],
             };
           }
           return comment;
         })
       );
       setReplyingTo(null);
-      setMessageInput('');
+      setMessageInput("");
     } catch (error) {
-      console.error('Error adding reply:', error);
+      console.error("Error adding reply:", error);
     }
   };
-  
-  const handleDeleteComment = async (commentId: number, isReply: boolean, parentId?: number) => {
-    try {
-      await axiosInstance.delete(API_ENDPOINTS.POSTS.COMMENTS.DELETE(commentId));
-      
-      if (isReply && parentId) {
-        setComments(prevComments => 
-          prevComments.map(comment => {
-            if (comment.id === parentId) {
-              return {
-                ...comment,
-                replies: comment.replies?.filter((reply: any) => reply.id !== commentId)
-              };
-            }
-            return comment;
-          })
-        );
-      } else {
-        setComments(prevComments => 
-          prevComments.filter(comment => comment.id !== commentId)
-        );
-      }
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-    }
-  };
+
+  // const handleDeleteComment = async (
+  //   commentId: number,
+  //   isReply: boolean,
+  //   parentId?: number
+  // ) => {
+  //   try {
+  //     await axiosInstance.delete(
+  //       API_ENDPOINTS.POSTS.COMMENTS.DELETE(commentId)
+  //     );
+
+  //     if (isReply && parentId) {
+  //       setComments((prevComments) =>
+  //         prevComments.map((comment) => {
+  //           if (comment.id === parentId) {
+  //             return {
+  //               ...comment,
+  //               replies: comment.replies?.filter(
+  //                 (reply: any) => reply.id !== commentId
+  //               ),
+  //             };
+  //           }
+  //           return comment;
+  //         })
+  //       );
+  //     } else {
+  //       setComments((prevComments) =>
+  //         prevComments.filter((comment) => comment.id !== commentId)
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Error deleting comment:", error);
+  //   }
+  // };
 
   const handleReplyClick = (name: string, commentId: number) => {
     setReplyingTo({ name, commentId });
     setReplyText(`@${name} `);
     setIsReplying(true);
   };
-  
 
   return (
     <div className="comment-section">
       <div className={`comments ${showComment ? "d-block" : ""}`}>
         {loading ? (
           <div className="text-center p-3">
-            <DynamicFeatherIcon iconName="Loader" className="iw-30 ih-30 spinner" />
+            <DynamicFeatherIcon
+              iconName="Loader"
+              className="iw-30 ih-30 spinner"
+            />
           </div>
         ) : comments.length > 0 ? (
           comments.map((comment: any) => (
             <div key={comment.id} className="main-comment">
-              <MainComment 
-                id={`comment-${comment.id}`} 
+              <MainComment
+                 id={
+                  highlightCommentId && highlightCommentId === comment.id.toString()
+                    ? `comment-modal-${comment.id}`
+                    : `comment-${comment.id}`
+                }
                 comment={comment}
                 onReply={handleReply}
-                onDelete={() => handleDeleteComment(comment.id, false)}
+                // onDelete={() => handleDeleteComment(comment.id, false)}
                 onReplyClick={handleReplyClick}
                 like={comment?.likes}
                 replyText={replyText}
@@ -170,27 +229,34 @@ const CommentSection: FC<CommentSectionProps> = ({ showComment, postId, onCommen
                 isReplying={isReplying}
                 toggleReply={toggleReply}
                 setIsReplying={setIsReplying}
+                isHighlighted={highlightCommentId && highlightCommentId === comment.id.toString()}
               />
-              
+
               {comment.replies && comment.replies.length > 0 && (
                 <div className="sub-comment">
                   {comment.replies.map((reply: any) => (
-                    <SubComment 
+                    <SubComment
                       key={reply.id}
                       id={`reply-${reply.id}`}
                       image={reply?.user?.avatar}
                       comment={reply}
-                      onDelete={() => handleDeleteComment(reply.id, true, comment.id)}
+                      // onDelete={() =>
+                      //   handleDeleteComment(reply.id, true, comment.id)
+                      // }
                       onReplyClick={handleReplyClick}
                       isReplying={isReplying}
                       toggleReply={toggleReply}
                       setIsReplying={setIsReplying}
+                      isHighlighted={highlightReplyId && highlightReplyId === reply.id.toString()}
                     />
                   ))}
-                  
+
                   {comment.replies.length >= 3 && (
                     <a href={Href} className="loader">
-                      <DynamicFeatherIcon iconName="RotateCw" className="iw-15 ih-15" />
+                      <DynamicFeatherIcon
+                        iconName="RotateCw"
+                        className="iw-15 ih-15"
+                      />
                       {LoadMoreReplies}
                     </a>
                   )}
@@ -200,38 +266,61 @@ const CommentSection: FC<CommentSectionProps> = ({ showComment, postId, onCommen
           ))
         ) : (
           <div className="no-comments text-center p-3">
-            <p>No comments yet. Be the first to comment!</p>
+            <p>Không có bình luận nào. Hãy bình luận đầu tiên!</p>
           </div>
         )}
       </div>
-      
+
       <div className="reply">
         <div className="search-input input-style input-lg icon-right">
-          <Input 
-            type="text" 
-            className="emojiPicker" 
-            placeholder="Write a comment..." 
-            value={messageInput} 
+          <Input
+            type="text"
+            className="emojiPicker"
+            placeholder="Write a comment..."
+            value={messageInput}
             onChange={handleInputChange}
             onKeyPress={handleSubmitComment}
             disabled={submitting}
           />
-          
+
           {showEmojiPicker && (
             <div className="emoji-picker-container">
               <Picker onEmojiClick={addEmoji} />
             </div>
           )}
-          
-          <a href={Href} onClick={(e) => { e.preventDefault(); toggleEmojiPicker(); }}>
-            <DynamicFeatherIcon iconName="Smile" className="icon icon-2 iw-14 ih-14" />
+
+          <a
+            href={Href}
+            onClick={(e) => {
+              e.preventDefault();
+              toggleEmojiPicker();
+            }}
+          >
+            <DynamicFeatherIcon
+              iconName="Smile"
+              className="icon icon-2 iw-14 ih-14"
+            />
           </a>
-          
-          <a href={Href} onClick={(e) => { e.preventDefault(); }}>
-            <DynamicFeatherIcon iconName="Camera" className="iw-14 ih-14 icon" />
+
+          <a
+            href={Href}
+            onClick={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <DynamicFeatherIcon
+              iconName="Camera"
+              className="iw-14 ih-14 icon"
+            />
           </a>
-          
-          <a href={Href} onClick={(e) => { e.preventDefault(); handleSubmitComment(); }}>
+
+          <a
+            href={Href}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmitComment();
+            }}
+          >
             <DynamicFeatherIcon iconName="Send" className="iw-14 ih-14 icon" />
           </a>
         </div>

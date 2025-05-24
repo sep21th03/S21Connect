@@ -28,6 +28,9 @@ export interface postDropDownOptionInterface {
 export interface SufiyaElizaThirdPostInterface {
   fourthPost?: number;
   post: Post
+  shouldOpenComments: boolean;
+  highlightCommentId: number | null;
+  highlightReplyId: number | null;
 }
 
 export interface CommonGalleryImageProps {
@@ -38,6 +41,9 @@ export interface CommonGalleryImageProps {
 export interface SufiyaElizaFirstPostInterFace {
   className?:string
   post: Post
+  shouldOpenComments: boolean;
+  highlightCommentId: number | null;
+  highlightReplyId: number | null;
 }
 
 export interface PostDetailInterFace {
@@ -49,6 +55,9 @@ export interface PostDetailInterFace {
 
 export interface SufiyaElizaSecondPostInterFace {
   post: Post
+  shouldOpenComments: boolean;
+  highlightCommentId: number | null;
+  highlightReplyId: number | null;
 }
 
 export interface EventsCardInterFace{
@@ -61,8 +70,19 @@ export interface BirthdayReminderInterFace  {
   userInforBirthday?: UserInforBirthday
 }
 
+export interface UserInforBirthday {
+  id: number;
+  username: string;
+  avatar: string;
+  first_name: string;
+  last_name: string;
+}
+
 export interface SufiyaElizaMultiplePostInterFace {
   post: Post
+  shouldOpenComments: boolean;
+  highlightCommentId: number | null;
+  highlightReplyId: number | null;
 }
 
 export  interface SidebarPanelInterFace {
@@ -115,11 +135,29 @@ export interface Post {
   checkin: string;
   feeling: string;
   visibility: string;
+  is_comment_disabled: boolean;
   tagfriends: string[];
   total_reactions: number;
   total_comments: number;
   total_shares: number;
   reaction_counts: {
     [key: string]: number;
+  };
+  preview_comment: {
+    id: number;
+    user_id: string;
+    post_id: string;
+    likes_count: number;
+    parent_id: string;
+    content: string;
+    created_at: string;
+    updated_at: string;
+    user: {
+      id: string;
+      username: string;
+      avatar: string;
+      first_name: string;
+      last_name: string;
+    };
   };
 }

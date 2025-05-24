@@ -48,7 +48,7 @@ const UserMessage = ({
                         );
                       } else {
                         return (
-                          <>
+                          <div className="d-flex justify-content-between">
                           <h6
                             className={data.unread_count > 0 ? "fw-bold" : ""}
                           >
@@ -57,19 +57,19 @@ const UserMessage = ({
                               : `Bạn: ${data.latest_message?.content}`}
                             
                           </h6>
-                          {data.unread_count > 0 && (
+                          {/* {data.unread_count > 0 && (
                             <span className="badge bg-danger unread-dot">
-                              !
+                              {data.unread_count}+
                             </span>
-                          )}
-                        </>
+                          )} */}
+                        </div>
                         );
                       }
                     })()}
                   </div>
                 </Media>
               </Media>
-              {onlineUsers.includes(data.id) && (
+              {onlineUsers.includes(data.other_user.id) && (
                 <div className="active-status">
                   <span className="active" />
                 </div>

@@ -45,16 +45,6 @@ class ReactionController extends Controller
                 ]);
             } else {
                 $existingReaction->update(['type' => $type]);
-                // if ($post->user_id !== $userId) {
-                //     $this->createReactionNotification(
-                //         $post->user_id,
-                //         Auth::user()->name,
-                //         $postId
-                //     );
-                // }
-                // if ($post->user_id !== $userId) {
-                //     event(new PostReacted($post, Auth::user(), $type));
-                // }
                 return response()->json([
                     'message' => 'Cập nhật cảm xúc',
                     'status' => 'updated',
@@ -67,15 +57,9 @@ class ReactionController extends Controller
                 'post_id' => $postId,
                 'type' => $type
             ]);
-            // if ($post->user_id !== $userId) {
-            //     $this->createReactionNotification(
-            //         $post->user_id,
-            //         Auth::user()->name,
-            //         $postId
-            //     );
-            // }
+
             if ($post->user_id !== $userId) {
-                event(new PostReacted($post, Auth::user(), $type));
+                event(new PostReacted($post, Auth::user(), $type, $reaction));
             }
             return response()->json([
                 'message' => 'Thả cảm xúc',

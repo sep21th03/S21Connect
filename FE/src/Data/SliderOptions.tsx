@@ -226,7 +226,7 @@ export const friendSliderOption = {
   slidesToScroll: 1,
   autoplay: false,
   autoplaySpeed: 5000,
-  infinite: true,
+  infinite: false,
   centerMode: true,
   centerPadding: "50px",
   responsive: [

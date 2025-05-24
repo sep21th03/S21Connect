@@ -1,21 +1,29 @@
 import { friendSliderOption } from "@/Data/SliderOptions";
 import { AddFriend, Followers, Following, ImagePath } from "../../../../utils/constant";
 import Image from "next/image";
-import { FC } from "react";
+import { FC, useState, useEffect } from "react";
 import Slider from "react-slick";
 import { Href } from "../../../../utils/constant";
+import axiosInstance from "@/utils/axiosInstance";
+import { API_ENDPOINTS } from "@/utils/constant/api";
 
 const FriendSuggestion: FC = () => {
+  const [friendSuggestion, setFriendSuggestion] = useState<any[]>([]);
 
-  const numbers = [1, 2, 3, 4,1, 2, 3, 4];
+  useEffect(() => {
+    axiosInstance.get(API_ENDPOINTS.USERS.FRIEND_SUGGESTION).then((res) => {
+      setFriendSuggestion(res.data);
+    });
+    
+  }, []);
   return (
     <div className="post-wrapper col-grid-box section-t-space no-background d-block">
       <div className="post-details">
         <div className="img-wrapper">
           <div className="slider-section">
             <Slider   className="friend-slide ratio_landscape default-space no-arrow " {...friendSliderOption} >
-              {numbers.map((data) => (
-                <div key={data}>
+              {friendSuggestion.map((data) => (
+                <div key={data.id}>
                   <div style={{ width: "100%", display: "inline-block" }}>
                     <div className="profile-box friend-box">
                       <div className="profile-content">
@@ -23,7 +31,7 @@ const FriendSuggestion: FC = () => {
                           <div className="profile-img">
                             <div
                               className="bg-size blur-up lazyloaded"
-                              style={{ backgroundImage: `url("${ImagePath}/user-sm/${data}.jpg")`, backgroundSize: "cover", backgroundPosition: "center center", backgroundRepeat: "no-repeat", display: "block",}}
+                              style={{ backgroundImage: `url(${data.avatar})`, backgroundSize: "cover", backgroundPosition: "center center", backgroundRepeat: "no-repeat", display: "block",}}
                             />
                             <span className="stats">
                               <Image width={22} height={22} src={`${ImagePath}/icon/verified.png`} className="img-fluid blur-up lazyloaded" alt="verified"/>
@@ -32,9 +40,9 @@ const FriendSuggestion: FC = () => {
                         </div>
                         <div className="profile-detail">
                           <h2>
-                            kelin jasen <span>❤</span>
+                            {data.first_name} {data.last_name}
                           </h2>
-                          <div className="counter-stats">
+                          {/* <div className="counter-stats">
                             <ul>
                               <li>
                                 <h3 className="counter-value">546</h3>
@@ -45,7 +53,7 @@ const FriendSuggestion: FC = () => {
                                 <h5>{Followers}</h5>
                               </li>
                             </ul>
-                          </div>
+                          </div> */}
                           <a href={Href} className="btn btn-outline">{AddFriend}</a>
                         </div>
                       </div>

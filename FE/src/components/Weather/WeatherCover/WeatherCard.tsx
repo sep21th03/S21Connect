@@ -1,27 +1,60 @@
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import CommonHeader from "./Common/CommonHeader";
 import Image from "next/image";
 import { ImagePath } from "../../../utils/constant";
+import { fetchWeather, WeatherData } from "@/service/mockupSercive";
+import { Spinner } from "reactstrap";
 
 const WeatherCard: FC = () => {
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const getWeather = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchWeather();
+      setWeatherData(data);
+    } catch (err) {
+      console.error("Lỗi khi lấy dữ liệu thời tiết:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getWeather();
+  }, []);
+
   const icons = ["❅", "❆", "❅", "❆", "❅", "❆", "❅", "❆", "❅", "❆", "❅", "❆"];
 
   return (
     <div>
       <div className="weather-section weather-light mt-3">
-        <CommonHeader tittle="weather" />
+        <CommonHeader tittle="Thời tiết" />
         <div className="weather-content">
-          <div className="top-title">
-            <h2>28°C</h2>
-            <h5>4.45 pm</h5>
-          </div>
-          <h5>sunny day</h5>
-          <h6>
-            21 march 2023 (monday) <span>denmark</span>
-          </h6>
+          {loading || !weatherData ? (
+            <Spinner />
+          ) : (
+            <>
+              <div className="top-title">
+                <h2>{weatherData.temp}</h2>
+                <h5>{weatherData.time}</h5>
+              </div>
+              <h5>{weatherData.condition}</h5>
+              <h6>
+                {weatherData.date} <span>{weatherData.country}</span>
+              </h6>
+            </>
+          )}
         </div>
         <div className="flaks-img">
-          <Image width={66} height={66} src={`${ImagePath}/icon/snow-flaks-blue.png`} className="img-fluid blur-up lazyloaded" alt="snow"/>
+          <Image
+            width={66}
+            height={66}
+            src={`${ImagePath}/icon/snow-flaks-blue.png`}
+            className="img-fluid blur-up lazyloaded"
+            alt="snow"
+          />
         </div>
         <div className="snowflakes">
           {icons.map((data, index) => (

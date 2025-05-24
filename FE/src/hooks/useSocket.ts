@@ -35,10 +35,10 @@ export interface Message {
 }
 
 export interface SendMessagePayload {
-  content: string; 
-  receiver_id: string; 
-  conversation_id: string; 
-  type?: "text" | "image" | "video" | "sticker" | "file"; 
+  content: string;
+  receiver_id: string;
+  conversation_id: string;
+  type?: "text" | "image" | "video" | "sticker" | "file";
   file_paths?: string[];
   file_name?: string;
   file_type?: string;
@@ -102,16 +102,22 @@ export interface Notification {
   };
 }
 
-export function useSocket(onOnlineList: (users: User[]) => void, onNotification: (data: Notification) => void) {
+export function useSocket(
+  onOnlineList: (users: User[]) => void,
+  onNotification: (data: Notification) => void,
+  onUnreadMessageUpdate?: (data: RecentMessage) => void
+) {
   const socketRef = useRef<Socket | null>(null);
-  const onOnlineListRef = useRef(onOnlineList);
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const onOnlineListRef = useRef(onOnlineList);
   const onNotificationCallbackRef = useRef(onNotification);
+  const onUnreadMessageUpdateRef = useRef(onUnreadMessageUpdate);
   useEffect(() => {
     onOnlineListRef.current = onOnlineList;
     onNotificationCallbackRef.current = onNotification;
-  }, [onOnlineList, onNotification]);
+    onUnreadMessageUpdateRef.current = onUnreadMessageUpdate;
+  }, [onOnlineList, onNotification, onUnreadMessageUpdate]);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -154,15 +160,24 @@ export function useSocket(onOnlineList: (users: User[]) => void, onNotification:
     }, 30000);
 
     const handleNotification = (data: Notification) => {
-      if (onNotificationCallbackRef.current) {
+      // console.log(data);
+      if (typeof onNotificationCallbackRef.current === "function") {
         onNotificationCallbackRef.current(data);
+      } else {
+        console.warn("onNotificationCallbackRef.current is not a function:", onNotificationCallbackRef.current);
+      }
+      
+    };
+
+    const handleUnreadMessageUpdate = (data: RecentMessage) => {
+      if (onUnreadMessageUpdateRef.current) {
+        onUnreadMessageUpdateRef.current(data);
       }
     };
-    
-    socket.on('notification', handleNotification);
-    
-    socket.on('notification', handleNotification);
-    
+
+    socket.on("notification", handleNotification);
+
+    socket.on("unread_message_update", handleUnreadMessageUpdate);
 
     return () => {
       clearInterval(heartbeatInterval);
@@ -171,6 +186,7 @@ export function useSocket(onOnlineList: (users: User[]) => void, onNotification:
       socket?.off("disconnect");
       socket?.off("incoming_call");
       socket?.off("notification", handleNotification);
+      socket?.off("unread_message_update", handleUnreadMessageUpdate);
     };
   }, []);
 
@@ -193,7 +209,7 @@ export function useSocket(onOnlineList: (users: User[]) => void, onNotification:
       console.error("Cannot send message: socket not connected");
       return false;
     }
-    
+
     socket.emit("send_message", message);
     return true;
   };
@@ -212,122 +228,152 @@ export function useSocket(onOnlineList: (users: User[]) => void, onNotification:
     };
   };
 
-  const setTypingStatus = (data: { conversation_id: string, is_typing: boolean }) => {
+  const setTypingStatus = (data: {
+    conversation_id: string;
+    is_typing: boolean;
+  }) => {
     if (!socket?.connected) return;
     socket.emit("typing", data);
   };
-  
+
   const onUserTyping = (callback: (typingData: TypingUser) => void) => {
     if (!socket?.connected) return;
-    
+
     socket.on("user_typing", callback);
-    
+
     return () => {
       socket?.off("user_typing", callback);
     };
   };
-  
+
   const markMessagesAsRead = (conversationId: string) => {
     if (!socket?.connected) return;
     console.log("Marking messages as read for conversation:", conversationId);
     socket.emit("mark_as_read", { conversation_id: conversationId });
   };
 
-  const onMessagesRead = (callback: (data: { conversation_id: string, user_id: string }) => void) => {
+  const onMessagesRead = (
+    callback: (data: { conversation_id: string; user_id: string }) => void
+  ) => {
     if (!socket?.connected) return;
-    
+
     socket.on("messages_read", callback);
-    
+
     return () => {
       socket?.off("messages_read", callback);
     };
   };
-  
-  const onUserStatusChanged = (callback: (data: { userId: string, username: string, status: 'online' | 'offline' }) => void) => {
+
+  const onUserStatusChanged = (
+    callback: (data: {
+      userId: string;
+      username: string;
+      status: "online" | "offline";
+    }) => void
+  ) => {
     if (!socket?.connected) return;
-    
+
     socket.on("user_status_changed", callback);
-    
+
     return () => {
       socket?.off("user_status_changed", callback);
     };
   };
 
-  const onImageUploadStatus = (callback: (data: { status: string; url?: string; message?: string }) => void) => {
+  const onImageUploadStatus = (
+    callback: (data: { status: string; url?: string; message?: string }) => void
+  ) => {
     if (!socket?.connected) return;
     socket?.on("image-upload-status", callback);
-  
+
     return () => {
       socket?.off("image_upload_status", callback);
     };
   };
 
-   const initiateCall = (receiverId: string, offer: RTCSessionDescriptionInit, callType: "audio" | "video") => {
+  const initiateCall = (
+    receiverId: string,
+    offer: RTCSessionDescriptionInit,
+    callType: "audio" | "video"
+  ) => {
     if (!socket?.connected) return false;
-    socket.emit("call_offer", { 
-      receiver_id: receiverId, 
-      offer, 
-      call_type: callType 
+    socket.emit("call_offer", {
+      receiver_id: receiverId,
+      offer,
+      call_type: callType,
     });
     return true;
   };
-  
-  const getCallOffer = (callerId: string, callback: (offerDetails: CallOfferDetails) => void) => {
+
+  const getCallOffer = (
+    callerId: string,
+    callback: (offerDetails: CallOfferDetails) => void
+  ) => {
     if (!socket?.connected) return false;
-    
+
     socket.emit("get_call_offer", { caller_id: callerId });
-    
+
     const handleOfferDetails = (details: CallOfferDetails) => {
       callback(details);
       socket?.off("call_offer_details", handleOfferDetails);
     };
-    
+
     socket.on("call_offer_details", handleOfferDetails);
     return true;
   };
-  
+
   const answerCall = (callerId: string, answer: RTCSessionDescriptionInit) => {
     if (!socket?.connected) return false;
     socket.emit("call_answer", { caller_id: callerId, answer });
     setIncomingCall(null);
     return true;
   };
-  
+
   const rejectCall = (callerId: string) => {
     if (!socket?.connected) return false;
     socket.emit("call_reject", { caller_id: callerId });
     setIncomingCall(null);
     return true;
   };
-  
+
   const sendIceCandidate = (peerId: string, candidate: RTCIceCandidateInit) => {
     if (!socket?.connected) return false;
     socket.emit("call_ice_candidate", { peer_id: peerId, candidate });
     return true;
   };
-  
-  const onCallAnswer = (callback: (data: { answer: RTCSessionDescriptionInit, user_id: string }) => void) => {
+
+  const onCallAnswer = (
+    callback: (data: {
+      answer: RTCSessionDescriptionInit;
+      user_id: string;
+    }) => void
+  ) => {
     if (!socket) return;
     socket.on("call_answer", callback);
     return () => {
       socket?.off("call_answer", callback);
     };
   };
-  
-  const onIceCandidate = (callback: (data: { candidate: RTCIceCandidateInit, from_user_id: string }) => void) => {
+
+  const onIceCandidate = (
+    callback: (data: {
+      candidate: RTCIceCandidateInit;
+      from_user_id: string;
+    }) => void
+  ) => {
     if (!socket) return;
     socket.on("call_ice_candidate", callback);
     return () => {
       socket?.off("call_ice_candidate", callback);
     };
   };
-  
+
   const endCall = (peerId: string) => {
     if (!socket?.connected) return false;
     socket.emit("call_end", { peer_id: peerId });
     return true;
   };
-  
+
   const onCallEnded = (callback: (data: { from_user_id: string }) => void) => {
     if (!socket) return;
     socket.on("call_end", callback);
@@ -335,8 +381,10 @@ export function useSocket(onOnlineList: (users: User[]) => void, onNotification:
       socket?.off("call_end", callback);
     };
   };
-  
-  const onCallRejected = (callback: (data: { reason: string; user_id: string }) => void) => {
+
+  const onCallRejected = (
+    callback: (data: { reason: string; user_id: string }) => void
+  ) => {
     if (!socket) return;
     socket.on("call_rejected", callback);
     return () => {
@@ -371,6 +419,6 @@ export function useSocket(onOnlineList: (users: User[]) => void, onNotification:
     rejectCall,
     endCall,
     onCallRejected,
-    incomingCall
+    incomingCall,
   };
 }

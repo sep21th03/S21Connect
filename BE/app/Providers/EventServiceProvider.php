@@ -21,6 +21,12 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\PostReacted' => [
             'App\Listeners\SendReactionNotification',
         ],
+        'App\Events\MessageSent' => [
+            'App\Listeners\SendMessageToSocket',
+        ],
+        'App\Events\PostComment' => [
+            'App\Listeners\SendCommentNotification',
+        ],
     ];
 
     /**

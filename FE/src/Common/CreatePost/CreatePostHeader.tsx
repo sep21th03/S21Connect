@@ -27,7 +27,7 @@ const CreatePostHeader: FC<CreatePostHeaderInterFace> = ({writePost,setShowPostB
           onClick={()=>setShowPostButton(true)}
           type="text"
           className="enable"
-          placeholder="write something here.."
+          placeholder="Bạn đang nghĩ gì..."
           value={postContent}
           onChange={(e) => setPostContent(e.target.value)}
         />

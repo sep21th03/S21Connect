@@ -6,8 +6,9 @@ import { MainCommentProps } from "../CommonInterFace";
 import HoverMessage from "../HoverMessage";
 import { formatTime } from "@/utils/formatTime";
 import Image from "next/image";
+import styles from "@/style/modal.module.css";
 
-const MainComment: FC<MainCommentProps> = ({ comment, like,id, onReply, onDelete, onReplyClick, replyText, setReplyText, isReplying, toggleReply }) => {
+const MainComment: FC<MainCommentProps> = ({ comment, like,id, onReply, onDelete, onReplyClick, replyText, setReplyText, isReplying, toggleReply,  isHighlighted = false }) => {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
 
@@ -24,7 +25,7 @@ const MainComment: FC<MainCommentProps> = ({ comment, like,id, onReply, onDelete
   
   const handleSubmitReply = () => {
     if (replyText.trim()) {
-      onReply(comment.id, replyText);
+      onReply(comment?.id, replyText);
       setReplyText('');
       toggleReply();
     }
@@ -32,7 +33,7 @@ const MainComment: FC<MainCommentProps> = ({ comment, like,id, onReply, onDelete
 
   
   return (
-    <Media>
+    <Media className={isHighlighted ? styles.highlightedComment : ''}>
       <a href={Href} className="user-img popover-cls bg-size blur-up lazyloaded" id={id} onClick={(e) => e.preventDefault()}>
         <img src={`${comment?.user?.avatar}`} className="img-fluid lazyload bg-img rounded-circle" alt="user" width={30} height={30}/>
       </a>
@@ -86,7 +87,7 @@ const MainComment: FC<MainCommentProps> = ({ comment, like,id, onReply, onDelete
         )}
       </Media>
       <div className="comment-time">
-        <h6>{formatTime(comment.created_at)}</h6>
+        <h6>{formatTime(comment?.created_at)}</h6>
       </div>
     </Media>
   );

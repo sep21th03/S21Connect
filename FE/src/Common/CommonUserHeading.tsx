@@ -23,7 +23,6 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
   const matchedVisibility = createPostDropDown.find(
     (option) => option.slug === postUser?.visibility
   );
-
   return (
     <div className="post-title">
       <div className="profile">

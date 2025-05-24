@@ -33,9 +33,9 @@ interface createPostInterFace {
   value: string;
 }
 export const createPostData: createPostInterFace[] = [
-  { icon: "Camera", tittle: "feelings & acitivity", value: "feeling" },
-  { icon: "MapPin", tittle: "check in", value: "place" },
-  { icon: "Tag", tittle: "tag friends", value: "friends" },
+  { icon: "Camera", tittle: "Cảm xúc & hoạt động", value: "feeling" },
+  { icon: "MapPin", tittle: "Địa điểm", value: "place" },
+  { icon: "Tag", tittle: "Gắn thẻ", value: "friends" },
 ];
 
 export const feelings = [
@@ -133,47 +133,47 @@ export const reactions = [
 
 
 export const feelingMap: Record<string, { emoji: string; title: string }> = {
-  happy: {
+  Happy: {
     emoji:
       "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f970.png",
     title: "Hạnh phúc",
   },
-  sad: {
+  Sad: {
     emoji:
       "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f61e.png",
     title: "Buồn",
   },
-  angry: {
+  Angry: {
     emoji:
       "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f621.png",
     title: "Tức giận",
   },
-  worried: {
+  Worried: {
     emoji:
       "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f616.png",
     title: "Lo lắng",
   },
-  shy: {
+  Shy: {
     emoji:
       "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f631.png",
     title: "Ngại ngùng",
   },
-  excited: {
+  Excited: {
     emoji:
       "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f606.png",
     title: "Phấn khích",
   },
-  surprised: {
+  Surprised: {
     emoji:
       "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f632.png",
     title: "Ngạc nhiên",
   },
-  silly: {
+  Silly: {
     emoji:
       "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f974.png",
     title: "Ngớ ngẩn",
   },
-  embarrassed: {
+  Embarrassed: {
     emoji:
       "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1fae3.png",
     title: "Xấu hổ",

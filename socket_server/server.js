@@ -23,20 +23,32 @@ const server = http.createServer(app);
 const userSocketMap = new Map();
 
 app.post("/notification", (req, res) => {
-  console.log("Received notification POST:", req.body);
-
+  console.log("Notification received:", req.body);
   const { userId, ...notificationData } = req.body;
 
-  const targetSocketId = userSocketMap.get(userId); 
+  const targetSocketId = userSocketMap.get(userId);
 
   if (targetSocketId) {
     io.to(targetSocketId).emit("notification", notificationData);
-    console.log("Sent notification to user:", userId);
-  } else {
-    console.log("User not online:", userId);
-  }
+  } 
 
   res.json({ message: "Notification sent" });
+});
+
+app.post("/notification-message", (req, res) => {
+  const { event, data } = req.body;
+
+  if (event === "new-message") {
+    const { message, receiver_id } = data;
+
+    const targetSocketId = userSocketMap.get(receiver_id);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit("unread_message_update", message);
+    }
+
+  }
+
+  res.sendStatus(200);
 });
 
 const io = socketIo(server, {
@@ -50,7 +62,6 @@ const io = socketIo(server, {
 });
 
 async function updateLastActive(userId, lastActive, token) {
-  console.log(lastActive);
   try {
     const res = await axios.post(
       "http://127.0.0.1:8000/api/user/update-last-active",
@@ -159,7 +170,7 @@ io.on("connection", (socket) => {
   const username = socket.user.username || "Anonymous";
   const now = new Date();
   const token = socket.handshake.auth.token;
-  userSocketMap.set(userId, socket.id); 
+  userSocketMap.set(userId, socket.id);
 
   function formatDateToMySQL(datetime) {
     const date = new Date(datetime);
@@ -273,7 +284,7 @@ io.on("connection", (socket) => {
           last_name: socket.user.last_name || "",
           last_active: now.toISOString(),
         },
-        client_temp_id: data.client_temp_id || null, 
+        client_temp_id: data.client_temp_id || null,
       };
 
       const allRooms = io.sockets.adapter.rooms;
@@ -287,6 +298,9 @@ io.on("connection", (socket) => {
         if (receiver) {
           io.to(receiver.socketId).emit("new_message", enrichedMessage);
         }
+        //  if (receiver) {
+        //   io.to(receiver.socketId).emit("unread_message_update", enrichedMessage);
+        // }
       }
     } catch (error) {
       console.error(

@@ -97,6 +97,7 @@ export interface MainCommentProps {
   isReplying: boolean;
   toggleReply: () => void;
   setIsReplying: (value: boolean) => void;
+  isHighlighted: boolean;
 }
 
 export interface Comment {
@@ -127,6 +128,7 @@ export interface SubCommentProps {
   isReplying: boolean;
   toggleReply: () => void;
   setIsReplying: (value: boolean) => void;
+  isHighlighted: boolean;
 }
 
 export interface GalleryModalInterFace {

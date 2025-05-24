@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\Image;
+use App\Events\MessageSent;
 
 class MessengerController extends Controller
 {
@@ -59,6 +60,13 @@ class MessengerController extends Controller
         }
 
         $message->save();
+         $conversation->update([
+                'last_message_id' => $message->id,
+                'updated_at' => now()
+            ]);
+
+        event(new MessageSent($message));
+
         Auth::user()->markConversationAsRead($conversation);
 
         // Trả về message

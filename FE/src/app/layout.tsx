@@ -7,7 +7,7 @@ import { getServerSession } from "next-auth";
 import { authoption } from "./api/auth/[...nextauth]/authOption";
 import SessionWrapper from "@/Common/SessionWrapper";
 import ErrorBoundary from "@/Common/ErrorBoundry";
-import { redirect } from "next/navigation";
+import PostModalWrapper from "@/components/Post/PostModalWrapper"; 
 
 export const metadata: Metadata = {
   title: "Sep21Connect",
@@ -43,7 +43,10 @@ export default async function RootLayout({
       <body>
         <ErrorBoundary>
           <SessionWrapper session={session}>
-            <Providers>{children}</Providers>
+            <Providers>
+              {children}
+              <PostModalWrapper />
+            </Providers>
             <ToastContainer />
           </SessionWrapper>
         </ErrorBoundary>

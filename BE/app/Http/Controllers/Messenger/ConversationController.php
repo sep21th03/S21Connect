@@ -14,6 +14,24 @@ use Illuminate\Support\Str;
 
 class ConversationController extends Controller
 {
+    public function new_message_count()
+    {
+        $user = Auth::user();
+        $userId = $user->id;
+
+        $conversations = $user->conversations()
+            ->withCount(['unreadMessages' => function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                    ->where('is_read', false);
+            }])
+            ->get();
+
+        $unreadCount = $conversations->sum('unread_messages_count');
+        return response()->json([
+            'unread_count' => $unreadCount,
+        ]);
+    }
+
     /**
      * Get all conversations for the current user
      */
@@ -22,7 +40,6 @@ class ConversationController extends Controller
         $user = Auth::user();
         $userId = $user->id;
 
-        // Tối ưu truy vấn ban đầu: Lấy tất cả dữ liệu cần thiết trong một truy vấn với eager loading
         $conversations = $user->conversations()
             ->with([
                 'latestMessage',

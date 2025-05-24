@@ -4,35 +4,9 @@ namespace App\Services;
 
 use App\Models\Post;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Share;
-use App\Models\Report;
 
 class PostService
 {
-    public function public_post()
-    {
-        $posts = Post::where('visibility', 'public')
-            ->orWhere('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->with('user')
-            ->get()
-            ->map(function ($post) {
-                $images = !empty($post->images) ? explode('|', $post->images) : [];
-                $videos = !empty($post->videos) ? explode('|', $post->videos) : [];
-
-                $imageCount = count($images);
-                $videoCount = count($videos);
-
-                if (isset($post->user)) {
-                    $user = $post->user;
-                    unset($user->gender, $user->birthday, $user->email, $user->email_verified_at, $user->phone, $user->phone_verified_at, $user->bio, $user->remember_token, $user->created_at, $user->updated_at, $user->is_admin, $user->status, $user->cover_photo, $user->last_active);
-                    $post->user = $user;
-                }
-                return $post;
-            });
-
-        return response()->json($posts);
-    }
 
     public function getFriendPost(string $user_id, $page = 1, $limit = 10)
     {

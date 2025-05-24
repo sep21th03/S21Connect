@@ -8,7 +8,9 @@ use App\Http\Requests\User\Post\StorePostRequest;
 use App\Http\Requests\User\Post\UpdatePostRequest;
 use Illuminate\Http\Request;
 use App\Models\Post;
+use App\Models\Notification;
 use App\Models\Friendship;
+use App\Models\Comment;
 
 class PostController extends Controller
 {
@@ -18,12 +20,6 @@ class PostController extends Controller
     public function __construct(PostService $postService)
     {
         $this->postService = $postService;
-    }
-
-    public function public_post()
-    {
-        $posts = $this->postService->public_post();
-        return response()->json($posts);
     }
 
     public function getFriendPost(Request $request)
@@ -64,6 +60,101 @@ class PostController extends Controller
         $this->postService->store($request->validated());
         return response()->json(['message' => 'Tạo bài viết thành công']);
     }
+
+    /**
+     * Display the specified resource.
+     */
+
+    public function show($postId, Request $request)
+    {
+        $commentId = $request->query('comment_id');
+        $replyCommentId = $request->query('reply_comment_id');
+        $reactionId = $request->query('reaction_id');
+        $notifId = $request->query('notification_id');
+
+        $post = Post::with([
+            'user:id,username,first_name,last_name,avatar',
+            'reactions'
+        ])
+            ->withCount(['comments', 'shares'])
+            ->findOrFail($postId);
+
+        if ($notifId && auth()->check()) {
+            Notification::where('id', $notifId)
+                ->where('user_id', auth()->id())
+                ->update(['is_read' => true]);
+        }
+
+        $user_tag = $post->taggedFriends()
+            ->select('users.id', 'username', 'first_name', 'last_name', 'avatar')
+            ->get();
+
+        if ($user_tag) {
+            $user_tag->each(function ($user) {
+                unset(
+                    $user->gender,
+                    $user->birthday,
+                    $user->email,
+                    $user->email_verified_at,
+                    $user->phone,
+                    $user->phone_verified_at,
+                    $user->bio,
+                    $user->remember_token,
+                    $user->created_at,
+                    $user->updated_at,
+                    $user->is_admin,
+                    $user->status,
+                    $user->cover_photo,
+                    $user->last_active
+                );
+            });
+            $post->taggedFriends = $user_tag;
+        }
+
+        $post->total_reactions = $post->reactions->count();
+        $post->reaction_counts = $post->reactions
+            ->groupBy('type')
+            ->map->count();
+
+        $post->total_comments = $post->comments_count;
+        $post->total_shares = $post->shares_count;
+
+        unset(
+            $post->reactions,
+            $post->comments_count,
+            $post->shares_count,
+            $post->comments,
+            $post->shares
+        );
+
+        if ($post->user) {
+            unset(
+                $post->user->gender,
+                $post->user->birthday,
+                $post->user->email,
+                $post->user->email_verified_at,
+                $post->user->phone,
+                $post->user->phone_verified_at,
+                $post->user->bio,
+                $post->user->remember_token,
+                $post->user->created_at,
+                $post->user->updated_at,
+                $post->user->is_admin,
+                $post->user->status,
+                $post->user->cover_photo,
+                $post->user->last_active
+            );
+        }
+        
+        return response()->json([
+            'post' => $post,
+            'highlight_comment_id' => $commentId,
+            'highlight_reply_comment_id' => $replyCommentId,
+            'highlight_reaction_id' => $reactionId,
+        ]);
+    }
+
+
     /**
      * Remove the specified resource from storage.
      */
@@ -136,7 +227,7 @@ class PostController extends Controller
 
         $nextCursor = $posts->last() ? $posts->last()->created_at->toIso8601String() : null;
 
-        $posts = $posts->map(function ($post) use ($user) {
+        $posts = $posts->map(function ($post) use ($user, $friendIds) {
             if ($post->taggedFriends) {
                 $post->taggedFriends->makeHidden([
                     'gender',
@@ -191,6 +282,26 @@ class PostController extends Controller
                 $post->comments,
                 $post->shares
             );
+
+            $previewComment = $post->comments()
+                ->with(['user:id,username,first_name,last_name,avatar'])
+                ->whereNull('parent_id')
+                ->whereIn('user_id', $friendIds)
+                ->orderByDesc('likes_count')
+                ->orderByDesc('created_at')
+                ->first();
+
+            if ($previewComment && $previewComment->user) {
+                $previewComment->user->makeHidden([
+                    'email',
+                    'phone',
+                    'bio',
+                    'created_at',
+                    'updated_at'
+                ]);
+            }
+
+            $post->preview_comment = $previewComment;
 
             return $post;
         });

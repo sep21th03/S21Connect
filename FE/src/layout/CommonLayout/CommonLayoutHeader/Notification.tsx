@@ -10,37 +10,16 @@ import { NotificationType } from "@/layout/LayoutTypes";
 import { useSocket, Notification as NotificationData } from "@/hooks/useSocket";
 import { Spinner } from "reactstrap";
 
-const Notification: React.FC = () => {
+const Notification: React.FC<{notificationList: NotificationType[], setNotificationList: (notificationList: NotificationType[]) => void}> = ({notificationList, setNotificationList}) => {
   const { isComponentVisible, ref, setIsComponentVisible } =
     useOutsideDropdown(false);
-  const [notificationList, setNotificationList] = useState<NotificationType[]>(
-    []
-  );
   const [shouldMarkRead, setShouldMarkRead] = useState(false);
   const [wasOpen, setWasOpen] = useState(false);
-  const FriendRequestMemo = React.memo(FriendRequest);
-  const NotificationListsMemo = React.memo(NotificationLists);
+  // const FriendRequestMemo = React.memo(FriendRequest);
+  // const NotificationListsMemo = React.memo(NotificationLists);
   const [hasFetched, setHasFetched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  useSocket(
-    (users) => {
-      // console.log("Online users updated:", users);
-    },
-    (notificationData: NotificationData) => {
-      setNotificationList((prev: NotificationType[]) => {
-        if (
-          prev.some(
-            (notification: NotificationType) =>
-              notification.id === notificationData.id
-          )
-        ) {
-          return prev;
-        }
-        return [notificationData, ...prev];
-      });
-    }
-  );
 
   useEffect(() => {
     if (isComponentVisible && !hasFetched) {
@@ -60,16 +39,13 @@ const Notification: React.FC = () => {
       };
       fetchNotificationList();
     }
-    // }, []);
-
-    // useEffect(() => {
     if (!isComponentVisible && wasOpen && shouldMarkRead) {
       const markAllAsRead = async () => {
         try {
           await axiosInstance.post(
             API_ENDPOINTS.NOTIFICATIONS.MARK_ALL_AS_READ
           );
-          setNotificationList((prev) =>
+          setNotificationList((prev: NotificationType[]) =>
             prev.map((n) => ({ ...n, is_read: true }))
           );
         } catch (error) {
@@ -85,7 +61,7 @@ const Notification: React.FC = () => {
     }
     setWasOpen(isComponentVisible);
   }, [isComponentVisible, hasFetched]);
-
+// console.log(notificationList);
   const unreadNotificationCount = notificationList.filter(
     (n) => !n.is_read
   ).length;
@@ -132,13 +108,13 @@ const Notification: React.FC = () => {
                 {notificationList
                   .filter((n) => n.type === "friend_request")
                   .map((notification) => (
-                    <FriendRequestMemo
+                    <FriendRequest
                       key={notification.id}
                       notification={notification}
                       setShowNotification={setIsComponentVisible}
                     />
                   ))}
-                <NotificationListsMemo
+                <NotificationLists
                   setShowNotification={setIsComponentVisible}
                   notification={notificationList.filter(
                     (n) => n.type !== "friend_request"

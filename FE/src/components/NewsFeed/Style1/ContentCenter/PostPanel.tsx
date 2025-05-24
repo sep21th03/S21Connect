@@ -8,18 +8,26 @@ import SufiyaElizaFirstPost from './SufiyaElizaFirstPost';
 import SufiyaElizaSecondPost from './SufiyaElizaSecondPost';
 import SufiyaElizaThirdPost from './SufiyaElizaThirdPost';
 import SufiyaElizaMultiplePost from '@/components/NewsFeed/Style3/ContentCenter/SufiyaElizaMultiplePost';
-import FriendSuggestion from './FriendSuggestion';
+// import FriendSuggestion from './FriendSuggestion';
 import { PulseLoader } from 'react-spinners';
+import dynamic from 'next/dynamic';
+import { useInView } from "react-intersection-observer";
+const FriendSuggestion = dynamic(
+  () => import("./FriendSuggestion"),
+  { ssr: false }
+);
 
 const PostPanel: React.FC = () => {
-  const { data: session } = useSession();
   const [showFriendSuggestion, setShowFriendSuggestion] = useState(true);
-  
+
   const refreshRef = useRef<HTMLDivElement>(null);
   const [refreshStartY, setRefreshStartY] = useState<number | null>(null);
   const [refreshDist, setRefreshDist] = useState(0);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
-
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,    
+  });
   const fetchPosts = useCallback(async (cursor?: string) => {
     try {
       const response = await axiosInstance.get(
@@ -102,14 +110,14 @@ const PostPanel: React.FC = () => {
   const renderPost = (post: Post) => {
     switch (post.type) {
       case 'first':
-        return <SufiyaElizaFirstPost key={post.id} post={post} />;
+        return <SufiyaElizaFirstPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />;
       case 'multiple':
-        return <SufiyaElizaMultiplePost key={post.id} post={post} />;
+        return <SufiyaElizaMultiplePost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />;
       case 'third':
-        return <SufiyaElizaThirdPost key={post.id} post={post} />;
+        return <SufiyaElizaThirdPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />;
       case 'second':
       default:
-        return <SufiyaElizaSecondPost key={post.id} post={post} />;
+        return <SufiyaElizaSecondPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />;
     }
   };
 
@@ -126,7 +134,7 @@ const PostPanel: React.FC = () => {
               <PulseLoader size={10} color="#1877F2" />
             ) : (
               <div className="pull-text">
-                {refreshDist > 50 ? 'Release to refresh' : 'Pull to refresh'}
+                {refreshDist > 50 ? 'Thả để tải lại' : 'Kéo xuống để tải lại'}
               </div>
             )}
           </div>
@@ -137,7 +145,7 @@ const PostPanel: React.FC = () => {
         {initialLoading && (
           <div className="initial-loading text-center my-4 py-4">
             <PulseLoader size={12} color="#1877F2" />
-            <p className="mt-2">Loading your feed...</p>
+            <p className="mt-2">Đang tải bảng tin...</p>
           </div>
         )}
         
@@ -146,7 +154,9 @@ const PostPanel: React.FC = () => {
             return (
               <React.Fragment key={`fragment-${post.id}`}>
                 {renderPost(post)}
-                <FriendSuggestion />
+                <div ref={ref} className="d-xl-block d-none">
+                  {inView && <FriendSuggestion />}
+                </div>
               </React.Fragment>
             );
           }
@@ -166,21 +176,21 @@ const PostPanel: React.FC = () => {
               className="btn btn-sm btn-outline-primary" 
               onClick={() => refresh()}
             >
-              Try Again
+              Thử lại
             </button>
           </div>
         )}
         
         {!loading && !hasMore && posts.length > 0 && (
           <div className="end-of-feed text-center my-4 text-muted py-3">
-            <p>You've reached the end of your feed</p>
+            <p>Bảng tin đã hết</p>
           </div>
         )}
         
         {!initialLoading && !loading && posts.length === 0 && (
           <div className="empty-feed text-center my-4 py-4">
-            <h5>No posts to display</h5>
-            <p>Follow more friends to see their updates</p>
+            <h5>Không có bảng tin nào để hiển thị</h5>
+            <p>Theo dõi thêm bạn bè để xem cập nhật của họ</p>
           </div>
         )}
       </div>

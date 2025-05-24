@@ -1,7 +1,5 @@
 import { FC, useEffect, useState } from "react";
 import FriendSuggestionHeader from "./FriendSuggestionHeader";
-import { ActiveNow, ImagePath } from "../../../../utils/constant";
-import { friendSuggestionSlider } from "@/Data/NewsFeed";
 import { FriendSuggestionInterFace } from "../Style1Types";
 import Slider from "react-slick";
 import { friendSuggestionSliderOption } from "@/Data/SliderOptions";

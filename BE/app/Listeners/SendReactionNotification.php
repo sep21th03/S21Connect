@@ -30,15 +30,16 @@ class SendReactionNotification
         if ($postOwner->id === $event->reactor->id) {
             return;
         }
-
+        $notificationId = (string) Str::uuid();
         $notification = Notification::create([
-            'id' => (string) Str::uuid(),
+            'id' => $notificationId,
             'user_id' => $postOwner->id,
             'type' => 'reaction',
             'from_user_id' => $event->reactor->id,
             'content' => "{$event->reactor->name} thả cảm xúc {$event->reactionType} vào bài viết của bạn",
-            'link' => "{$event->post->id}",
+            'link' => "{$postOwner->username}/posts/{$event->post->id}?modal=true&reaction_id={$event->reaction->id}&notification_id={$notificationId}",
             'is_read' => false,
+            'post_id' => $event->post->id,
         ]);
 
 
@@ -55,7 +56,8 @@ class SendReactionNotification
                 'id' => $event->reactor->id,
                 'name' => $event->reactor->first_name . ' ' . $event->reactor->last_name,
                 'avatar' => $event->reactor->avatar, 
-            ]
+            ],
+            'post_id' => $event->post->id,
         ]);
     }
 }

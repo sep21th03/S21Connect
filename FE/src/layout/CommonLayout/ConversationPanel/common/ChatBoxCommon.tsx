@@ -266,6 +266,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({ setChatBox, data, handleMes
         receiver_id: data.other_user.id,
         type: "text" as const,
         conversation_id: data.id,
+        client_temp_id: tempId
       });
 
       if (success) {

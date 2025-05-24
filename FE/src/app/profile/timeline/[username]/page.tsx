@@ -197,45 +197,45 @@ const ProfileTimeLine = () => {
                     switch (post.type) {
                       case "first":
                         return (
-                          <SufiyaElizaFirstPost key={post.id} post={post} />
+                          <SufiyaElizaFirstPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />
                         );
                       case "multiple":
                         return (
-                          <SufiyaElizaMultiplePost key={post.id} post={post} />
+                          <SufiyaElizaMultiplePost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />
                         );
                       case "third":
                         return (
-                          <SufiyaElizaThirdPost key={post.id} post={post} />
+                          <SufiyaElizaThirdPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />
                         );
                       case "second":
                       default:
                         return (
-                          <SufiyaElizaSecondPost key={post.id} post={post} />
+                          <SufiyaElizaSecondPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />
                         );
                     }
                   })
                 ) : (
                   <div className="no-posts-message text-center p-4">
-                    <h5>No posts to display</h5>
+                    <h5>Không có bảng tin nào để hiển thị</h5>
                     {isOwnProfile && (
-                      <p>Create your first post to get started!</p>
+                      <p>Tạo bảng tin đầu tiên để bắt đầu!</p>
                     )}
                   </div>
                 )
               ) : (
                 <div className="privacy-message text-center p-4">
-                  <h5>Content not available</h5>
+                  <h5>Nội dung không khả dụng</h5>
                   {friendshipStatus === "pending_sent" && (
                     <p>
-                      Friend request sent. Content will be available once
-                      accepted.
+                      Lời mời kết bạn đã được gửi. Nội dung sẽ khả dụng khi
+                      được chấp nhận.
                     </p>
                   )}
                   {friendshipStatus === "pending_received" && (
-                    <p>You have a pending friend request from this user.</p>
+                    <p>Bạn có một yêu cầu kết bạn đang chờ xác nhận từ người dùng này.</p>
                   )}
                   {friendshipStatus === "none" && (
-                    <p>This content is only visible to friends.</p>
+                    <p>Nội dung này chỉ được hiển thị cho bạn bè.</p>
                   )}
                 </div>
               )}
@@ -246,26 +246,25 @@ const ProfileTimeLine = () => {
                     className="spinner-border spinner-border-sm text-primary"
                     role="status"
                   >
-                    <span className="visually-hidden">Loading more...</span>
+                    <span className="visually-hidden">Đang tải thêm...</span>
                   </div>
                 </div>
               )}
 
               {postError && (
                 <div className="alert alert-danger text-center mt-3">
-                  Error loading posts. Please try again.
+                  Lỗi tải bảng tin. Vui lòng thử lại.
                 </div>
               )}
 
               {!hasMore && posts.length > 0 && (
                 <div className="text-center text-muted p-3">
-                  <small>No more posts to load</small>
+                  <small>Không có bảng tin nào để tải thêm</small>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Right Sidebar */}
           <div className="content-right d-xl-block d-none">
             <CollegeMeetCard />
             <Gallery />

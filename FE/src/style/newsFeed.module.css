@@ -1,0 +1,157 @@
+.uploadInputWrapper {
+    border: 2px dashed #ccc;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background-color: #ffffff;
+    transition: border 0.3s;
+    position: relative;
+  }
+  
+  .uploadInputWrapper:hover {
+    border-color: #999;
+  }
+  
+  .dropzoneContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  body.dark .dropzoneContent {
+    color: #ffffff;
+  }
+  .dropzoneContent .icon {
+    width: 32px;
+    height: 32px;
+    color: #888;
+  }
+  
+  .uploadingIndicator {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 12px;
+    color: #666;
+  }
+  
+
+  .selectedImagesPreview {
+    margin-top: 1rem;
+    position: relative;
+  }
+  
+  .imagesGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  
+  .previewImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+  
+  .removeImageBtn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: background-color 0.2s ease;
+    z-index: 10;
+  }
+  
+  .removeImageBtn:hover {
+    background-color: rgba(255, 0, 0, 0.7);
+  }
+  
+
+  .imagePreviewGrid {
+    display: grid;
+    gap: 4px;
+  }
+  
+  .grid1 {
+    grid-template-areas: "a";
+    grid-template-columns: 1fr;
+    grid-template-rows: 200px;
+  }
+  
+  .grid2 {
+    grid-template-areas: "a b";
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 200px;
+  }
+  
+  .grid3 {
+    grid-template-areas:
+      "a a"
+      "b c";
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 100px 100px;
+  }
+  
+  .grid4,
+  .grid5plus {
+    grid-template-areas:
+      "a b"
+      "c d";
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 100px 100px;
+  }
+  .a {
+    grid-area: a;
+  }
+  .b {
+    grid-area: b;
+  }
+  .c {
+    grid-area: c;
+  }
+  .d {
+    grid-area: d;
+  }
+  .e {
+    grid-area: d; /* vẫn là d vì overlay ảnh thứ 5 đè lên ảnh d */
+  }
+  .imageItem {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: relative;
+  }
+  .imageItem img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  
+  .imageOverlay {
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+  }
+  

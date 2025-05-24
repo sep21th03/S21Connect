@@ -23,6 +23,7 @@ class Notification extends Model
         'is_read',
         'created_at',
         'from_user_id',
+        'post_id',
     ];
 
     public function user()
