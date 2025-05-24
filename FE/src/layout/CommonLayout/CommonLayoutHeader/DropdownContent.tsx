@@ -24,15 +24,15 @@ interface Friend {
 const DropdownContent: FC = () => {
   const [friendList, setFriendList] = useState<Friend[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const fetchFriendList = async () => {
+    setIsLoading(true);
+    const response = await axiosInstance.get(
+      API_ENDPOINTS.FRIENDS.FRIEND_REQUEST
+    );
+    setFriendList(response.data.data);
+    setIsLoading(false);
+  };
   useEffect(() => {
-    const fetchFriendList = async () => {
-      setIsLoading(true);
-      const response = await axiosInstance.get(
-        API_ENDPOINTS.FRIENDS.FRIEND_REQUEST
-      );
-      setFriendList(response.data.data);
-      setIsLoading(false);
-    };
     fetchFriendList();
   }, []);
   const handleConfirm = async () => {
@@ -44,6 +44,7 @@ const DropdownContent: FC = () => {
         friend_id: friendList[0].id,
       }
     );
+    setFriendList(friendList.filter((friend) => friend.id !== friendList[0].id));
     setIsLoading(false);
   };
   return (

@@ -26,7 +26,7 @@ class Story extends Model
 
     public function items()
     {
-        return $this->hasMany(StoryItem::class);
+        return $this->hasMany(StoryItem::class)->orderBy('created_at', 'asc');
     }
 
     public function user()

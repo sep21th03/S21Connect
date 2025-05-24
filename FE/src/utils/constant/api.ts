@@ -58,6 +58,12 @@ export const API_ENDPOINTS = {
     },
   },
 
+  STORIES: {
+    CREATE: "/stories/create",
+    GET_STORIES: "/stories",
+    MARK_AS_SEEN: "/stories/mark-as-seen",
+  },
+
   PROFILE: {
     BASE: "/profile",
     MY_PROFILE: {

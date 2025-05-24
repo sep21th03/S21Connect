@@ -161,11 +161,9 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
 
     //story
     Route::prefix('stories')->group(function () {
+        Route::get('/', [StoryController::class, 'index']);
         Route::post('/create', [StoryController::class, 'store']);
-        Route::get('/{id}', [StoryController::class, 'show']);
-        Route::get('/user/{userId}', [StoryController::class, 'getUserStories']);
-        Route::delete('/{id}', [StoryController::class, 'destroy']);
-        Route::get('/recent', [StoryController::class, 'getRecentStories']);
+        Route::post('/mark-as-seen', [StoryController::class, 'markAsSeen']);
     });
 
     //messenger

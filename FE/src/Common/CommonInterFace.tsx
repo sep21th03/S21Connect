@@ -9,13 +9,65 @@ export interface FeatherIconType {
 
 export interface SvgIconCommonInterFace {
   className?: string;
-  useClassName?:string
+  useClassName?: string;
   iconName: String;
 }
 
 export interface StoriesModalProps {
   showModal: boolean;
   toggle: () => void;
+  initialUserIndex: string | undefined;
+}
+
+export interface Story {
+  id: string;
+  user_id: string;
+  expires_at: string;
+  items: StoryItem[];
+  user: StoryUser;
+  is_mine: boolean;
+  created_at: string;
+}
+interface StoriesResponse {
+  stories: Story[];
+}
+interface StoryUser {
+  id: string;
+  username: string;
+  avatar: string;
+  first_name: string;
+  last_name: string;
+}
+export interface StoryItem {
+  id: string;
+  story_id: string;
+  type: StoryItemType;
+  file_url: string | null;
+  text: string | null;
+  text_position: TextPosition | null;
+  text_style: TextStyle | null;
+  color: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  is_seen: boolean;
+}
+
+type StoryItemType =
+  | "image"
+  | "video"
+  | "text"
+  | "image_with_text"
+  | "video_with_text";
+
+interface TextStyle {
+  color?: string;
+  fontSize?: number;
+  fontWeight?: string;
+}
+
+interface TextPosition {
+  top: number;
+  left: number;
 }
 
 export interface CreatePostHeaderInterFace {
@@ -30,8 +82,8 @@ export interface CreatePostHeaderInterFace {
 }
 
 export interface CommonUserHeadingProps {
-  id:string
-  postUser: any
+  id: string;
+  postUser: any;
   onPostUpdated: (updatedPost: Post) => void;
   onPostDeleted: () => void;
 }
@@ -39,7 +91,7 @@ export interface CommonUserHeadingProps {
 export interface DetailBoxProps {
   heading: string;
   span: string;
-  post: Post
+  post: Post;
 }
 
 export interface CommentSectionInterFace {
@@ -88,7 +140,7 @@ export interface OptionsInputsInterFace {
 export interface MainCommentProps {
   comment: Comment;
   like?: number;
-  id:string
+  id: string;
   onReply: (commentId: number, content: string) => void;
   onDelete: () => void;
   onReplyClick: (username: string, commentId: number) => void;
@@ -117,12 +169,10 @@ export interface Comment {
   };
 }
 
-
-
 export interface SubCommentProps {
   image: number;
-  id:string
-  comment: Comment
+  id: string;
+  comment: Comment;
   onDelete: () => void;
   onReplyClick: (name: string, commentId: number) => void;
   isReplying: boolean;
@@ -148,7 +198,17 @@ export interface CoverInterFace {
 }
 
 export interface menuList {
-  icon: "Edit"| "Settings"| "Play"| "Heart"| "User"| "Search"| "Bookmark"| "XSquare"| "XOctagon" |"MessageSquare";
+  icon:
+    | "Edit"
+    | "Settings"
+    | "Play"
+    | "Heart"
+    | "User"
+    | "Search"
+    | "Bookmark"
+    | "XSquare"
+    | "XOctagon"
+    | "MessageSquare";
   title: string;
 }
 export interface CommonDropDownInterFace {
@@ -158,8 +218,8 @@ export interface CommonDropDownInterFace {
 }
 export interface AlbumInterFace {
   showPhotos: boolean;
-  lg?:number
-  xl?:number
+  lg?: number;
+  xl?: number;
   setShowPhotos: (value: boolean) => void;
   userid: string;
 }

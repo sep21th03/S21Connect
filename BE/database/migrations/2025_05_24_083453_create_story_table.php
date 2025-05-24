@@ -21,11 +21,13 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('story_id')->constrained('stories')->onDelete('cascade');
             $table->enum('type', ['image', 'video', 'text', 'image_with_text', 'video_with_text']);
-            $table->string('file_url')->nullable(); 
-            $table->text('text')->nullable(); 
+            $table->string('file_url')->nullable();
+            $table->text('text')->nullable();
             $table->json('text_position')->nullable();
-            $table->json('text_style')->nullable(); 
-            $table->string('background')->nullable(); 
+            $table->json('text_style')->nullable();
+            $table->string('color')->nullable();
+            $table->float('duration')->default(5);
+            $table->boolean('is_seen')->default(false);
             $table->timestamps();
         });
     }
