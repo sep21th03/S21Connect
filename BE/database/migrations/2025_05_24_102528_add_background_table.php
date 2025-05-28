@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('story_items', function (Blueprint $table) {
-            $table->unsignedBigInteger('background_id')->nullable();
-            $table->foreign('background_id')->references('id')->on('backgrounds')->nullOnDelete();
+            $table->string('background')->nullable();
         });
     }
 

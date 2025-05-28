@@ -15,10 +15,16 @@ class StoryService
     public function createStory(string $userId, array $items): Story
     {
         return DB::transaction(function () use ($userId, $items) {
-            $story = Story::create([
-                'user_id' => $userId,
-                'expires_at' => Carbon::now()->addDay(),
-            ]);
+            $story = Story::where('user_id', $userId)
+                ->where('expires_at', '>', now())
+                ->latest('expires_at')
+                ->first();
+            if (!$story) {
+                $story = Story::create([
+                    'user_id' => $userId,
+                    'expires_at' => now()->addDay(),
+                ]);
+            }
 
             foreach ($items as $itemData) {
                 $story->items()->create([
@@ -104,6 +110,7 @@ class StoryService
                         'duration' => $item->duration,
                         'created_at' => $item->created_at,
                         'is_seen' => $item->is_seen,
+                        'background' => $item->background,
                     ]),
                 ];
             })

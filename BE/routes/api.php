@@ -24,6 +24,7 @@ use App\Http\Controllers\Pay\UserBillController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Admin\AdminStatsController;
 use App\Http\Controllers\Story\StoryController;
+use App\Http\Controllers\Image\CloudinaryController;
 
 
 
@@ -222,4 +223,6 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::post('/{type}/{id}', [ReportController::class, 'report']);
         Route::get('/get-reasons/{type}', [ReportController::class, 'getReasons']);
     });
+
+    Route::post('/cloudinary/upload', [CloudinaryController::class, 'upload']);
 });

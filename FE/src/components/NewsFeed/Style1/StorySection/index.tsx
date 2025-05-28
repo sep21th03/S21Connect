@@ -21,7 +21,6 @@ const StorySection: FC<StorySectionProps> = ({ storyShow = 8 }) => {
       setStories(sortedStories);
     });
   }, []);
-  console.log(stories);
   return (
     <div className="story-section ratio_115">
       <Slider

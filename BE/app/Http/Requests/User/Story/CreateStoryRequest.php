@@ -14,7 +14,6 @@ class CreateStoryRequest extends FormRequest
     public function rules()
     {
         return [
-            'expires_at' => 'required|date|after:now',
             'items' => 'required|array|min:1',
             'items.*.type' => 'required|in:image,video,text,image_with_text,video_with_text',
             'items.*.file_url' => 'nullable|string',
@@ -22,6 +21,7 @@ class CreateStoryRequest extends FormRequest
             'items.*.text_position' => 'nullable|array',
             'items.*.text_style' => 'nullable|array',
             'items.*.background' => 'nullable|string',
+            'items.*.duration' => 'nullable|numeric|min:0|max:20',
         ];
     }
 }

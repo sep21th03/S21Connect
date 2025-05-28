@@ -49,6 +49,7 @@ export interface StoryItem {
   color: string | null;
   created_at: string | null;
   updated_at: string | null;
+  background: string | null;
   is_seen: boolean;
 }
 

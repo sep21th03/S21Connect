@@ -1,4 +1,5 @@
 // src/services/weatherService.ts
+import axios from "axios";
 
 export interface WeatherData {
     temp: string;
@@ -45,3 +46,17 @@ export interface WeatherData {
     };
   };
   
+
+  const JAMENDO_CLIENT_ID = "95cc4091"; 
+
+export const searchTracks = async (query: string) => {
+  const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=json&limit=10&search=${query}&audioformat=mp31`;
+
+  try {
+    const response = await axios.get(url);
+    return response.data.results;
+  } catch (error) {
+    console.error("Lỗi khi lấy track từ Jamendo:", error);
+    return [];
+  }
+};

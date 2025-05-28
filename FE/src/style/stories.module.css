@@ -98,19 +98,133 @@
     font-size: 12px;
 }
 
-.sliderContainer{
+.slider_Container{
     position: relative;
     height: 100vh;
     background-color: #000;
 }
 
 
-.prevButton{
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 30%;
-    height: 100%;
-    cursor: pointer;
-    z-index: 100;
+
+:global(.slider_Container) .rightClickArea {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 70% !important;
+  height: 100% !important;
+  cursor: pointer;
+  z-index: 100;
+}
+
+:global(.slider_Container) .leftClickArea {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 30% !important;
+  height: 100% !important;
+  cursor: pointer;
+  z-index: 100;
+}
+
+
+
+.storyPreview{
+  height: 100vh;
+  background-color: #1c1c1d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+.cardPreview{
+  padding: 10px 20px;
+  background-color: #18191a;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, .2);
+}
+
+
+.cardPreviewHeader{
+  height: 100%;
+}
+
+.cardPreviewTitle{
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.story_Preview{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text_story_preview{
+  width: 500px;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: black;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  word-wrap: break-word;
+  background-color: rgba(0,0,0,0.3);
+  color: black;
+}
+
+.text_story_preview_position{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  color: black;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  word-wrap: break-word;
+  background-color: rgba(0,0,0,0.3);
+  color: black;
+}
+
+.add_text_to_image {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding: 10px;
+}
+
+.add_text_to_image::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  border: 1px solid #000000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.add_text_to_image:hover::after {
+  opacity: 1;
+}
+
+.image_story_preview{
+  width: 500px;
+  height: 500px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
 }

@@ -143,5 +143,9 @@ export const API_ENDPOINTS = {
     GET_STATS: "/admin/get-stats",
     REPORTS: "/admin/get-report-all",
   },
+
+  CLOUDINARY: {
+    UPLOAD: "/cloudinary/upload",
+  },
 };
 
