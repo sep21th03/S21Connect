@@ -6,42 +6,67 @@ use App\Models\Share;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use App\Models\Post;
+use App\Models\ActivityLog;
+use Illuminate\Support\Str;
 
 class ShareController extends Controller
 {
     public function share(Request $request)
     {
-        $request->validate([
-            'post_id' => 'required|exists:posts,id',
-            'message' => 'nullable|string',
-            'visibility' => 'nullable|in:public,friends,only_me',
+        $user = auth()->user();
+        $postIdToShare = $request->input('post_id');
+        $content = $request->input('content', '');
+        $visibility = $request->input('visibility', 'public');
+
+        $postToShare = Post::findOrFail($postIdToShare);
+
+        Share::create([
+            'user_id' => $user->id,
+            'post_id' => $postToShare->id,
+            'content' => $content,
         ]);
 
-        $share = Share::create([
+        $newPost = Post::create([
+            'user_id' => $user->id,
+            'original_post_id' => $postToShare->id,
+            'content' => $content,
+            'visibility' => $visibility,
+            'post_format' => 'shared',
+        ]);
+
+        ActivityLog::create([
+            'id' => Str::uuid(),
             'user_id' => Auth::id(),
-            'post_id' => $request->post_id,
-            'message' => $request->message,
-            'visibility' => $request->visibility,
+            'action' => 'shared_post',
+            'target_type' => Post::class,
+            'target_id' => $postToShare->id,
+            'metadata' => [
+                'content' => "Bạn đã chia sẻ bài viết của",
+                'shared_post_id' => $newPost->id,
+            ],
         ]);
-
         return response()->json([
-            'success' => true,
-            'message' => 'Post shared successfully.',
-            'data' => $share,
+            'message' => 'Chia sẻ bài viết thành công',
+            'post' => $newPost
         ]);
     }
 
     public function getSharesByPost($postId)
     {
-        $shares = Share::where('post_id', $postId)
-            ->with(['user:id,username,first_name,last_name,avatar'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // $shares = Share::where('post_id', $postId)
+        //     ->with(['user:id,username,first_name,last_name,avatar'])
+        //     ->orderBy('created_at', 'desc')
+        //     ->get();
 
-        return response()->json([
-            'shares' => $shares,
-            'total' => $shares->count(),
-        ]);
+        // return response()->json([
+        //     'shares' => $shares,
+        //     'total' => $shares->count(),
+        // ]);
+        if (!$postId) {
+            return response()->json(['message' => 'Post ID is required'], 400);
+        }
+        return Post::findOrFail($postId);
     }
 
     public function getMySharedPosts()

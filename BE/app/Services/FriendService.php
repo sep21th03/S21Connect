@@ -3,12 +3,12 @@
 namespace App\Services;
 
 use App\Models\Friendship;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\ActivityLog;
 
 class FriendService
 {
@@ -25,6 +25,17 @@ class FriendService
             'user_id' => $userId,
             'friend_id' => $friendId,
             'status' => 'pending'
+        ]);
+
+        ActivityLog::create([
+            'id' => Str::uuid(),
+            'user_id' => Auth::id(),
+            'action' => 'commented_post',
+            'target_type' => \App\Models\User::class,
+            'target_id' => $friendId,
+            'metadata' => [
+                'content' => 'Bạn đã gửi lời mời kết bạn cho '
+            ]
         ]);
 
         return ['message' => 'Đã gửi lời mời kết bạn'];
@@ -76,6 +87,16 @@ class FriendService
             $query->where('user_id', $friendId)->where('friend_id', $userId);
         })->delete();
 
+        ActivityLog::create([
+            'id' => Str::uuid(),
+            'user_id' => Auth::id(),
+            'action' => 'commented_post',
+            'target_type' => \App\Models\User::class,
+            'target_id' => $friendId,
+            'metadata' => [
+                'content' => 'Bạn đã hủy kết bạn '
+            ]
+        ]);
         return ['message' => 'Đã hủy kết bạn'];
     }
 

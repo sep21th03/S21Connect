@@ -13,7 +13,7 @@ import { useAppDispatch } from "@/redux-toolkit/hooks";
 
 interface UserProfileMenuProps {
   username: string;
-  isAdmin?: number;
+  isAdmin?: boolean;
 }
 
 const UserProfileMenu: FC<UserProfileMenuProps> = ({username, isAdmin}) => {

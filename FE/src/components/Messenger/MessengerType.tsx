@@ -76,3 +76,10 @@ export interface TempObj {
   receiverMessage: string;
   senderMessage: string;
 }
+
+export interface SharePostMetadata {
+  post_id: number;
+  image: string;
+  url: string;
+  content: string;
+}

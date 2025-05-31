@@ -18,10 +18,9 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<string | null>();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const { socket, onNewMessage } = useSocket((users) => {
-    setOnlineUsers(users.map((user) => user.id));
+  const { socket, onNewMessage } = useSocket((users: any) => {
+    setOnlineUsers(users.map((user: any) => user.id));
   });
-  // Fetch user list once at layout level
   useEffect(() => {
     const fetchUserList = async () => {
       try {
@@ -57,11 +56,11 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
     const cleanup = onNewMessage((message) => {
       if (!userList) return;
 
-      setUserList((prevUsers) => {
+      setUserList((prevUsers: any) => {
         if (!prevUsers) return prevUsers;
 
-        return prevUsers.map((conversation) => {
-          const isSender = message.sender?.id === conversation.other_user.id;
+        return prevUsers.map((conversation: any) => {
+          const isSender = message.sender?.id === conversation.other_user?.id;
 
           if (isSender) {
             return {

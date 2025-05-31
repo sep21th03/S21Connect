@@ -5,11 +5,13 @@ import { Button, Input } from "reactstrap";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import OptionsInputs from "./OptionsInputs";
 import { createPostData } from "@/Data/common";
-import axiosInstance from "@/utils/axiosInstance";
-import { API_ENDPOINTS } from "@/utils/constant/api";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import styles from "../../style/newsFeed.module.css";
+import { uploadFilesToCloudinary } from "@/service/cloudinaryService";
+import { createPost } from "@/service/postService";
+import { getListFriends } from "@/service/userSerivice";
+
 
 const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
   const colorList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
@@ -28,104 +30,95 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
   const [tagInput, setTagInput] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("");
 
-  const [showImageUpload, setShowImageUpload] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [uploadingImages, setUploadingImages] = useState(false);
+  const [showMediaUpload, setShowMediaUpload] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
 
-  const uploadImageToCloudinary = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        try {
-          const base64Image = event.target?.result as string;
-          const formData = new FormData();
-          formData.append("file", base64Image);
-          formData.append("upload_preset", "upload_preset");
-          formData.append("folder", "message/image");
 
-          const response = await fetch(
-            "https://api.cloudinary.com/v1_1/dyksxiq0e/image/upload",
-            {
-              method: "POST",
-              body: formData,
-            }
-          );
 
-          const data = await response.json();
-          if (data.secure_url) {
-            resolve(data.secure_url);
-          } else {
-            reject(new Error("Upload failed"));
-          }
-        } catch (error) {
-          reject(error);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       const newFiles = Array.from(files);
-      setSelectedImages((prev) => [...prev, ...newFiles]);
+      const validFiles = newFiles.filter(
+        (file) =>
+          file.type.startsWith("image/") || file.type.startsWith("video/")
+      );
+
+      if (validFiles.length !== newFiles.length) {
+        toast.warning("Chỉ chấp nhận file ảnh và video!");
+      }
+
+      setSelectedFiles((prev) => [...prev, ...validFiles]);
     }
   };
 
-  const removeImage = () => {
-    setSelectedImages([]);
+  const removeFile = (indexToRemove: number) => {
+    setSelectedFiles((prev) =>
+      prev.filter((_, index) => index !== indexToRemove)
+    );
+  };
+
+  const removeAllFiles = () => {
+    setSelectedFiles([]);
+  };
+
+  const getFileType = (file: File): "image" | "video" => {
+    return file.type.startsWith("image/") ? "image" : "video";
   };
 
   const creatPost = async () => {
-    let imageUrls: string[] = [];
+    let images: string[] = [];
+    let videos: string[] = [];
 
-    if (selectedImages.length > 0) {
-      setUploadingImages(true);
+    if (selectedFiles.length > 0) {
+      setUploadingFiles(true);
       try {
-        const uploadPromises = selectedImages.map((file) =>
-          uploadImageToCloudinary(file)
-        );
-        imageUrls = await Promise.all(uploadPromises);
-        toast.success("Upload ảnh thành công!");
+        const uploadResult = await uploadFilesToCloudinary(selectedFiles);
+        images = uploadResult.images;
+        videos = uploadResult.videos;
       } catch (error) {
-        toast.error("Upload ảnh thất bại!");
+        toast.error("Upload file thất bại!");
         console.error("Upload error:", error);
-        setUploadingImages(false);
+        setUploadingFiles(false);
         return;
       }
-      setUploadingImages(false);
+      setUploadingFiles(false);
     }
+    try {
+      const response =  await createPost(
+        selectedFeeling,
+        selectedPlace,
+        taggedFriends,
+        selectedBg,
+        postContent,
+        selectedOption,
+        images,
+        videos
+      );
 
-    const response = await axiosInstance.post(API_ENDPOINTS.POSTS.CREATE_POST, {
-      feeling: selectedFeeling,
-      checkin: selectedPlace,
-      tagfriends: taggedFriends,
-      bg_id: selectedBg,
-      content: postContent,
-      visibility: selectedOption,
-      images: imageUrls,
-    });
-
-    if (response.status === 200) {
-      setWritePost(false);
-      setShowPostButton(false);
-      setPostClass("");
-      setOptionInput("");
-      setSelectedFeeling("");
-      setPostContent("");
-      setSelectedPlace(null);
-      setTaggedFriends([]);
-      setSelectedBg("");
-      setSelectedOption("public");
-      setTagInput("");
-      setSelectedImages([]);
-      setShowImageUpload(false);
-      toast.success(response.data.message);
-    } else {
+      if (response.status === 200) {
+        setWritePost(false);
+        setShowPostButton(false);
+        setPostClass("");
+        setOptionInput("");
+        setSelectedFeeling("");
+        setPostContent("");
+        setSelectedPlace(null);
+        setTaggedFriends([]);
+        setSelectedBg("");
+        setSelectedOption("public");
+        setTagInput("");
+        setSelectedFiles([]);
+        setShowMediaUpload(false);
+        toast.success(response.data.message);
+        onPostCreated();
+      } else {
+        toast.error("Đăng bài thất bại");
+      }
+    } catch (error) {
       toast.error("Đăng bài thất bại");
     }
-    onPostCreated();
   };
 
   const handleCreatePost = () => {
@@ -138,10 +131,8 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
   useEffect(() => {
     const fetchListFriends = async () => {
       if (userId) {
-        const response = await axiosInstance.get(
-          API_ENDPOINTS.USERS.BASE + API_ENDPOINTS.USERS.LIST_FRIENDS(userId)
-        );
-        setListFriends(response.data);
+        const friends = await getListFriends(userId);
+        setListFriends(friends);
       }
     };
     if (selectedTag === "friends") {
@@ -162,7 +153,7 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
   };
 
   const handleCameraClick = () => {
-    setShowImageUpload(!showImageUpload);
+    setShowMediaUpload(!showMediaUpload);
   };
 
   return (
@@ -197,7 +188,7 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
 
         <div
           className={`image-upload-section ${
-            showImageUpload ? "d-block" : "d-none"
+            showMediaUpload ? "d-block" : "d-none"
           }`}
         >
           <div
@@ -205,10 +196,12 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
-              const files = Array.from(e.dataTransfer.files).filter((file) =>
-                file.type.startsWith("image/")
+              const files = Array.from(e.dataTransfer.files).filter(
+                (file) =>
+                  file.type.startsWith("image/") ||
+                  file.type.startsWith("video/")
               );
-              setSelectedImages((prev) => [...prev, ...files]);
+              setSelectedFiles((prev) => [...prev, ...files]);
             }}
             onClick={() =>
               document.getElementById("hidden-file-input")?.click()
@@ -218,27 +211,27 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
               id="hidden-file-input"
               type="file"
               multiple
-              accept="image/*"
-              onChange={handleImageSelect}
-              disabled={uploadingImages}
+              accept="image/*, video/*"
+              onChange={handleFileSelect}
+              disabled={uploadingFiles}
               className="d-none"
             />
             <div className={styles.dropzoneContent}>
               <DynamicFeatherIcon iconName="Image" className="icon" />
               <p>Kéo thả ảnh vào đây hoặc click để chọn ảnh</p>
             </div>
-            {uploadingImages && (
+            {uploadingFiles && (
               <div className={styles.uploadingIndicator}>
                 <span>Đang upload ảnh...</span>
               </div>
             )}
           </div>
 
-          {selectedImages.length > 0 && (
+          {selectedFiles.length > 0 && (
             <div className={styles.selectedImagesPreview}>
-              <div 
+              <div
                 className={styles.removeImageBtn}
-                onClick={() => removeImage()}
+                onClick={() => removeAllFiles()}
               >
                 <DynamicFeatherIcon iconName="X" className="iw-20 ih-20" />
               </div>
@@ -246,37 +239,47 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
                 className={`${styles.imagePreviewGrid} ${
                   styles[
                     `grid${
-                      selectedImages.length >= 5
-                        ? "5plus"
-                        : selectedImages.length
+                      selectedFiles.length >= 5 ? "5plus" : selectedFiles.length
                     }`
                   ]
                 }`}
               >
-                {selectedImages.slice(0, 4).map((file, index) => {
+                {selectedFiles.slice(0, 4).map((file, index) => {
                   const areaClass = ["a", "b", "c", "d"][index];
+                  const isImage = file.type.startsWith("image/");
+                  const isVideo = file.type.startsWith("video/");
                   return (
                     <div
                       key={index}
                       className={`${styles.imageItem} ${styles[areaClass]}`}
                     >
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={`Preview ${index + 1}`}
-                      />
+                      {isImage && (
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`Preview ${index + 1}`}
+                        />
+                      )}
+                      {isVideo && (
+                        <video
+                          controls
+                          src={URL.createObjectURL(file)}
+                          alt={`Preview video ${index + 1}`}
+                          style={{ width: "100%", height: "100%" }}
+                        />
+                      )}
                     </div>
                   );
                 })}
 
                 {/* Overlay ảnh thứ 5 nếu có */}
-                {selectedImages.length > 4 && (
+                {selectedFiles.length > 4 && (
                   <div className={`${styles.imageItem} ${styles.e}`}>
                     <img
-                      src={URL.createObjectURL(selectedImages[4])}
+                      src={URL.createObjectURL(selectedFiles[4])}
                       alt="Preview 5"
                     />
                     <div className={styles.imageOverlay}>
-                      +{selectedImages.length - 4}
+                      +{selectedFiles.length - 4}
                     </div>
                   </div>
                 )}
@@ -327,8 +330,8 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
         ))}
       </ul>
       <div className={`post-btn ${showPostButton ? "d-block" : "d-none"}  `}>
-        <Button onClick={handleCreatePost} disabled={uploadingImages}>
-          {uploadingImages ? "Đang đăng bài..." : Post}
+        <Button onClick={handleCreatePost} disabled={uploadingFiles}>
+          {uploadingFiles ? "Đang đăng bài..." : Post}
         </Button>
       </div>
     </div>

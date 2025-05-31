@@ -25,7 +25,6 @@ const CommonPostReact: FC<CommonPostReactProps> = ({
   shouldOpenComments,
   highlightCommentId,
   highlightReplyId,
-  highlightReactionId,
 }) => {
   const [showReaction, setShowReaction] = useState(false);
   const [showComment, setShowComment] = useState(false);
@@ -158,12 +157,14 @@ const CommonPostReact: FC<CommonPostReactProps> = ({
               {Comment}
             </a>
           </li>
+          {post.visibility === "public" && (
           <li onClick={toggleModal}>
             <a href={Href}>
               <DynamicFeatherIcon iconName="Share" className="iw-16 ih-16" />
               {Share}
-            </a>
-          </li>
+              </a>
+            </li>
+          )}
         </ul>
       </div>
       {post.preview_comment && !post.is_comment_disabled && !showComment && (

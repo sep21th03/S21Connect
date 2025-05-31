@@ -14,7 +14,7 @@ import LikePage from "@/components/NewsFeed/Style1/LeftContent/LikePage";
 import EventsCard from "@/components/NewsFeed/Style1/ContentRight/EventsCard";
 import Gallery from "@/components/NewsFeed/Style1/ContentRight/Gallery";
 import AboutUser from "@/components/profile/AboutUser";
-import ActivityFeeds from "@/components/profile/ActivityFeeds";
+// import ActivityFeeds from "@/components/profile/ActivityFeeds";
 import CollegeMeetCard from "@/components/profile/CollegeMeetCard";
 import WorldWideTrend from "@/components/profile/WorldWideTrend";
 import ProfileLayout from "@/layout/ProfileLayout";
@@ -35,10 +35,18 @@ interface ApiResponse<T> {
   message: string;
   status: number;
 }
+
+
 const FriendSuggestion = dynamic(
   () => import("@/components/NewsFeed/Style1/LeftContent/FriendSuggestion"),
   { ssr: false }
 );
+
+const ActivityFeeds = dynamic(
+  () => import("@/components/profile/ActivityFeeds"),
+  { ssr: false }
+);
+
 
 
 const ProfileTimeLine = () => {
@@ -57,6 +65,7 @@ const ProfileTimeLine = () => {
   const [error, setError] = useState<string | null>(null);
   const [friendshipStatus, setFriendshipStatus] = useState<string>("none");
   const [postsFetched, setPostsFetched] = useState(false);
+  const [isFriendSection, setIsFriendSection] = useState(false);
 
   const isOwnProfile = useMemo(
     () => userProfile?.user.username === session?.user?.username,
@@ -73,7 +82,6 @@ const ProfileTimeLine = () => {
       if (!username) return;
 
       try {
-        console.time("fetchProfile");
         setLoading(true);
         const response = await axiosInstance.get<ApiResponse<FullUserProfile>>(
           API_ENDPOINTS.PROFILE.USER_PROFILE(username)
@@ -172,9 +180,11 @@ const ProfileTimeLine = () => {
         <div className="page-content">
           <div className="content-left">
             <AboutUser userProfile={userProfile} isOwnProfile={isOwnProfile} />
-            <div ref={ref} className="d-xl-block d-none">
-              {inView && <FriendSuggestion mainClassName="d-xl-block d-none" />}
-            </div>
+            {isFriendSection && (
+              <div ref={ref} className="d-xl-block d-none">
+                {inView && <FriendSuggestion setIsFriendSection={setIsFriendSection} mainClassName="d-xl-block d-none" />}
+              </div>
+            )}
 
             <div className="sticky-top d-xl-block d-none">
               <LikePage />
@@ -197,20 +207,20 @@ const ProfileTimeLine = () => {
                     switch (post.type) {
                       case "first":
                         return (
-                          <SufiyaElizaFirstPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />
+                          <SufiyaElizaFirstPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
                         );
                       case "multiple":
                         return (
-                          <SufiyaElizaMultiplePost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />
+                          <SufiyaElizaMultiplePost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
                         );
                       case "third":
                         return (
-                          <SufiyaElizaThirdPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />
+                          <SufiyaElizaThirdPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
                         );
                       case "second":
                       default:
                         return (
-                          <SufiyaElizaSecondPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />
+                          <SufiyaElizaSecondPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
                         );
                     }
                   })
@@ -268,7 +278,9 @@ const ProfileTimeLine = () => {
           <div className="content-right d-xl-block d-none">
             <CollegeMeetCard />
             <Gallery />
-            <ActivityFeeds />
+            <div ref={ref} className="d-xl-block d-none">
+              {inView && <ActivityFeeds username={username} />}
+            </div>
             <div className="sticky-top">
               <EventsCard eventImage={12} diffrentPath="post" />
               <WorldWideTrend />

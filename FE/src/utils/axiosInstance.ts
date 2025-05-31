@@ -4,16 +4,17 @@ import {
   getAuthToken,
   saveTokenToCookies,
   removeTokenFromCookies,
-  getRefreshToken,
 } from "@/redux-toolkit/slice/authSlice";
 import { API_ENDPOINTS } from "./constant/api";
+import Cookies from "js-cookie";
+import { signOut } from "next-auth/react";
 
 const axiosInstance = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_NEXTAUTH_API_URL}`,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Cho phép gửi cookies trong mọi request
+  withCredentials: true,
 });
 
 axiosInstance.interceptors.request.use(
@@ -34,19 +35,22 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest._retryRefresh
+    ) {
       originalRequest._retry = true;
       const oldToken = getAuthToken();
       if (!oldToken) {
         removeTokenFromCookies();
-        window.location.href = "/auth/login";
+        signOut();
         return Promise.reject(error);
       }
       try {
-        // Gọi API refresh token
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_NEXTAUTH_API_URL}${API_ENDPOINTS.AUTH.REFRESH_TOKEN}`,
-          {}, // body rỗng
+          {},
           {
             withCredentials: true,
             headers: {
@@ -54,17 +58,17 @@ axiosInstance.interceptors.response.use(
             },
           }
         );
-        // Lưu token mới
         const newToken = response.data.token;
+        if (!newToken) throw new Error("No token returned from refresh");
+
         saveTokenToCookies(newToken);
 
-        // Thử lại request ban đầu với token mới
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        originalRequest._retryRefresh = true;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        // Nếu refresh token thất bại, đăng xuất user
         removeTokenFromCookies();
-        window.location.href = "/auth/login";
+        signOut();
         return Promise.reject(refreshError);
       }
     }

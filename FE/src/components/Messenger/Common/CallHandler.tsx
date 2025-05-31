@@ -1,4 +1,4 @@
-// CallHandler.tsx
+
 import { useEffect, useRef, useState } from "react";
 import { Socket } from "socket.io-client";
 import { useSocket } from "@/hooks/useSocket";
@@ -48,11 +48,9 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
     };
   }, [callStatus]);
 
-  // Initialize WebRTC
   useEffect(() => {
     const initializeCall = async () => {
       try {
-        // Create peer connection with STUN servers for NAT traversal
         const pc = new RTCPeerConnection({
           iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
@@ -61,7 +59,6 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
         });
         setPeerConnection(pc);
 
-        // Get media based on call type
         const mediaConstraints = {
           video: callType === "video",
           audio: true,
@@ -74,12 +71,10 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
           localVideoRef.current.srcObject = stream;
         }
 
-        // Add local stream to peer connection
         stream.getTracks().forEach(track => {
           pc.addTrack(track, stream);
         });
 
-        // Listen for remote stream
         pc.ontrack = (event) => {
           if (remoteVideoRef.current && event.streams[0]) {
             remoteVideoRef.current.srcObject = event.streams[0];
@@ -87,7 +82,6 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
           }
         };
 
-        // Handle connection state changes
         pc.oniceconnectionstatechange = () => {
           if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
             setCallStatus("connected");
@@ -96,10 +90,8 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
           }
         };
 
-        // Handle ICE candidates
         pc.onicecandidate = (event) => {
           if (event.candidate) {
-            // Send the ICE candidate to the remote peer via your signaling server
             socket?.emit("call_ice_candidate", {
               receiver_id: user.other_user.id,
               candidate: event.candidate,
@@ -107,7 +99,6 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
           }
         };
 
-        // If outgoing call, create and send offer
         if (!isIncoming) {
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
@@ -127,7 +118,6 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
 
     initializeCall();
 
-    // Socket event listeners for signaling
     if (socket) {
       const handleCallAnswer = async (data: any) => {
         try {
@@ -157,7 +147,6 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
       socket.on("call_ice_candidate", handleIceCandidate);
       socket.on("call_end", handleCallEnd);
 
-      // If incoming call, handle offer
       if (isIncoming && callerId) {
         socket.once("call_offer_details", async (data: any) => {
           try {
@@ -176,7 +165,6 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
           }
         });
 
-        // Request offer details
         socket.emit("get_call_offer", { caller_id: callerId });
       }
 
@@ -188,7 +176,6 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
     }
 
     return () => {
-      // Clean up
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
       }
@@ -200,17 +187,14 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
 
   const handleEndCall = async () => {
     try {
-      // Stop all media tracks
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
       }
 
-      // Close peer connection
       if (peerConnection) {
         peerConnection.close();
       }
 
-      // Clear timer
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -230,7 +214,6 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
         type: "text"
       });
 
-      // Notify parent component
       onCallEnd();
     } catch (error) {
       console.error("Error ending call:", error);

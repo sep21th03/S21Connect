@@ -30,6 +30,9 @@ const CreatePostHeader: FC<CreatePostHeaderInterFace> = ({writePost,setShowPostB
           placeholder="Bạn đang nghĩ gì..."
           value={postContent}
           onChange={(e) => setPostContent(e.target.value)}
+          style={{
+            textTransform: "none",
+          }}
         />
         <a href={Href}>
           <Image width={14} height={12} src={`${ImagePath}/icon/translate.png`} className="img-fluid blur-up icon lazyloaded" alt="translate"/>

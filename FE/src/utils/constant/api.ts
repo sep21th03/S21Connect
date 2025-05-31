@@ -91,12 +91,16 @@ export const API_ENDPOINTS = {
 
   USERS: {
     BASE: "/user",
+    PROFILE: "/user/user-profile",
     HOVER_CARD: (userId: string) => `/${userId}/hovercard`,
     LIST_FRIENDS: (userId: string) => `/${userId}/list_friends`,
     LIST_FRIENDS_LIMIT: (userId: string) => `/${userId}/list_friends_limit`,
     LAST_ACTIVE: (otherUserId: string) => `/user/update-last-active`,
     GET_STATS: "/user/get_stats",
+    SEARCH_FRIENDS: (searchTerm: string) => `/user/search-friend?searchTerm=${searchTerm}`,
     FRIEND_SUGGESTION: "/user/suggest_friends",
+    ACTIVITY_PROFILE: (username: string) => `/user/activity_profile/${username}`,
+    ACTIVITY_LOGS: "/user/activity_logs",
   },
 
   MESSAGES: {
@@ -146,6 +150,8 @@ export const API_ENDPOINTS = {
 
   CLOUDINARY: {
     UPLOAD: "/cloudinary/upload",
+    UPLOAD_POST: "/cloudinary/upload-post",
+    DELETE_POST: "/cloudinary/delete-post",
   },
 };
 

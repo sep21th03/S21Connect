@@ -9,6 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Reaction;
 use App\Models\Post;
 use App\Events\PostReacted;
+use App\Models\ActivityLog;
+use Illuminate\Support\Str;
 
 class ReactionController extends Controller
 {
@@ -45,6 +47,19 @@ class ReactionController extends Controller
                 ]);
             } else {
                 $existingReaction->update(['type' => $type]);
+
+                ActivityLog::create([
+                    'id' => Str::uuid(),
+                    'user_id' => $userId,
+                    'action' => 'updated_reaction',
+                    'target_type' => Post::class,
+                    'target_id' => $postId,
+                    'metadata' => [
+                        'new_type' => $type,
+                        'content' => 'Bạn đã' . $type . 'bài viết của ' . $post->user->first_name . ' ' . $post->user->last_name,
+                    ]
+                ]);
+
                 return response()->json([
                     'message' => 'Cập nhật cảm xúc',
                     'status' => 'updated',
@@ -56,6 +71,18 @@ class ReactionController extends Controller
                 'user_id' => $userId,
                 'post_id' => $postId,
                 'type' => $type
+            ]);
+
+            ActivityLog::create([
+                'id' => Str::uuid(),
+                'user_id' => $userId,
+                'action' => 'reaction_post',
+                'target_type' => Post::class,
+                'target_id' => $postId,
+                'metadata' => [
+                    'new_type' => $type,
+                    'content' => 'Bạn đã thả cảm xúc bài viết của ',
+                ]
             ]);
 
             if ($post->user_id !== $userId) {

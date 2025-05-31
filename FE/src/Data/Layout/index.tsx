@@ -99,16 +99,6 @@ export const smallSideBarData: SideBarDataInterFace[] = [
 export const newsFeedLayoutData = [
   { title: "style 1", navigate: "/newsfeed/style1" },
   { title: "style 2", navigate: "/newsfeed/style2" },
-  { title: "style 3", navigate: "/newsfeed/style3" },
-  { title: "style 4", navigate: "/newsfeed/style4" },
-  { title: "style 5", navigate: "/newsfeed/style5" },
-  { title: "style 6", navigate: "/newsfeed/style6" },
-  { title: "style 7", navigate: "/newsfeed/style7" },
-  { title: "style 8", navigate: "/newsfeed/style8" },
-  { title: "style 9", navigate: "/newsfeed/style9" },
-  { title: "style 10", navigate: "/newsfeed/style10" },
-  { title: "style 11", navigate: "/newsfeed/style11" },
-  { title: "style 12", navigate: "/newsfeed/style12" },
 ];
 
 export const profilePagesData = [

@@ -20,3 +20,38 @@ export async function getPost(
 
   return response.data;
 }
+
+export async function createPost(
+  feeling: string,
+  checkin: string | null,
+  tagfriends: string[],
+  bg_id: string,
+  content: string,
+  visibility: string,
+  images: string[],
+  videos: string[]
+) {
+  const response = await axiosInstance.post(API_ENDPOINTS.POSTS.CREATE_POST, {
+    feeling,
+    checkin,
+    tagfriends,
+    bg_id,
+    content,
+    visibility,
+    images,
+    videos
+  });
+
+  return response;
+}
+
+
+export async function sharePost(postId: number, visibility: string, content: string) {
+  const response = await axiosInstance.post(API_ENDPOINTS.POSTS.SHARES.SHARE, {
+    post_id: postId,
+    visibility,
+    content
+  });
+
+  return response;
+}

@@ -15,38 +15,45 @@ use App\Events\MessageSent;
 
 class MessengerController extends Controller
 {
-    /**
-     * Send a new Message
-     */
     public function send(Request $request)
     {
         $request->validate([
             'content' => 'required_without:file_paths',
             'receiver_id' => 'required_without:conversation_id|uuid|exists:users,id',
             'conversation_id' => 'required_without:receiver_id|uuid|exists:conversations,id',
-            'type' => 'sometimes|in:text,image,video,sticker,file',
-            'file_paths' => 'sometimes|array'
+            'type' => 'sometimes|in:text,image,video,sticker,file,share_post',
+            'file_paths' => 'sometimes|array',
+            'metadata' => 'sometimes|array',
+            'metadata.post_id' => 'nullable|numeric|exists:posts,id',
+            'metadata.image' => 'nullable|string',
+            'metadata.url' => 'nullable|string',
+            'metadata.content' => 'nullable|string',
         ]);
 
-        // Lấy hoặc tạo conversation
+        if ($request->receiver_id) {
+            $receiver = User::find($request->receiver_id);
+            if ($receiver && $receiver->status === 'banned') {
+                return response()->json(['message' => 'Người nhận không khả dụng'], 403);
+            }
+        }
+
         if ($request->filled('conversation_id')) {
             $conversation = Conversation::findOrFail($request->conversation_id);
             $isParticipant = $conversation->users()->where('user_id', Auth::id())->exists();
             if (!$isParticipant) {
-                return response()->json(['error' => 'You are not a participant in this conversation'], 403);
+                return response()->json(['error' => 'không phải của bạn'], 403);
             }
         } else {
-            // Tạo hoặc lấy cuộc trò chuyện riêng tư
             $receiver = User::findOrFail($request->receiver_id);
             $conversation = Conversation::firstOrCreatePrivateConversation(Auth::user(), $receiver);
         }
 
-        // Tạo tin nhắn
         $message = new Messenger();
         $message->sender_id = Auth::id();
         $message->conversation_id = $conversation->id;
         $message->content = $request->content;
         $message->type = $request->type ?? 'text';
+        $message->metadata = json_encode($request->metadata ?? []);
 
         if ($conversation->type === 'private') {
             $otherUser = $conversation->users()->where('user_id', '!=', Auth::id())->first();
@@ -60,16 +67,15 @@ class MessengerController extends Controller
         }
 
         $message->save();
-         $conversation->update([
-                'last_message_id' => $message->id,
-                'updated_at' => now()
-            ]);
+        $conversation->update([
+            'last_message_id' => $message->id,
+            'updated_at' => now()
+        ]);
 
         event(new MessageSent($message));
 
         Auth::user()->markConversationAsRead($conversation);
 
-        // Trả về message
         $messageWithSender = $message->toArray();
         $messageWithSender['sender'] = Auth::user()->only(['id', 'username', 'first_name', 'last_name']);
         $messageWithSender['url'] = $message->getUrl();
@@ -77,9 +83,6 @@ class MessengerController extends Controller
         return response()->json($messageWithSender, 201);
     }
 
-    /**
-     * Mark Messages as read
-     */
     public function markAsRead(Request $request)
     {
         $request->validate([
@@ -89,7 +92,6 @@ class MessengerController extends Controller
         $conversationId = $request->conversation_id;
         $now = now();
 
-        // Check if user is in the conversation
         $conversation = Conversation::findOrFail($conversationId);
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
@@ -99,7 +101,6 @@ class MessengerController extends Controller
             return response()->json(['error' => 'You are not a participant in this conversation'], 403);
         }
 
-        // If private conversation, mark messages from the other user as read
         if ($conversation->type === 'private') {
             $updatedRows = Messenger::where('conversation_id', $conversationId)
                 ->where('sender_id', '!=', Auth::id())
@@ -110,11 +111,10 @@ class MessengerController extends Controller
                     'read_at' => $now
                 ]);
         } else {
-            // For group conversations, only mark as read
+
             $updatedRows = 0;
         }
 
-        // Update the user's last_read_at for this conversation
         Auth::user()->markConversationAsRead($conversation);
 
         return response()->json([
@@ -124,20 +124,16 @@ class MessengerController extends Controller
         ]);
     }
 
-    /**
-     * Get messages for a conversation with pagination
-     */
     public function getMessages(Request $request, $conversationId)
     {
         $conversation = Conversation::findOrFail($conversationId);
 
-        // Check if user is in the conversation
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
             ->exists();
 
         if (!$isParticipant) {
-            return response()->json(['error' => 'You are not a participant in this conversation'], 403);
+            return response()->json(['error' => 'Bạn không thuộc về cuộc trò chuyện này'], 403);
         }
 
         $perPage = $request->query('per_page', 20);
@@ -148,7 +144,6 @@ class MessengerController extends Controller
             ->with(['sender:id,username,first_name,last_name,last_active'])
             ->paginate($perPage, ['*'], 'page', $page);
 
-        // Mark messages as read automatically
         if ($conversation->type === 'private') {
             Messenger::where('conversation_id', $conversationId)
                 ->where('sender_id', '!=', Auth::id())
@@ -160,33 +155,23 @@ class MessengerController extends Controller
                 ]);
         }
 
-        // Update the user's last_read_at for this conversation
         Auth::user()->markConversationAsRead($conversation);
 
-        // Add URL to each message
-        // $messages->through(function ($message) {
-        //     $message->url = $message->getUrl();
-        //     return $message;
-        // });
 
         return response()->json($messages);
     }
 
-    /**
-     * Get a specific message
-     */
     public function getMessage($id)
     {
         $message = Messenger::with('sender:id,username,first_name,last_name')->findOrFail($id);
 
-        // Check if user is in the conversation
         $conversation = $message->conversation;
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
             ->exists();
 
         if (!$isParticipant) {
-            return response()->json(['error' => 'You are not authorized to view this message'], 403);
+            return response()->json(['error' => 'Bạn không thể xem'], 403);
         }
 
         $message->url = $message->getUrl();
@@ -219,7 +204,6 @@ class MessengerController extends Controller
             ->map(function ($conversation) use ($user) {
                 $latestMessage = $conversation->latestMessage;
 
-                // Với private conversation: lấy user còn lại
                 if ($conversation->type === 'private') {
                     $otherUser = $conversation->users->firstWhere('id', '!=', $user->id);
                     $name = trim($otherUser->first_name . ' ' . $otherUser->last_name);
@@ -255,19 +239,14 @@ class MessengerController extends Controller
     }
 
 
-    /**
-     * Delete a message
-     */
     public function delete($id)
     {
         $message = Messenger::findOrFail($id);
 
-        // Check if user is the sender of the message
         if ($message->sender_id !== Auth::id()) {
             return response()->json(['error' => 'You can only delete your own messages'], 403);
         }
 
-        // Delete files if they exist
         if (!empty($message->file_paths)) {
             $files = json_decode($message->file_paths, true);
             foreach ($files as $file) {
@@ -285,17 +264,14 @@ class MessengerController extends Controller
         ]);
     }
 
-    /**
-     * Upload files for Messages
-     */
+
     public function uploadFiles(Request $request)
     {
         $request->validate([
-            'files.*' => 'required|file|max:10240', // 10MB max per file
+            'files.*' => 'required|file|max:10240',
             'conversation_id' => 'required|uuid|exists:conversations,id'
         ]);
 
-        // Check if user is in the conversation
         $conversation = Conversation::findOrFail($request->conversation_id);
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
@@ -311,7 +287,6 @@ class MessengerController extends Controller
             foreach ($request->file('files') as $file) {
                 $path = $file->store('message_files/' . Auth::id(), 'public');
 
-                // Determine file type
                 $mimeType = $file->getMimeType();
                 $type = 'file';
 
@@ -321,7 +296,6 @@ class MessengerController extends Controller
                     $type = 'video';
                 }
 
-                // For images and videos, save to the images table as well
                 if ($type === 'image' || $type === 'video') {
                     $url = Storage::disk('public')->url($path);
 
@@ -333,7 +307,6 @@ class MessengerController extends Controller
                     $image->folder = 'message';
                     $image->type = $type;
 
-                    // Get image dimensions if it's an image
                     if ($type === 'image') {
                         $dimensions = getimagesize(Storage::disk('public')->path($path));
                         if ($dimensions) {
@@ -370,7 +343,7 @@ class MessengerController extends Controller
     }
 
     /**
-     * Search messages within a conversation
+     * Search messages 
      */
     public function search(Request $request, $conversationId)
     {
@@ -380,7 +353,6 @@ class MessengerController extends Controller
 
         $conversation = Conversation::findOrFail($conversationId);
 
-        // Check if user is in the conversation
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
             ->exists();
@@ -397,7 +369,6 @@ class MessengerController extends Controller
             ->with(['sender:id,username,first_name,last_name'])
             ->paginate(20);
 
-        // Add URL to each message
         $messages->through(function ($message) {
             $message->url = $message->getUrl();
             return $message;

@@ -1,6 +1,32 @@
 import { first } from 'lodash';
 // types/user.ts
 
+export interface UserRedux {
+  id: string;
+  username: string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  is_admin: boolean;
+}
+
+export interface SelectedShareUser {
+  id: string;
+  conversation_id: string | null;
+  username: string;
+  avatar: string | null;
+}
+
+export interface ShareUser {
+  id: string;
+  conversation_id: string | null;
+  username: string;
+  first_name: string;
+  last_name: string;
+  avatar: string | null;
+}
+
+
 export interface User {
     id: string;
     username: string;

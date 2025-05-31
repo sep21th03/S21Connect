@@ -31,6 +31,7 @@ export interface SufiyaElizaThirdPostInterface {
   shouldOpenComments: boolean;
   highlightCommentId: number | null;
   highlightReplyId: number | null;
+  isShared: boolean;
 }
 
 export interface CommonGalleryImageProps {
@@ -44,12 +45,17 @@ export interface SufiyaElizaFirstPostInterFace {
   shouldOpenComments: boolean;
   highlightCommentId: number | null;
   highlightReplyId: number | null;
+  isShared: boolean;
 }
 
 export interface PostDetailInterFace {
   post: Post
   localPost: Post
   setLocalPost: (post: Post) => void
+  shouldOpenComments: boolean;
+  highlightCommentId: number | null;
+  highlightReplyId: number | null;
+  isShared: boolean;
 }
 
 
@@ -58,6 +64,7 @@ export interface SufiyaElizaSecondPostInterFace {
   shouldOpenComments: boolean;
   highlightCommentId: number | null;
   highlightReplyId: number | null;
+  isShared: boolean;
 }
 
 export interface EventsCardInterFace{
@@ -83,6 +90,12 @@ export interface SufiyaElizaMultiplePostInterFace {
   shouldOpenComments: boolean;
   highlightCommentId: number | null;
   highlightReplyId: number | null;
+  isShared: boolean;
+}
+
+export interface PostImagesInterFace {
+  post: Post
+  onReactionChange: (data: ReactionResponse) => void
 }
 
 export  interface SidebarPanelInterFace {
@@ -96,6 +109,7 @@ export interface SufiyaElizaTwoPhotoPostInterFace {
 
 export interface FriendSuggestionInterFace {
   mainClassName?:string
+  setIsFriendSection?: (isFriendSection: boolean) => void
 }
 export interface StorySectionProps {
   storyShow?:number 
@@ -119,6 +133,9 @@ export interface Post {
   id: number;
   content: string;
   type: "first" | "second" | "third" | "multiple";
+  post_format: "normal" | "shared" | "ads";
+  original_post_id: number;
+  shared_post: Post;
   user: {
     id: number;
     username: string;

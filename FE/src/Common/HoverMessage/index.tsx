@@ -31,7 +31,6 @@ const HoverMessage: FC<HoverMessageProps> = ({
   onMessageClick, 
   onFriendRequestClick 
 }) => {
-  // Suppress React defaultProps deprecation warning
   const originalError = console.error;
   console.error = (...args: any) => {
     if (/defaultProps/.test(args[0])) return;
@@ -45,6 +44,12 @@ const HoverMessage: FC<HoverMessageProps> = ({
       ? `${data.first_name} ${data.last_name}`
       : data.email || "User");
       
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log(data);
+  };
   return (
     <UncontrolledPopover 
       trigger="hover" 
@@ -53,7 +58,7 @@ const HoverMessage: FC<HoverMessageProps> = ({
       className="user-hover-card"
     >
       <PopoverBody>
-        <Media className="popover-media">
+        <Media className="popover-media" onClick={handleClick}>
           <div className="user-image-wrapper">
             <Image 
               height={60} 

@@ -25,7 +25,8 @@ const ChatUserItem = React.memo(
       content?: string,
       senderId?: string,
       sessionUserId?: string,
-      senderName?: string
+      senderName?: string,
+      type?: string
     ) => {
       if (!content) return "";
     
@@ -36,6 +37,11 @@ const ChatUserItem = React.memo(
         return senderId === sessionUserId
           ? "Bạn đã gửi 1 ảnh"
           : `${senderName || "Người dùng"} đã gửi 1 ảnh`;
+      }
+      if (type === "share_post") {
+        return senderId === sessionUserId
+          ? "Bạn đã chia sẻ 1 bài viết"
+          : `${senderName || "Người dùng"} đã chia sẻ 1 bài viết`;
       }
     
       return senderId === sessionUserId ? `Bạn: ${content}` : content;
@@ -68,16 +74,16 @@ const ChatUserItem = React.memo(
             <div className="chat">
               <h6 style={{ color: "black", fontWeight: "bold" }}>
                 {data.latest_message?.sender_id === sessionUserId
-                  ? `${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}`
-                  : renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}
+                  ? `${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name, data.latest_message?.type)}`
+                  : renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name, data.latest_message?.type)}
               </h6>
               <span className="count">{data.unread_count}</span>
             </div>
           ) : (
             <h6>
               {data.latest_message?.sender_id === sessionUserId
-                ? `${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}`
-                : renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name)}
+                ? `${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name, data.latest_message?.type)}`
+                : renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name, data.latest_message?.type)}
             </h6>
           )}
         </NavLink>

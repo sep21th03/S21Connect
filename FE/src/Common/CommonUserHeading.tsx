@@ -8,23 +8,32 @@ import HoverMessage from "./HoverMessage";
 import Image from "next/image";
 import { formatTimeAgo } from "@/utils/formatTime";
 import { feelingMap } from "@/Data/common";
-import { profile } from "console";
 import { createPostDropDown } from "@/Data/common";
 import { Post } from "@/components/NewsFeed/Style1/Style1Types";
+import { useModalNavigation } from "@/hooks/useModalNavigation";
 
 const CommonUserHeading: FC<CommonUserHeadingProps> = ({
   id,
   postUser,
   onPostUpdated,
   onPostDeleted,
+  isShared
 }) => {
   
   const [showOption, setShowOption] = useState(false);
   const matchedVisibility = createPostDropDown.find(
     (option) => option.slug === postUser?.visibility
   );
+  const { openModal } = useModalNavigation(); 
+  const handleClick = (e: React.MouseEvent, postUser: Post) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const modalUrl = `/${postUser.user.username}/posts/${postUser.id}?modal=true`;
+    
+    openModal(modalUrl);
+  };
   return (
-    <div className="post-title">
+    <div className="post-title" style={{padding: isShared ? "0" : "20px 40px"}}>
       <div className="profile">
         <Media>
           <a
@@ -78,7 +87,9 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
             </h5>
 
             <h6 className="d-flex align-items-center gap-2">
+              <a href={Href} onClick={(e) => handleClick(e, postUser)} style={{cursor: "pointer", textDecoration: "none", color: "inherit"}}> 
               {formatTimeAgo(postUser?.created_at)}
+              </a>
               {matchedVisibility && (
                 <span className="d-flex align-items-center gap-1">
                   <DynamicFeatherIcon
@@ -94,11 +105,13 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
         <HoverMessage
           placement={"right"}
           target={id}
-          name={postUser?.user?.first_name + " " + postUser?.user?.last_name}
+          data={postUser?.user}
           imagePath={`${postUser?.user?.avatar}`}
+          onMessageClick={() => {}}
+          onFriendRequestClick={() => {}}
         />
       </div>
-      <div className="setting-btn ms-auto setting-dropdown no-bg">
+      <div className="setting-btn ms-auto setting-dropdown no-bg" style={{display: isShared ? "none" : "block"}}>
         <Dropdown
           isOpen={showOption}
           toggle={() => setShowOption(!showOption)}

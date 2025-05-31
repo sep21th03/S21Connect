@@ -99,7 +99,7 @@ export default function PostModal({ onClose }: { onClose: () => void }) {
           className={styles.modalContent + " post-panel"}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-white p-4 d-flex justify-between align-items-center">
+          <div className="bg-white d-flex justify-between align-items-center" style={{justifyContent: "space-between"}}>
             <h2 className="text-lg font-semibold">
               Bài viết của {post?.user.first_name} {post?.user.last_name}
             </h2>

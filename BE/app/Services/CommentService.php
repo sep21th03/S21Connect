@@ -5,7 +5,8 @@ namespace App\Services;
 use App\Models\Comment;
 use Illuminate\Support\Facades\Auth;
 use App\Events\PostComment;
-use App\Models\Post;
+use App\Models\ActivityLog;
+use Illuminate\Support\Str;
 
 class CommentService
 {
@@ -21,7 +22,17 @@ class CommentService
         $comment->load([
             'user:id,avatar,username,first_name,last_name'
         ]);
-
+        ActivityLog::create([
+            'id' => Str::uuid(),
+            'user_id' => Auth::id(),
+            'action' => 'commented_post',
+            'target_type' => \App\Models\Post::class,
+            'target_id' => $data['id'],
+            'metadata' => [
+                'content' => 'Bạn đã bình luận vào bài viết của ',
+                'comment_content' => $comment->content,
+            ]
+        ]);
         event(new PostComment($comment, Auth::user()));
         return $comment;
     }

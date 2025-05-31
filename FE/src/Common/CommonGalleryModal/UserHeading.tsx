@@ -5,21 +5,24 @@ import { ImagePath } from "../../utils/constant";
 import DynamicFeatherIcon from "../DynamicFeatherIcon";
 import { Href } from "../../utils/constant/index";
 import { galleryModalDropDownData } from "@/Data/common";
+import { Post } from "@/components/NewsFeed/Style1/Style1Types";
+import { formatTimeAgo } from "@/utils/formatTime";
 
-const UserHeading: FC = () => {
+
+const UserHeading: FC<{ post: Post }> = ({ post }) => { 
   const [userDropDown, setUserDropDown] = useState(false);
   const showDropDown = () => setUserDropDown(!userDropDown);
   return (
     <div className="user-detail">
       <div className="user-media">
         <Media>
-          <a className="user-img bg-size blur-up lazyloaded">
-            <CustomImage src={`${ImagePath}/user-sm/1.jpg`} className="img-fluid blur-up lazyload bg-img" alt="user"/>
+          <a className="user-img bg-size blur-up lazyloaded rounded-circle">
+            <CustomImage src={post.user.avatar} className="img-fluid blur-up lazyload bg-img" alt="user"/>
             <span className="available-stats" />
           </a>
           <Media body>
-            <h5 className="user-name">Paige Turner</h5>
-            <h6>alabma, USA</h6>
+            <h5 className="user-name">{post.user.first_name} {post.user.last_name}</h5>
+            <h6>{formatTimeAgo(post.created_at)}</h6>
           </Media>
         </Media>
       </div>

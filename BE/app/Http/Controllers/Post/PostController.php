@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use App\Models\Post;
 use App\Models\Notification;
 use App\Models\Friendship;
-use App\Models\Comment;
 
 class PostController extends Controller
 {
@@ -74,7 +73,9 @@ class PostController extends Controller
 
         $post = Post::with([
             'user:id,username,first_name,last_name,avatar',
-            'reactions'
+            'reactions',
+            'originalPost.user:id,username,first_name,last_name,avatar',
+            'originalPost.taggedFriends:id,username,first_name,last_name,avatar'
         ])
             ->withCount(['comments', 'shares'])
             ->findOrFail($postId);
@@ -111,6 +112,53 @@ class PostController extends Controller
             $post->taggedFriends = $user_tag;
         }
 
+        if ($post->post_format === 'shared' && $post->originalPost) {
+            $original = $post->originalPost;
+
+            if ($original->user) {
+                unset(
+                    $original->user->gender,
+                    $original->user->birthday,
+                    $original->user->email,
+                    $original->user->email_verified_at,
+                    $original->user->phone,
+                    $original->user->phone_verified_at,
+                    $original->user->bio,
+                    $original->user->remember_token,
+                    $original->user->created_at,
+                    $original->user->updated_at,
+                    $original->user->is_admin,
+                    $original->user->status,
+                    $original->user->cover_photo,
+                    $original->user->last_active
+                );
+            }
+
+            if ($original->taggedFriends) {
+                $original->taggedFriends->each(function ($user) {
+                    unset(
+                        $user->gender,
+                        $user->birthday,
+                        $user->email,
+                        $user->email_verified_at,
+                        $user->phone,
+                        $user->phone_verified_at,
+                        $user->bio,
+                        $user->remember_token,
+                        $user->created_at,
+                        $user->updated_at,
+                        $user->is_admin,
+                        $user->status,
+                        $user->cover_photo,
+                        $user->last_active
+                    );
+                });
+            }
+
+            $post->shared_post = $original;
+            unset($post->originalPost);
+        }
+
         $post->total_reactions = $post->reactions->count();
         $post->reaction_counts = $post->reactions
             ->groupBy('type')
@@ -145,7 +193,7 @@ class PostController extends Controller
                 $post->user->last_active
             );
         }
-        
+
         return response()->json([
             'post' => $post,
             'highlight_comment_id' => $commentId,
@@ -202,7 +250,9 @@ class PostController extends Controller
             },
             'taggedFriends' => function ($query) {
                 $query->select('users.id', 'username', 'first_name', 'last_name', 'avatar');
-            }
+            },
+            'originalPost.user:id,username,first_name,last_name,avatar',
+            'originalPost.taggedFriends:id,username,first_name,last_name,avatar'
         ])
             ->withCount(['comments', 'shares'])
             ->whereIn('user_id', $allowedUserIds)
@@ -246,6 +296,50 @@ class PostController extends Controller
                     'last_active'
                 ]);
             }
+            if ($post->post_format === 'shared' && $post->originalPost) {
+                $original = $post->originalPost;
+
+                $original->user->makeHidden([
+                    'gender',
+                    'birthday',
+                    'email',
+                    'email_verified_at',
+                    'phone',
+                    'phone_verified_at',
+                    'bio',
+                    'remember_token',
+                    'created_at',
+                    'updated_at',
+                    'is_admin',
+                    'status',
+                    'cover_photo',
+                    'last_active'
+                ]);
+
+                if ($original->taggedFriends) {
+                    $original->taggedFriends->makeHidden([
+                        'gender',
+                        'birthday',
+                        'email',
+                        'email_verified_at',
+                        'phone',
+                        'phone_verified_at',
+                        'bio',
+                        'remember_token',
+                        'created_at',
+                        'updated_at',
+                        'is_admin',
+                        'status',
+                        'cover_photo',
+                        'last_active'
+                    ]);
+                }
+
+                $post->shared_post = $original;
+
+                unset($post->originalPost);
+            }
+
 
             $reactionCounts = $post->reactions->groupBy('type')->map->count();
             $totalReactions = $post->reactions->count();

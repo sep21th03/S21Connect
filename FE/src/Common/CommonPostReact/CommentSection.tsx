@@ -276,7 +276,7 @@ const CommentSection: FC<CommentSectionProps> = ({
           <Input
             type="text"
             className="emojiPicker"
-            placeholder="Write a comment..."
+            placeholder="Viết bình luận..."
             value={messageInput}
             onChange={handleInputChange}
             onKeyPress={handleSubmitComment}

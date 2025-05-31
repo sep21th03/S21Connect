@@ -2,9 +2,17 @@ import { AddStories, ImagePath } from "../../../../utils/constant";
 import Image from "next/image";
 import { FC } from "react";
 
-const NewStories: FC = () => {
+interface NewStoriesProps {
+  onClick?: () => void;
+}
+
+const NewStories: FC<NewStoriesProps> = ({ onClick }) => {
   return (
-    <div className="story-box add-box">
+    <div 
+      className="story-box add-box" 
+      onClick={onClick}
+      style={{ cursor: 'pointer' }}
+    >
       <div className="bg-size blur-up lazyloaded storySectionAddStories">
         <div className="add-icon">
           <div className="icon">

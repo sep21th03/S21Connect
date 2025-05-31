@@ -9,18 +9,19 @@ import Image from "next/image";
 interface UserDropDownProps {
   setShowOption: (showOption: string) => void;
   showOption: string;
-  post: Post;
+  user: any;
 }
 
-const UserDropDown: FC<UserDropDownProps> = ({setShowOption, showOption, post }) => {
+const UserDropDown: FC<UserDropDownProps> = ({setShowOption, showOption, user }) => {
   const [showDropDown, setShowDropDown] = useState(false);
   const selectedOption = createPostDropDown.find((opt) => opt.slug === showOption);
+  const name = user?.first_name && user?.last_name ? user?.first_name + " " + user?.last_name : user?.name;
   return (
     <div className="user-info">
       <Media>
         <a href={Href} className="user-img bg-size blur-up lazyloaded">
           <Image
-            src={`${post?.user?.avatar}` || `${ImagePath}/user/user-1.jpg`}
+            src={`${user?.avatar}`}
             className="img-fluid lazyload bg-img rounded-circle"
             alt="user"
             width={50}
@@ -30,7 +31,7 @@ const UserDropDown: FC<UserDropDownProps> = ({setShowOption, showOption, post })
         <Media body>
           <a href={Href}>
             <h5>
-              {post?.user?.first_name} {post?.user?.last_name} 
+              {name} 
             </h5>
           </a>
           <div className="setting-dropdown">

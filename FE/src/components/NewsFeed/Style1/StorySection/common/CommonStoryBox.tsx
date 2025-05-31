@@ -15,42 +15,64 @@ import { Story } from "@/Common/CommonInterFace";
 interface CommonStoryBoxProps extends OverlayNames {
   story?: Story;
   hasUnseen?: boolean;
+  onClick?: () => void;
+  isFakeStory?: boolean;
 }
 
 const CommonStoryBox: FC<CommonStoryBoxProps> = ({
   story,
   hasUnseen = false,
+  onClick,
+  isFakeStory = false,
 }) => {
   const [showStoryModal, setShowStoryModal] = useState(false);
   const toggleStoryModal = () => setShowStoryModal(!showStoryModal);
-  const [initialUserIndex , setInitialUserIndex ] = useState<string | null>(null);
+  const [initialUserIndex, setInitialUserIndex] = useState<string | null>(null);
 
   const storyHasUnseen = story
-  ? !story.is_mine && story.items.some((item) => !item.is_seen)
-  : hasUnseen;
+    ? !story.is_mine && story.items.some((item) => !item.is_seen)
+    : hasUnseen;
 
   const handleSelectedStory = () => {
+    if (isFakeStory || onClick) {
+      onClick?.();
+      return;
+    }
+
     setInitialUserIndex(story?.id || null);
     toggleStoryModal();
   };
 
+  const handleIconClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleSelectedStory();
+  };
+
   return (
     <>
-      <div onClick={handleSelectedStory}>
+      <div onClick={handleSelectedStory} style={{ cursor: "pointer" }}>
         <div>
           <div
-            className={`story-box ${storyHasUnseen ? "unseen-highlight" : ""}`}
-            style={
-              storyHasUnseen
+            className={`story-box ${
+              storyHasUnseen && !isFakeStory ? "unseen-highlight" : ""
+            }`}
+            style={{
+              ...(storyHasUnseen && !isFakeStory
                 ? {
                     border: "2px solid #007bff",
                     boxShadow: "0 0 8px rgba(0, 123, 255, 0.6)",
                     transition: "box-shadow 0.3s ease, border 0.3s ease",
                   }
-                : {}
-            }
+                : {}),
+              ...(isFakeStory
+                ? {
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #e0e0e0",
+                    boxShadow: "0 0 4px rgba(0, 0, 0, 0.05)",
+                  }
+                : {}),
+            }}
           >
-            {/* <div className={`adaptive-overlay ${color ? `${color}-overlay` : ""}`}/> */}
             <div className={`adaptive-overlay}`} />
             <div className="story-bg bg-size">
               <CustomImage
@@ -69,7 +91,6 @@ const CommonStoryBox: FC<CommonStoryBoxProps> = ({
                     : `${story.user.first_name} ${story.user.last_name}`
                   : "josephin water"}
               </h6>
-              {/* <span>active now</span> */}
             </div>
             <div className="story-setting setting-dropdown">
               <ButtonGroup className="custom-dropdown arrow-none dropdown-sm">
@@ -77,39 +98,49 @@ const CommonStoryBox: FC<CommonStoryBoxProps> = ({
                   <DynamicFeatherIcon
                     iconName="Sun"
                     className={`icon-light iw-13 ih-13 ${
-                      storyHasUnseen ? "story-unseen-highlight" : ""
+                      storyHasUnseen && !isFakeStory
+                        ? "story-unseen-highlight"
+                        : ""
                     }`}
-                    onClick={handleSelectedStory}
+                    onClick={(e) => handleIconClick(e)}
                   />
                 </a>
-                <div className="dropdown-menu dropdown-menu-right custom-dropdown ">
-                  <ul>
-                    <li>
-                      <a href={Href}>
-                        <DynamicFeatherIcon
-                          iconName="VolumeX"
-                          className="icon-font-light iw-16 ih-16"
-                        />
-                        {Mute} {story ? story.user.first_name : "josephin"}
-                      </a>
-                    </li>
-                    <li>
-                      <a href={Href}>
-                        <DynamicFeatherIcon
-                          iconName="User"
-                          className="icon-font-light iw-16 ih-16"
-                        />
-                        {ViewProfile}
-                      </a>
-                    </li>
-                  </ul>
-                </div>
+                {!isFakeStory && (
+                  <div className="dropdown-menu dropdown-menu-right custom-dropdown ">
+                    <ul>
+                      <li>
+                        <a href={Href}>
+                          <DynamicFeatherIcon
+                            iconName="VolumeX"
+                            className="icon-font-light iw-16 ih-16"
+                          />
+                          {Mute} {story ? story.user.first_name : "josephin"}
+                        </a>
+                      </li>
+                      <li>
+                        <a href={Href}>
+                          <DynamicFeatherIcon
+                            iconName="User"
+                            className="icon-font-light iw-16 ih-16"
+                          />
+                          {ViewProfile}
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </ButtonGroup>
             </div>
           </div>
         </div>
       </div>
-      <StoriesModal showModal={showStoryModal} toggle={toggleStoryModal} initialUserIndex={initialUserIndex} />
+      {!isFakeStory && (
+        <StoriesModal
+          showModal={showStoryModal}
+          toggle={toggleStoryModal}
+          initialUserIndex={initialUserIndex || undefined}
+        />
+      )}
     </>
   );
 };

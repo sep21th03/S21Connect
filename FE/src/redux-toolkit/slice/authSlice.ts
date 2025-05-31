@@ -4,18 +4,18 @@ import {
   createAsyncThunk,
   PayloadAction,
 } from "@reduxjs/toolkit";
-import type { User } from "@/utils/interfaces/user";
+import type { User, UserRedux } from "@/utils/interfaces/user";
 import Cookies from "js-cookie";
 import { signIn, signOut } from "next-auth/react";
 import { getSession } from "next-auth/react";
 import { io, Socket } from "socket.io-client";
 import { toast } from "react-toastify";
+import { setUser, clearUser } from "./userSlice";
 
 
 let socket: Socket | null = null;
 
 const TOKEN_COOKIE_NAME = "auth_token";
-const REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 const COOKIE_EXPIRES = 7;
 
 interface AuthState {
@@ -43,29 +43,26 @@ interface LoginCredentials {
 }
 
 const saveTokenToCookies = (token: string) => {
-  Cookies.set(TOKEN_COOKIE_NAME, token, { expires: COOKIE_EXPIRES });
-};
-
-const saveRefreshTokenToCookies = (refreshToken: string) => {
-  Cookies.set(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
+  Cookies.set(TOKEN_COOKIE_NAME, token, {
     expires: COOKIE_EXPIRES,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    domain: process.env.NODE_ENV === 'production' ? 'sep21th03.tech' : 'localhost',
   });
 };
 
-export { saveTokenToCookies, saveRefreshTokenToCookies };
+
+export { saveTokenToCookies };
 
 export const removeTokenFromCookies = () => {
   Cookies.remove(TOKEN_COOKIE_NAME);
-  Cookies.remove(REFRESH_TOKEN_COOKIE_NAME);
 };
 
 export const getAuthToken = () => {
   return Cookies.get(TOKEN_COOKIE_NAME);
 };
 
-export const getRefreshToken = () => {
-  return Cookies.get(REFRESH_TOKEN_COOKIE_NAME);
-};
 
 export const login = createAsyncThunk<
   { success: boolean; url?: string | null },
@@ -85,13 +82,10 @@ export const login = createAsyncThunk<
 
     if (result?.ok) {
       const session = await getSession();
+      dispatch(setUser(session?.user as unknown as UserRedux));
       const token = (session as any)?.token;
-      const refreshToken = (session as any)?.refreshToken;
       if (token) {
         saveTokenToCookies(token);
-      }
-      if (refreshToken) {
-        saveRefreshTokenToCookies(refreshToken);
       }
       return { success: true, url: result.url };
     }
@@ -114,9 +108,11 @@ export const logout = createAsyncThunk(
         socket = null;
       }
 
+      dispatch(clearUser());
+
       // Xóa token cookie
       removeTokenFromCookies();
-
+      Cookies.remove("next-auth.session-token");
       // Đăng xuất từ next-auth
       await signOut({ redirect: false });
 

@@ -27,9 +27,9 @@ const ProfileMenu: FC<ProfileMenuInterFaceCustom> = ({title, username}) => {
           </div>
         </li>
         <li className={`${title === "acitivity feed"?"active":""}`}>
-          <Link href="/profile/acitivityfeed">
+          <Link href={`/profile/acitivityfeed/${username}`}>
             <DynamicFeatherIcon iconName="List" className="iw-14 ih-14 " />
-            <h6>acitivity feed</h6>
+            <h6>Hoạt động gần đây</h6>
           </Link>
         </li>
       </ul>

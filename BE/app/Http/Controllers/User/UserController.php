@@ -17,6 +17,12 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
+    public function userProfile()
+    {   
+        $user = Auth::user();
+        return $this->userService->getUserProfile($user->id);
+    }
+
     public function hoverCardData($targetUserId)
     {
         $viewerId = Auth::id();
@@ -80,5 +86,11 @@ class UserController extends Controller
     public function suggestFriends()
     {
         return $this->userService->suggestFriends();
+    }
+
+    public function searchFriends(Request $request)
+    {
+        $searchTerm = $request->input('searchTerm');
+        return $this->userService->searchFriends($searchTerm);
     }
 }

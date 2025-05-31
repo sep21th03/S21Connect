@@ -21,7 +21,6 @@ const NotificationLists: FC<NotificationListsProps> = ({setShowNotification, not
     
     openModal(modalUrl);
   };
-  console.log(notification);
   return (
     <>
       {notification.map((data, index) => (

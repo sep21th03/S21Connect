@@ -7,13 +7,16 @@ import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
 
 
-const FriendSuggestion: FC<FriendSuggestionInterFace> = ({ mainClassName }) => {
+const FriendSuggestion: FC<FriendSuggestionInterFace> = ({ mainClassName, setIsFriendSection }) => {
 
   const [friendSuggestion, setFriendSuggestion] = useState<any[]>([]);
 
   useEffect(() => {
     axiosInstance.get(API_ENDPOINTS.USERS.FRIEND_SUGGESTION).then((res) => {
       setFriendSuggestion(res.data);
+      if(res.data.length > 0){
+        setIsFriendSection?.(true);
+      }
     });
   }, []);
   return (

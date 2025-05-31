@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { getAuthToken } from "@/redux-toolkit/slice/authSlice";
+import { SharePostMetadata } from "@/components/Messenger/MessengerType";
 
 let socket: Socket | null = null;
 
@@ -18,7 +19,7 @@ export interface Message {
   conversation_id: string;
   group_id: string | null;
   content: string;
-  type: "text" | "image" | "video" | "sticker" | "file";
+  type: "text" | "image" | "video" | "sticker" | "file" | "share_post";
   file_paths: string[] | null;
   is_read: boolean;
   read_at: string | null;
@@ -32,6 +33,7 @@ export interface Message {
     last_active: string;
   };
   client_temp_id?: string;
+  metadata?: SharePostMetadata;
 }
 
 export interface SendMessagePayload {
@@ -248,7 +250,6 @@ export function useSocket(
 
   const markMessagesAsRead = (conversationId: string) => {
     if (!socket?.connected) return;
-    console.log("Marking messages as read for conversation:", conversationId);
     socket.emit("mark_as_read", { conversation_id: conversationId });
   };
 

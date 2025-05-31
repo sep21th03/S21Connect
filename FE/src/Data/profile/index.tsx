@@ -290,9 +290,9 @@ interface profileNavData {
 }
 
 export const profileNav: profileNavData[] = [
-  { title: "timeline", icon: "Clock" },
-  { title: "about", icon: "Info" },
-  { title: "friends", icon: "Users" },
-  { title: "photos", icon: "Image" },
-  { title: "activity feed", icon: "List" },
+  { title: "Bảng tin", icon: "Clock" },
+  { title: "Giới thiệu", icon: "Info" },
+  { title: "Bạn bè", icon: "Users" },
+  { title: "Ảnh", icon: "Image" },
+  { title: "Hoạt động", icon: "List" },
 ];

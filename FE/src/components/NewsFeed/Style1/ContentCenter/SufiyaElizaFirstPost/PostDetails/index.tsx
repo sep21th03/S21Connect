@@ -16,36 +16,48 @@ const PostDetails: FC<PostDetailInterFace> = ({
   shouldOpenComments,
   highlightCommentId,
   highlightReplyId,
-  highlightReactionId,
+  isShared,
 }) => {
   return (
     <div className="post-details">
+      {!isShared && (
+        <DetailBox heading={BirthdayHeading} span={BirthdaySpan} post={post} />
+      )}
       <PostImage
         post={post}
         localPost={localPost}
         setLocalPost={setLocalPost}
-      />
-      <DetailBox heading={BirthdayHeading} span={BirthdaySpan} post={post} />
-      <CommonLikePanel
-        reactionCount={post?.reaction_counts}
-        total_reactions={post?.total_reactions}
-        commentCount={post?.total_comments}
-        shareCount={post?.total_shares}
-      />
-      <CommonPostReact
-        post={post}
-        onReactionChange={(data) =>
-          setLocalPost({
-            ...localPost,
-            reaction_counts: data.reaction_counts,
-            total_reactions: data.total_count,
-          })
-        }
         shouldOpenComments={shouldOpenComments}
         highlightCommentId={highlightCommentId}
         highlightReplyId={highlightReplyId}
-        highlightReactionId={highlightReactionId}
+        isShared={isShared}
       />
+      {!isShared && (
+        <>
+          <CommonLikePanel
+            reactionCount={post?.reaction_counts}
+            total_reactions={post?.total_reactions}
+            commentCount={post?.total_comments}
+            shareCount={post?.total_shares}
+          />
+          <CommonPostReact
+            post={post}
+            onReactionChange={(data) =>
+              setLocalPost({
+                ...localPost,
+                reaction_counts: data.reaction_counts,
+                total_reactions: data.total_count,
+              })
+            }
+            shouldOpenComments={shouldOpenComments}
+            highlightCommentId={highlightCommentId}
+            highlightReplyId={highlightReplyId}
+          />
+        </>
+      )}
+      {isShared && (
+        <DetailBox heading={BirthdayHeading} span={BirthdaySpan} post={post} />
+      )}
     </div>
   );
 };

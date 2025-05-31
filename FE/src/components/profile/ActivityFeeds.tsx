@@ -1,12 +1,27 @@
-import { ActivityFeed, ImagePath, Photo } from "../../utils/constant";
+import React, { useEffect, useState } from "react";
+import { ActivityFeed } from "../../utils/constant";
 import { Href } from "../../utils/constant/index";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import CommonDropDown from "@/Common/CommonDropDown";
-import { activityFeedData, activityFeedList } from "@/Data/profile";
-import CustomImage from "@/Common/CustomImage";
-import { Media } from "reactstrap";
+import { activityFeedData } from "@/Data/profile";
+import { Media, Spinner } from "reactstrap";
+import { getActivityLogsByUsername } from "@/service/userSerivice";
+import { formatTimeAgo } from "@/utils/formatTime";
 
-const ActivityFeeds: React.FC = () => {
+interface ActivityFeedsProps {
+  username: string;
+}
+
+const ActivityFeeds: React.FC<ActivityFeedsProps> = async ({ username }) => {
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!username) return;
+    setLoading(true);
+    getActivityLogsByUsername(username)
+      .then((res) => setActivityLogs(res.data.data))
+      .finally(() => setLoading(false));
+  }, [username]);
   return (
     <div className="activity-list section-t-space">
       <div className="card-title">
@@ -14,31 +29,56 @@ const ActivityFeeds: React.FC = () => {
         <div className="settings">
           <div className="setting-btn">
             <a href={Href} className="d-flex">
-              <DynamicFeatherIcon iconName="RotateCw" className="icon icon-theme stroke-width-3 iw-11 ih-11"/>
+              <DynamicFeatherIcon
+                iconName="RotateCw"
+                className="icon icon-theme stroke-width-3 iw-11 ih-11"
+              />
             </a>
           </div>
           <div className="setting-btn setting-dropdown">
-            <CommonDropDown mainClassName="icon-dark stroke-width-3 icon iw-11 ih-11" mainIcon="Sun" menuList={activityFeedData}/>
+            <CommonDropDown
+              mainClassName="icon-dark stroke-width-3 icon iw-11 ih-11"
+              mainIcon="Sun"
+              menuList={activityFeedData}
+            />
           </div>
         </div>
       </div>
       <div className="activity-content">
         <ul>
-          {activityFeedList.map((data, index) => (
-            <li key={index}>
-              <Media>
-                <div className="img-part bg-size blur-up lazyloaded">
-                  <CustomImage src={`${ImagePath}/user-sm/${index + 1}.jpg`} className="img-fluid blur-up lazyload bg-img" alt=""/>
-                </div>
-                <Media body>
-                  <h4>
-                    {data.title}<span>{data.spanText}</span> {Photo}
-                  </h4>
-                  <h6>{data.time}</h6>
+          {activityLogs.map((data, index) =>
+            loading ? (
+              <Spinner />
+            ) : (
+              <li key={index}>
+                <Media>
+                  <div className="img-part bg-size blur-up lazyloaded">
+                    <img
+                      src={`${data.target_user?.avatar}`}
+                      className="img-fluid lazyload bg-img rounded-circle"
+                      alt=""
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        // target.src = "/default-avatar.png";
+                      }}
+                    />
+                  </div>
+                  <Media body>
+                    <h4>
+                      {data.metadata?.content || "Không có nội dung"}{" "}
+                      {data.action !== "created_post" && data.target_user && (
+                        <span>
+                          {data.target_user.first_name}{" "}
+                          {data.target_user.last_name}
+                        </span>
+                      )}
+                    </h4>
+                    <h6>{formatTimeAgo(data.created_at)}</h6>
+                  </Media>
                 </Media>
-              </Media>
-            </li>
-          ))}
+              </li>
+            )
+          )}
         </ul>
       </div>
     </div>

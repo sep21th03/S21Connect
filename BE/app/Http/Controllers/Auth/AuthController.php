@@ -50,26 +50,29 @@ class AuthController extends Controller
         try {
             // $refreshToken = $request->input('refresh_token');
 
-
-            $newToken = JWTAuth::refresh();
+            $oldToken = JWTAuth::getToken();
+            if (!$oldToken) {
+                return response()->json(['error' => 'Token không hợp lệ'], 401);
+            }
+            $newToken = JWTAuth::refresh($oldToken);
 
             return response()->json([
                 'token'   => $newToken,
                 'expires' => JWTAuth::factory()->getTTL() * 60
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Không thể refresh token'], 401);
+            return response()->json(['error' => 'Không thể refresh token', 'message' => $e->getMessage()], 401);
         }
     }
 
     public function forgotPassword(Request $request)
     {
         $request->validate(['email' => 'required|email|exists:users,email']);
-    
+
         $status = Password::broker()->sendResetLink(
             $request->only('email')
         );
-    
+
         return $status === Password::RESET_LINK_SENT
             ? response()->json(['message' => 'Email khôi phục mật khẩu đã được gửi.'])
             : response()->json(['error' => trans($status)], 500);
@@ -82,7 +85,7 @@ class AuthController extends Controller
             'email' => 'required|email',
             'password' => 'required|min:6|confirmed',
         ]);
-    
+
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
@@ -91,7 +94,7 @@ class AuthController extends Controller
                 ])->save();
             }
         );
-    
+
         return $status === Password::PASSWORD_RESET
             ? response()->json(['message' => 'Mật khẩu đã được đặt lại thành công.'])
             : response()->json(['error' => trans($status)], 400);
@@ -103,7 +106,7 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|email',
         ]);
-        
+
         return $this->authService->verifyEmail($request->email);
     }
 

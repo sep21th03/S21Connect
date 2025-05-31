@@ -106,8 +106,8 @@ const HeaderMessage: React.FC<{unreadMessageUpdate: RecentMessage | null, online
   };
 
   const filteredUserList = userList?.filter((user) => {
-    const name = `${user.other_user.name}`.toLowerCase();
-    const username = user.other_user.username?.toLowerCase() || "";
+    const name = `${user.other_user?.name}`.toLowerCase();
+    const username = user.other_user?.username?.toLowerCase() || "";
     const term = searchTerm.toLowerCase();
     return name.includes(term) || username.includes(term);
   });  

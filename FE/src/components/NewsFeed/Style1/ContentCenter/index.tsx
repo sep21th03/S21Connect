@@ -5,7 +5,7 @@ import PostPanel from "./PostPanel";
 const ContentCenter: FC = () => {
   return (
     <div className="content-center">
-      <CreatePost />
+      <CreatePost onPostCreated={() => {}} />
       <div className="overlay-bg" />
       <PostPanel />
     </div>

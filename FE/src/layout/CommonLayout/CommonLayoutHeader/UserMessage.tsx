@@ -21,19 +21,19 @@ const UserMessage = ({
             <a href={Href} onClick={() => onUserClick(data)}>
               <Media>
                 <Image
-                  src={data.other_user.avatar || `${ImagePath}/icon/user.png`}
+                  src={data.other_user?.avatar || `${ImagePath}/icon/user.png`}
                   className="img-fluid blur-up bg-img lazyloaded rounded-circle"
                   alt="user"
                   width={100}
                   height={100}
                 />
                 <Media body>
-                  <h5 className="mt-0">{data.other_user.name}</h5>
+                  <h5 className="mt-0">{data.other_user?.name}</h5>
                   <div>
                     {(() => {
                       const isImage = data.latest_message?.type === "image";
                       const isSenderOther =
-                        data.other_user.id === data.latest_message?.sender_id;
+                        data.other_user?.id === data.latest_message?.sender_id;
                       if (isImage) {
                         return (
                           <h6
@@ -41,9 +41,21 @@ const UserMessage = ({
                           >
                             {isSenderOther
                               ? `${
-                                  data.other_user.name || "Người kia"
+                                  data.other_user?.name || "Người kia"
                                 } đã gửi 1 ảnh`
                               : "Bạn đã gửi 1 ảnh"}
+                          </h6>
+                        );
+                      } else if (data.latest_message?.type === "share_post") {
+                        return (
+                          <h6
+                            className={data.unread_count > 0 ? "fw-bold" : ""}
+                          >
+                            {isSenderOther
+                              ? `${
+                                  data.other_user?.name || "Người kia"
+                                } đã chia sẻ 1 bài viết`
+                              : "Bạn đã chia sẻ 1 bài viết"}
                           </h6>
                         );
                       } else {
@@ -69,7 +81,7 @@ const UserMessage = ({
                   </div>
                 </Media>
               </Media>
-              {onlineUsers.includes(data.other_user.id) && (
+              {onlineUsers.includes(data.other_user?.id || "") && (
                 <div className="active-status">
                   <span className="active" />
                 </div>

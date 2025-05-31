@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Report;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\Relations\Relation;
 
 class ReportService
 {

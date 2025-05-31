@@ -18,12 +18,12 @@ return new class extends Migration
             $table->uuid('group_id')->nullable(); // nullable nếu là message 1-1
         
             $table->text('content')->nullable();
-            $table->enum('type', ['text', 'image', 'video', 'sticker', 'file'])->default('text');
+            $table->enum('type', ['text', 'image', 'video', 'sticker', 'file', 'share_post'])->default('text');
             $table->text('file_paths')->nullable();
         
             $table->boolean('is_read')->default(false);
             $table->timestamp('read_at')->nullable();
-        
+            $table->json('metadata')->nullable();
             $table->timestamps();
         
             // Foreign keys

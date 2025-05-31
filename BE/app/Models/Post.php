@@ -10,7 +10,7 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'post_id', 'content', 'images', 'videos', 'visibility', 'is_comment_disabled', 'feeling', 'checkin', 'bg_id', 'type'];
+    protected $fillable = ['user_id', 'post_id', 'content', 'images', 'videos', 'visibility', 'is_comment_disabled', 'feeling', 'checkin', 'bg_id', 'type', 'original_post_id', 'post_format'];
 
     protected $casts = [
         'images' => 'array',
@@ -58,6 +58,11 @@ class Post extends Model
     public function reactions()
     {
         return $this->hasMany(Reaction::class);
+    }
+
+    public function originalPost()
+    {
+        return $this->belongsTo(Post::class, 'original_post_id');
     }
 
     public function shares()

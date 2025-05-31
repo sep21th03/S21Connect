@@ -41,7 +41,7 @@ const ChatUsers: FC = React.memo(() => {
   }, [activeTab, setActiveTab, setUserList]);
 
   const filteredUsers = userList?.filter(user => 
-    user.other_user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    user.other_user?.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
   return (
@@ -54,7 +54,7 @@ const ChatUsers: FC = React.memo(() => {
             data={data}
             active={activeTab === data.id}
             onClick={() => handleSetActiveTab(data.id)}
-            online={onlineUsers.includes(data.other_user.id)}
+            online={onlineUsers.includes(data.other_user?.id || "")}
             sessionUserId={session?.user?.id}
           />
         ))}

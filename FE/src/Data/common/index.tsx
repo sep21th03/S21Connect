@@ -14,9 +14,9 @@ import { EdiPost, HidePost, SavePost } from "../../utils/constant";
 //   { icon: "User", name: "only me" },
 // ];
 export const createPostDropDown: CreatePostInterface[] = [
-  { icon: "Globe", name: "Public", slug: "public" },
-  { icon: "Users", name: "Friends", slug: "friends" },
-  { icon: "Lock", name: "only me", slug: "private" },
+  { icon: "Globe", name: "Công khai", slug: "public" },
+  { icon: "Users", name: "Bạn bè", slug: "friends" },
+  { icon: "Lock", name: "Riêng tư", slug: "private" },
 ];
 
 export const userDropDownData: userDropDownDataInterFace[] = [

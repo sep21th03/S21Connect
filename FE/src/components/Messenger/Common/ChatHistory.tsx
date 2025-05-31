@@ -1,5 +1,5 @@
 import { ChangeEvent, FC, Fragment, useEffect, useState, useRef } from "react";
-import { ChatHistoryInterFace, SingleUser } from "../MessengerType";
+import { ChatHistoryInterFace, SharePostMetadata  } from "../MessengerType";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import HideOption from "./HideOption";
 import { Href } from "../../../utils/constant/index";
@@ -210,12 +210,12 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert("Image size must be less than 5MB");
+        alert("Kích thước ảnh phải nhỏ hơn 5MB");
         return;
       }
 
       if (!file.type.startsWith("image/")) {
-        alert("Only image files are allowed");
+        alert("Chỉ chấp nhận file ảnh");
         return;
       }
 
@@ -247,7 +247,7 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
         try {
           const base64Data = reader.result?.toString().split(",")[1];
           if (!base64Data) {
-            console.error("Failed to convert image to base64");
+            console.error("Chuyển ảnh thành base64 thất bại");
             setIsUploading(false);
             return;
           }
@@ -262,20 +262,19 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
           });
 
           if (!success) {
-            console.error("Failed to send image message");
+            console.error("Gửi ảnh thất bại");
             setIsUploading(false);
 
-            // Xóa tin nhắn ảnh tạm thời nếu gửi thất bại
             setPendingMessages((prev) =>
               prev.filter((msg) => msg.id !== tempId)
             );
             toast.error("Không thể gửi ảnh, vui lòng thử lại");
           }
         } catch (error) {
-          console.error("Error sending image:", error);
+          console.error("Lỗi gửi ảnh:", error);
           setIsUploading(false);
 
-          // Xóa tin nhắn ảnh tạm thời nếu có lỗi
+
           setPendingMessages((prev) => prev.filter((msg) => msg.id !== tempId));
           toast.error("Đã xảy ra lỗi khi gửi ảnh");
         }
@@ -297,6 +296,9 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
     }
   };
   const renderMessageContent = (message: Message) => {
+    if (message.type === "share_post") {
+      return renderSharedPost(message);
+    }
     if (message.type === "image" && message.content) {
       return (
         <div className="message-image-container">
@@ -365,6 +367,107 @@ const ChatHistory: FC<ChatHistoryInterFace> = ({
       );
     }
     return message.content;
+  };
+
+  const renderSharedPost = (message: Message) => {
+    try {
+      const rawMetadata : SharePostMetadata = message.metadata as SharePostMetadata;
+      const metadata: SharePostMetadata =
+      typeof rawMetadata === "string"
+        ? JSON.parse(rawMetadata)
+        : rawMetadata;
+      return (
+        <div className="shared-post-container" style={{
+          border: "1px solid #e4e6ea",
+          borderRadius: "8px",
+          overflow: "hidden",
+          backgroundColor: "#f8f9fa",
+          maxWidth: "350px",
+          cursor: "pointer"
+        }}>
+          {message.content && (
+            <div style={{
+              padding: "12px",
+              fontSize: "14px",
+              lineHeight: "1.4"
+            }}>
+              {message.content}
+            </div>
+          )}
+          
+          <div 
+            className="post-preview"
+            onClick={() => {
+              if (metadata.url) {
+                window.open(metadata.url.startsWith('http') ? metadata.url : `/${metadata.url}`, '_blank');
+              }
+            }}
+            style={{
+              backgroundColor: "white",
+              border: "1px solid #e4e6ea",
+              borderRadius: "8px",
+              margin: "0 12px 12px 12px",
+              overflow: "hidden"
+            }}
+          >
+            {metadata.image && (
+              <div style={{ position: "relative", width: "100%", height: "200px" }}>
+                <img
+                  src={metadata.image}
+                  alt="Post preview"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover"
+                  }}
+                  loading="lazy"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+            
+            <div style={{ padding: "12px" }}>
+              <div style={{
+                fontSize: "14px",
+                lineHeight: "1.4",
+                color: "#1c1e21",
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical" as const,
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}>
+                {metadata.content || "Xem bài viết..."}
+              </div>
+              
+              <div style={{
+                marginTop: "8px",
+                fontSize: "12px",
+                color: "#65676b",
+                textTransform: "uppercase"
+              }}>
+                Bài viết #{metadata.post_id}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    } catch (error) {
+      console.error("Lỗi phân tích metadata bài viết được chia sẻ:", error);
+      return (
+        <div style={{
+          padding: "12px",
+          backgroundColor: "#ffebee",
+          borderRadius: "8px",
+          color: "#c62828",
+          fontSize: "14px"
+        }}>
+          Không thể hiển thị bài viết được chia sẻ
+        </div>
+      );
+    }
   };
 
   return (

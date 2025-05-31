@@ -1,12 +1,12 @@
 import { Href, ImagePath, Replay, Translate } from "../../utils/constant";
 import { FC, useState } from "react";
 import { Media } from "reactstrap";
-import { MainCommentProps } from "../CommonInterFace";
+import { PreviewCommentProps } from "../CommonInterFace";
 import HoverMessage from "../HoverMessage";
 import { formatTime } from "@/utils/formatTime";
 import styles from "@/style/modal.module.css";
 
-const PreviewComment: FC<MainCommentProps> = ({ comment, like,id}) => {
+const PreviewComment: FC<PreviewCommentProps> = ({ comment, like,id}) => {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
 
@@ -17,7 +17,7 @@ const PreviewComment: FC<MainCommentProps> = ({ comment, like,id}) => {
       <a href={Href} className={styles.userImg} id={id} onClick={(e) => e.preventDefault()}>
         <img src={`${comment?.user?.avatar}`} className="img-fluid lazyload bg-img rounded-circle" alt="user" width={30} height={30}/>
       </a>
-      <HoverMessage placement={"right"} target={id} name={comment?.user?.first_name + " " + comment?.user?.last_name} imagePath={`user-sm/2.jpg`} />
+      <HoverMessage placement={"right"} target={id} name={comment?.user?.first_name + " " + comment?.user?.last_name} imagePath={comment?.user?.avatar} />
       <Media body>
         <a href={Href} onClick={(e) => e.preventDefault()}>
           <h5>{comment?.user?.first_name} {comment?.user?.last_name}</h5>

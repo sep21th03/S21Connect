@@ -54,8 +54,8 @@ export const authoption: NextAuthOptions = {
               name: `${decodedToken.first_name} ${decodedToken.last_name}`,
               username: decodedToken.username,
               token: data.token,
-              refreshToken: data.refresh_token,
-              image: decodedToken.avatar,
+              // refreshToken: data.refresh_token,
+              avatar: decodedToken.avatar,
               is_admin: decodedToken.is_admin,
             };
           }
@@ -86,8 +86,8 @@ export const authoption: NextAuthOptions = {
         token.email = user.email;
         token.token = user.token;
         token.username = user.username;
-        token.refreshToken = user.refreshToken;
-        token.image = user.image;
+        // token.refreshToken = user.refreshToken;
+        token.avatar = user.avatar;
         token.is_admin = user.is_admin;
       }
 
@@ -99,8 +99,8 @@ export const authoption: NextAuthOptions = {
         session.user.email = token.email as string;
         session.user.username = token.username as string;
         session.token = token.token as string;
-        session.refreshToken = token.refreshToken as string;
-        session.user.image = token.image as string;
+        // session.refreshToken = token.refreshToken as string;
+        session.user.avatar = token.avatar as string;
         session.user.is_admin = token.is_admin as number;
       }
       return session;

@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
 use App\Notifications\CustomVerifyEmail;
+use App\Models\Scopes\ExcludeBannedUsers;
+
 
 class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
@@ -63,6 +65,11 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'password' => 'hashed',
     ];
 
+    protected static function booted()
+    {
+        static::addGlobalScope(new ExcludeBannedUsers);
+    }
+
     public function isAdmin()
     {
         return $this->is_admin;
@@ -70,7 +77,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 
     public function getJWTIdentifier()
     {
-        return $this->getKey(); // Thường là id của user
+        return $this->getKey();
     }
 
     public function getJWTCustomClaims()
@@ -170,7 +177,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         return $this->hasMany(Story::class);
     }
-    
+
     public function groups()
     {
         return $this->belongsToMany(ChatGroup::class, 'chat_group_user', 'user_id', 'group_id');

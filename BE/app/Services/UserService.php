@@ -12,6 +12,24 @@ use Illuminate\Support\Facades\DB;
 
 class UserService
 {
+    public function getUserProfile($userId)
+    {
+        $user = User::where('id', $userId)
+            ->first();
+
+        if (!$user) {
+            return null;
+        }
+
+        return [
+            'id' => $user->id,
+            'username' => $user->username,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'avatar' => $user->avatar,
+            'is_admin' => $user->is_admin,
+        ];
+    }
 
 
     public function getHoverCardData($viewerId, $targetUserId)
@@ -25,14 +43,12 @@ class UserService
             return null;
         }
 
-        // Tổng số bạn bè của target user
         $friendCount = Friendship::where('status', 'accepted')
             ->where(function ($q) use ($targetUserId) {
                 $q->where('user_id', $targetUserId)
                     ->orWhere('friend_id', $targetUserId);
             })->count();
 
-        // Số bạn bè chung giữa viewer và target
         $viewerFriends = Friendship::where('status', 'accepted')
             ->where(function ($q) use ($viewerId) {
                 $q->where('user_id', $viewerId)
@@ -51,7 +67,6 @@ class UserService
 
         $mutualCount = count(array_intersect($viewerFriends, $targetFriends));
 
-        // Kiểm tra 2 người đã là bạn chưa
         $isFriend = Friendship::where('status', 'accepted')
             ->where(function ($q) use ($viewerId, $targetUserId) {
                 $q->where('user_id', $viewerId)->where('friend_id', $targetUserId)
@@ -69,7 +84,6 @@ class UserService
         ];
     }
 
-    // Hàm lấy danh sách bạn bè của một user
     public function getListFriend($userId)
     {
         $listFriend = Friendship::where('user_id', $userId)
@@ -186,7 +200,7 @@ class UserService
 
     public function getUserStats(string $userId): array
     {
-          $start = microtime(true);
+        $start = microtime(true);
         return Cache::remember("user_stats_{$userId}", 60, function () use ($userId) {
             $totalPosts = Post::where('user_id', $userId)->count();
 
@@ -269,5 +283,90 @@ class UserService
             ->values();
 
         return response()->json($allSuggestions);
+    }
+
+    public function searchFriends(string $searchTerm = null)
+    {
+        $userId = Auth::id();
+
+        $listFriendIds = Friendship::where(function ($q) use ($userId) {
+            $q->where('user_id', $userId)
+                ->orWhere('friend_id', $userId);
+        })
+            ->where('status', 'accepted')
+            ->get()
+            ->map(function ($friendship) use ($userId) {
+                return $friendship->user_id === $userId ? $friendship->friend_id : $friendship->user_id;
+            })
+            ->toArray();
+
+        $conversations = Conversation::where('type', 'private')
+            ->whereHas('users', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->with(['users' => function ($q) use ($userId) {
+                $q->where('user_id', '!=', $userId);
+            }])
+            ->get();
+
+        $conversationMap = [];
+        foreach ($conversations as $conversation) {
+            $friend = $conversation->users->first();
+            if ($friend) {
+                $conversationMap[$friend->id] = $conversation->id;
+            }
+        }
+
+        if ($searchTerm) {
+            $terms = explode(' ', $searchTerm);
+            $users = User::whereIn('id', $listFriendIds)
+                ->where(function ($q) use ($terms) {
+                    foreach ($terms as $term) {
+                        $q->where(function ($q2) use ($term) {
+                            $q2->where('first_name', 'like', "%$term%")
+                                ->orWhere('last_name', 'like', "%$term%")
+                                ->orWhere('username', 'like', "%$term%");
+                        });
+                    }
+                })
+                ->get();
+
+            return $users->map(function ($user) use ($conversationMap) {
+                return [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'avatar' => $user->avatar,
+                    'conversation_id' => $conversationMap[$user->id] ?? null,
+                ];
+            });
+        }
+
+        $friendMessagesCount = [];
+
+        foreach ($conversations as $conversation) {
+            $friend = $conversation->users->first();
+            if (!$friend) continue;
+
+            $messageCount = $conversation->messages()->count();
+            $friendMessagesCount[$friend->id] = $messageCount;
+        }
+
+        arsort($friendMessagesCount);
+        $topFriendIds = array_slice(array_keys($friendMessagesCount), 0, 10);
+
+        $users = User::whereIn('id', $topFriendIds)->get();
+
+        return $users->map(function ($user) use ($conversationMap) {
+            return [
+                'id' => $user->id,
+                'username' => $user->username,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'avatar' => $user->avatar,
+                'conversation_id' => $conversationMap[$user->id] ?? null,
+            ];
+        });
     }
 }

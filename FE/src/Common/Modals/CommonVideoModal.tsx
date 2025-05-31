@@ -2,7 +2,11 @@ import { FC } from "react";
 import { Modal, ModalBody } from "reactstrap";
 import { CommonVideoModalInterFace } from "../CommonInterFace";
 
-const CommonVideoModal: FC<CommonVideoModalInterFace> = ({ modal, toggle }) => {
+const CommonVideoModal: FC<CommonVideoModalInterFace> = ({
+  modal,
+  toggle,
+  videoUrl,
+}) => {
   return (
     <Modal
       isOpen={modal}
@@ -12,12 +16,16 @@ const CommonVideoModal: FC<CommonVideoModalInterFace> = ({ modal, toggle }) => {
       size="lg"
     >
       <ModalBody className="video-model">
-        <iframe
+        <video
           className="video"
-          src="https://www.youtube.com/embed/TKnufs85hXk"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
+          src={videoUrl}
+          controls
+          width="100%"
+          height="auto"
+        >
+          <source src={videoUrl} type="video/mp4" />
+          Trình duyệt của bạn không hỗ trợ video.
+        </video>
       </ModalBody>
     </Modal>
   );

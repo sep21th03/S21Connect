@@ -1,4 +1,4 @@
-import { Post } from "@/components/NewsFeed/Style1/Style1Types";
+import { Post, ReactionResponse } from "@/components/NewsFeed/Style1/Style1Types";
 import * as Icon from "react-feather";
 
 export interface FeatherIconType {
@@ -87,6 +87,7 @@ export interface CommonUserHeadingProps {
   postUser: any;
   onPostUpdated: (updatedPost: Post) => void;
   onPostDeleted: () => void;
+  isShared: boolean;
 }
 
 export interface DetailBoxProps {
@@ -121,11 +122,20 @@ export interface ShareModalProps {
 export interface CommonGalleryModalInterFace {
   modal?: boolean;
   toggle: () => void;
+  post: Post;
+  galleryList: { url: string; type: string }[];
+  onReactionChange: (data: ReactionResponse) => void;
 }
 
 export interface CommonVideoModalInterFace {
   modal: boolean;
   toggle: () => void;
+  videoUrl: string;
+}
+
+export interface ImageGalleryInterFace {
+  toggle: () => void;
+  galleryList: { url: string; type: string }[];
 }
 
 export interface OptionsInputsInterFace {
@@ -137,6 +147,12 @@ export interface OptionsInputsInterFace {
   setTaggedFriends: (data: string[]) => void;
   tagInput: string;
   setTagInput: (data: string) => void;
+}
+
+export interface PreviewCommentProps {
+  comment: Comment;
+  like?: number;
+  id: string;
 }
 export interface MainCommentProps {
   comment: Comment;
@@ -162,7 +178,7 @@ export interface Comment {
   post_id: string;
   parent_id: string;
   user: {
-    id: number;
+    id: string;
     first_name: string;
     last_name: string;
     avatar: string;

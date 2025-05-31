@@ -41,9 +41,9 @@ const EditPostModal: FC<EditPostModalProps> = ({ showModal, toggleModal, post, s
         <EditModal />    
       </ModalHeader>
       <ModalBody>
-        <UserDropDown post={post} setShowOption={setShowOption} showOption={showOption}/>
+        <UserDropDown user={post?.user} setShowOption={setShowOption} showOption={showOption}/>
         <div className="input-section">
-          <Input type="text" className="emojiPicker" placeholder="write a comment.." value={content} onChange={(e) => setContent(e.target.value)}/>
+          <Input type="text" className="emojiPicker" placeholder="Viết gì đó.." value={content} onChange={(e) => setContent(e.target.value)}/>
         </div>
         <div className="post-section ratio2_1">
           {/* <div className="post-img bg-size blur-up lazyloaded">
