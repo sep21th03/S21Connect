@@ -8,6 +8,8 @@ interface MessengerContextType {
   activeTab: string | null | undefined;
   setActiveTab: React.Dispatch<React.SetStateAction<string | null | undefined>>;
   onlineUsers: string[];
+  showArchived: boolean;
+  setShowArchived: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const initialContext: MessengerContextType = {
@@ -16,6 +18,8 @@ const initialContext: MessengerContextType = {
   activeTab: null,
   setActiveTab: () => {},
   onlineUsers: [],
+  showArchived: false,
+  setShowArchived: () => {},
 };
 
 const MessengerContext = createContext<MessengerContextType>(initialContext);

@@ -48,7 +48,7 @@ const CommonChatBox: FC<CommonChatBoxInterFace> = ({
         >
           <DynamicFeatherIcon iconName="X" className="icon-theme" />
         </div>
-        <div className="user-image bg-size blur-up lazyloaded">
+        <div className="user-image bg-size blur-up lazyloaded text-center">
           <Image
             src={userList?.other_user?.avatar || `${ImagePath}/icon/user.png`}
             className="img-fluid lazyload bg-img rounded-circle"

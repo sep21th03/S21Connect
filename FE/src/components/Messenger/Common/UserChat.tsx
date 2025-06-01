@@ -9,6 +9,7 @@ import ChatHistory from "./ChatHistory";
 import Image from "next/image";
 import { useRef } from "react";
 import { useSocket } from "@/hooks/useSocket";
+
 const UserChat: FC<UserChatInterFace> = ({
   user,
   setUserList,
@@ -21,6 +22,9 @@ const UserChat: FC<UserChatInterFace> = ({
     useState<RTCPeerConnection | null>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
+  const [enableInfiniteScroll, setEnableInfiniteScroll] = useState(true);
+  const settingsDropdownRef = useRef<HTMLDivElement>(null);
 
   const {
     socket,
@@ -29,7 +33,27 @@ const UserChat: FC<UserChatInterFace> = ({
     rejectCall,
     endCall,
     onCallRejected,
-  } = useSocket((users) => console.log(users), (conversationId) => console.log(conversationId));
+  } = useSocket(
+    (users) => console.log(users),
+    (conversationId) => console.log(conversationId)
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        settingsDropdownRef.current &&
+        !settingsDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowSettingsDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
     if (user?.other_user.last_active) {
       const lastActiveDate = new Date(user.other_user.last_active);
@@ -47,6 +71,12 @@ const UserChat: FC<UserChatInterFace> = ({
       }
     }
   }, [user?.other_user.last_active]);
+
+  const handleToggleInfiniteScroll = () => {
+    setEnableInfiniteScroll(!enableInfiniteScroll);
+    setShowSettingsDropdown(false);
+  };
+
   return (
     <div className="user-chat">
       <div className="user-title">
@@ -97,10 +127,87 @@ const UserChat: FC<UserChatInterFace> = ({
                 <DynamicFeatherIcon iconName="Video" className="icon-dark" />
               </a>
             </li>
-            <li>
-              <a href={Href}>
+            <li style={{ position: 'relative' }}>
+              <div ref={settingsDropdownRef as unknown as React.RefObject<HTMLDivElement>}>
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setShowSettingsDropdown(!showSettingsDropdown);
+                }}
+              >
                 <DynamicFeatherIcon iconName="Settings" className="icon-dark" />
               </a>
+
+              {showSettingsDropdown && (
+                <div
+                  className="settings-dropdown"
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    right: "0",
+                    backgroundColor: "white",
+                    border: "1px solid #e4e6ea",
+                    borderRadius: "8px",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                    minWidth: "200px",
+                    zIndex: 1000,
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    onClick={handleToggleInfiniteScroll}
+                    style={{
+                      padding: "12px 16px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      fontSize: "14px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      <DynamicFeatherIcon
+                        iconName={enableInfiniteScroll ? "RotateCcw" : "Square"}
+                      />
+                      <span>Tự động tải tin nhắn</span>
+                    </div>
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "20px",
+                        backgroundColor: enableInfiniteScroll
+                          ? "#42b883"
+                          : "#ccc",
+                        borderRadius: "10px",
+                        position: "relative",
+                        transition: "background-color 0.3s",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          backgroundColor: "white",
+                          borderRadius: "50%",
+                          position: "absolute",
+                          top: "2px",
+                          left: enableInfiniteScroll ? "22px" : "2px",
+                          transition: "left 0.3s",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              </div>
             </li>
             <li className="d-block d-lg-none info-user">
               <a href={Href}>
@@ -114,6 +221,7 @@ const UserChat: FC<UserChatInterFace> = ({
         user={user}
         setUserList={setUserList}
         initialConversationId={initialConversationId}
+        enableInfiniteScroll={enableInfiniteScroll}
       />
     </div>
   );

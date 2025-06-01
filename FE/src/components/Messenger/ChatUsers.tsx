@@ -15,13 +15,14 @@ const ChatUsers: FC = React.memo(() => {
     activeTab, 
     setActiveTab, 
     onlineUsers,
+    showArchived,
   } = useMessengerContext();
   const { data: session } = useSession();
   const [searchTerm, setSearchTerm] = useState("");
+
   const handleSetActiveTab = useCallback((conversationId: string) => {
     if (activeTab === conversationId) return;
 
-    // window.history.pushState({}, '', `/messanger/${conversationId}`);
     router.push(`/messanger/${conversationId}`);
 
     setActiveTab(conversationId);
@@ -40,10 +41,11 @@ const ChatUsers: FC = React.memo(() => {
     });
   }, [activeTab, setActiveTab, setUserList]);
 
-  const filteredUsers = userList?.filter(user => 
-    user.other_user?.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = userList?.filter(
+    (user) =>
+      user.other_user?.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
+
   return (
     <div className="chat-users">
       <UserHeader onSearch={setSearchTerm} />

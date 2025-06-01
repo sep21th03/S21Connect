@@ -113,7 +113,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function conversations()
     {
         return $this->belongsToMany(Conversation::class, 'conversation_user')
-            ->withPivot('nickname', 'last_read_at')
+            ->withPivot('nickname', 'last_read_at', 'is_archived')
             ->withTimestamps();
     }
 

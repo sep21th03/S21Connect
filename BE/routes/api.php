@@ -183,6 +183,7 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::delete('/{id}', [MessengerController::class, 'delete']);
         Route::post('/upload', [MessengerController::class, 'uploadFiles']);
         Route::get('/search/{conversationId}', [MessengerController::class, 'search']);
+        Route::get('/conversations/{conversationId}/messages/search', [MessengerController::class, 'searchMessages']);
     });
 
     Route::prefix('conversations')->group(function () {
@@ -196,6 +197,7 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::delete('/{id}/leave', [ConversationController::class, 'leave']);
         Route::get('/{id}/media', [ConversationController::class, 'getMedia']);
         Route::get('/message/count', [ConversationController::class, 'new_message_count']);
+        Route::post('/archive/{id}', [MessengerController::class, 'archive']);
     });
     //image
     Route::prefix('images')->group(function () {

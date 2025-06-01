@@ -1,11 +1,20 @@
-import { Media } from "reactstrap";
+import {
+  Dropdown,
+  DropdownToggle,
+  DropdownMenu,
+  DropdownItem,
+  Media,
+} from "reactstrap";
 import { NavLink } from "reactstrap";
-import { NavItem } from "reactstrap";;
+import { NavItem } from "reactstrap";
 import { ImagePath } from "../../utils/constant";
 import { formatTime } from "@/utils/formatTime";
-import React from "react";
+import React, { useState } from "react";
 import { RecentMessage } from "@/hooks/useSocket";
 import Image from "next/image";
+import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
+import { useRouter } from "next/navigation";
+import { archiveConversation } from "@/service/messageService";
 
 const ChatUserItem = React.memo(
   ({
@@ -21,6 +30,9 @@ const ChatUserItem = React.memo(
     online: boolean;
     sessionUserId?: string;
   }) => {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isIconVisible, setIsIconVisible] = useState(false);
+
     const renderContentPreview = (
       content?: string,
       senderId?: string,
@@ -29,10 +41,13 @@ const ChatUserItem = React.memo(
       type?: string
     ) => {
       if (!content) return "";
-    
+
       const imageRegex = /\.(jpeg|jpg|gif|png|webp)$/i;
-      const isImageUrl = imageRegex.test(content) || (content.startsWith("http") && imageRegex.test(new URL(content).pathname));
-    
+      const isImageUrl =
+        imageRegex.test(content) ||
+        (content.startsWith("http") &&
+          imageRegex.test(new URL(content).pathname));
+
       if (isImageUrl) {
         return senderId === sessionUserId
           ? "Bạn đã gửi 1 ảnh"
@@ -43,13 +58,51 @@ const ChatUserItem = React.memo(
           ? "Bạn đã chia sẻ 1 bài viết"
           : `${senderName || "Người dùng"} đã chia sẻ 1 bài viết`;
       }
-    
+
       return senderId === sessionUserId ? `Bạn: ${content}` : content;
     };
-    
+
+    const router = useRouter();
+
+    const chatDropdownOptions = [
+      {
+        iconName: "User",
+        label: "Xem hồ sơ",
+        onClick: () =>
+          router.push(`/profile/timeline/${data.other_user.username}`),
+      },
+      {
+        iconName: "Trash2",
+        label: "Xóa hội thoại",
+        onClick: () => console.log("Xóa hội thoại"),
+      },
+      {
+        iconName: "Slash",
+        label: "Chặn người dùng",
+        onClick: () => console.log("Chặn người dùng"),
+      },
+      {
+        iconName: "Archive",
+        label: "Lưu hội thoại",
+        onClick: () => archiveConversation(data.id, !data.is_archived),
+      },
+    ];
+
     return (
-      <NavItem>
-        <NavLink className={active ? "active" : ""} onClick={onClick}>
+      <NavItem
+        className="d-flex justify-content-between align-items-center px-2"
+        style={{ cursor: "pointer" }}
+        onMouseEnter={() => setIsIconVisible(true)}
+        onMouseLeave={() => {
+          setIsIconVisible(false);
+          setIsDropdownOpen(false);
+        }}
+      >
+        <NavLink
+          className={active ? "active" : ""}
+          onClick={onClick}
+          style={{ cursor: "pointer", width: "100%", zIndex: 1 }}
+        >
           <Media className="list-media">
             <div className="story-img">
               <div className="user-img bg-size blur-up lazyloaded">
@@ -74,19 +127,81 @@ const ChatUserItem = React.memo(
             <div className="chat">
               <h6 style={{ color: "black", fontWeight: "bold" }}>
                 {data.latest_message?.sender_id === sessionUserId
-                  ? `${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name, data.latest_message?.type)}`
-                  : renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name, data.latest_message?.type)}
+                  ? `${renderContentPreview(
+                      data.latest_message?.content,
+                      data.latest_message?.sender_id,
+                      sessionUserId,
+                      data.other_user.name,
+                      data.latest_message?.type
+                    )}`
+                  : renderContentPreview(
+                      data.latest_message?.content,
+                      data.latest_message?.sender_id,
+                      sessionUserId,
+                      data.other_user.name,
+                      data.latest_message?.type
+                    )}
               </h6>
               <span className="count">{data.unread_count}</span>
             </div>
           ) : (
             <h6>
               {data.latest_message?.sender_id === sessionUserId
-                ? `${renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name, data.latest_message?.type)}`
-                : renderContentPreview(data.latest_message?.content, data.latest_message?.sender_id, sessionUserId, data.other_user.name, data.latest_message?.type)}
+                ? `${renderContentPreview(
+                    data.latest_message?.content,
+                    data.latest_message?.sender_id,
+                    sessionUserId,
+                    data.other_user.name,
+                    data.latest_message?.type
+                  )}`
+                : renderContentPreview(
+                    data.latest_message?.content,
+                    data.latest_message?.sender_id,
+                    sessionUserId,
+                    data.other_user.name,
+                    data.latest_message?.type
+                  )}
             </h6>
           )}
         </NavLink>
+        {isIconVisible && (
+          <div className="dropdown-wrapper">
+            <Dropdown
+              isOpen={isDropdownOpen}
+              toggle={() => setIsDropdownOpen(!isDropdownOpen)}
+            >
+              <DropdownToggle
+                tag="span"
+                data-toggle="dropdown"
+                aria-expanded={isDropdownOpen}
+                style={{ cursor: "pointer" }}
+              >
+                <DynamicFeatherIcon
+                  iconName="MoreHorizontal"
+                  className="icon icon-font-color iw-14"
+                />
+              </DropdownToggle>
+              <DropdownMenu end>
+                {chatDropdownOptions.map((item, index) => (
+                  <DropdownItem
+                    key={index}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      item.onClick();
+                    }}
+                    className="d-flex align-items-center gap-2"
+                  >
+                    <DynamicFeatherIcon
+                      iconName={item.iconName as any}
+                      className="iw-14"
+                    />
+                    {item.label}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
+          </div>
+        )}
       </NavItem>
     );
   }

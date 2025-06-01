@@ -1,4 +1,4 @@
-import { RecentMessage } from "@/hooks/useSocket";
+import { Message, RecentMessage } from "@/hooks/useSocket";
 import { Dispatch, SetStateAction } from "react";
 interface messengerInterFace {
   receiverMessage?: string;
@@ -55,6 +55,8 @@ export interface CommonChatBoxInterFace {
   setUserList: Dispatch<SetStateAction<RecentMessage[] | null>>;
   onlineUsers: string[];
   initialConversationId?: string;
+  messages?: Message[];
+  onSearchSelect?: (messageId: string) => void;
 }
 
 export interface UserChatInterFace {

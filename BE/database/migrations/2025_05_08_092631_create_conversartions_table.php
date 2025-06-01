@@ -25,6 +25,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('conversation_id');
             $table->uuid('user_id');
+            $table->boolean('is_archived')->default(false);
             $table->string('nickname')->nullable();
             $table->timestamp('last_read_at')->nullable();
             $table->timestamps();

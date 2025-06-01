@@ -55,6 +55,7 @@ export interface RecentMessage {
   unread_count: number;
   created_at: string;
   updated_at: string;
+  is_archived: boolean;
   other_user: {
     id: string;
     username: string;

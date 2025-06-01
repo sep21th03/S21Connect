@@ -32,19 +32,18 @@ class ConversationController extends Controller
         ]);
     }
 
-    /**
-     * Get all conversations for the current user
-     */
-    public function index()
+
+    public function index(Request $request)
     {
         $user = Auth::user();
         $userId = $user->id;
-
+        $archived = filter_var($request->query('archived', false), FILTER_VALIDATE_BOOLEAN);
         $conversations = $user->conversations()
+            ->wherePivot('is_archived', $archived)
             ->with([
                 'latestMessage',
                 'latestMessage.sender',
-                'image',  // Eager load image để tránh N+1 query
+                'image',
                 'users' => function ($query) use ($userId) {
                     $query->select('users.id', 'username', 'first_name', 'last_name', 'last_active', 'avatar')
                         ->where('users.id', '!=', $userId);
@@ -56,9 +55,9 @@ class ConversationController extends Controller
             }])
             ->get();
 
-        // Biến đổi dữ liệu
+
         $formattedConversations = $conversations->map(function ($conversation) use ($userId) {
-            // Dữ liệu cơ bản của cuộc trò chuyện
+
             $data = [
                 'id' => $conversation->id,
                 'name' => $conversation->name,
@@ -69,7 +68,6 @@ class ConversationController extends Controller
                 'updated_at' => $conversation->updated_at
             ];
 
-            // Thêm thông tin về hình ảnh nếu có
             if ($conversation->image) {
                 $data['image'] = [
                     'url' => $conversation->image->url,
@@ -77,7 +75,6 @@ class ConversationController extends Controller
                 ];
             }
 
-            // Xử lý cuộc trò chuyện riêng tư
             if ($conversation->type === 'private') {
                 $otherUser = $conversation->users->first();
 
@@ -92,7 +89,6 @@ class ConversationController extends Controller
                     ];
                 }
             } else {
-                // Xử lý cuộc trò chuyện nhóm
                 $data['member_count'] = $conversation->users->count();
                 $data['members'] = $conversation->users->map(function ($user) use ($conversation) {
                     return [
@@ -104,7 +100,6 @@ class ConversationController extends Controller
                 });
             }
 
-            // Thêm thông tin tin nhắn mới nhất
             if ($conversation->latestMessage) {
                 $sender = $conversation->latestMessage->sender;
                 $data['latest_message'] = [
@@ -120,7 +115,6 @@ class ConversationController extends Controller
             return $data;
         });
 
-        // Sắp xếp cuộc trò chuyện theo thời gian tin nhắn mới nhất
         $sortedConversations = $formattedConversations->sortByDesc(function ($conversation) {
             return $conversation['latest_message']
                 ? $conversation['latest_message']['created_at']
@@ -130,9 +124,9 @@ class ConversationController extends Controller
         return response()->json($sortedConversations);
     }
 
-    /**
-     * Create a new conversation
-     */
+
+
+
     public function create(Request $request)
     {
         $request->validate([
@@ -143,16 +137,13 @@ class ConversationController extends Controller
             'image_id' => 'sometimes|uuid|exists:images,id',
         ]);
 
-        // Create private conversation
         if ($request->has('user_id')) {
             $otherUser = User::findOrFail($request->user_id);
             $conversation = Conversation::createPrivateConversation(Auth::user(), $otherUser);
 
-            // // Thêm người dùng vào bảng conversation_user
             $conversation->users()->attach(Auth::id());
             $conversation->users()->attach($otherUser->id);
 
-            // If provided, create a message
             if ($request->has('message')) {
                 $message = new Messenger();
                 $message->sender_id = Auth::id();
@@ -162,10 +153,7 @@ class ConversationController extends Controller
                 $message->type = 'text';
                 $message->save();
             }
-        }
-        // Create group conversation
-        else {
-            // Make sure the current user is in the list
+        } else {
             $userIds = $request->user_ids;
             if (!in_array(Auth::id(), $userIds)) {
                 $userIds[] = Auth::id();
@@ -177,12 +165,10 @@ class ConversationController extends Controller
                 $request->image_id
             );
 
-            // Thêm người dùng vào bảng conversation_user
             foreach ($userIds as $userId) {
                 $conversation->users()->attach($userId);
             }
 
-            // If provided, create a message
             if ($request->has('message')) {
                 $message = new Messenger();
                 $message->sender_id = Auth::id();
@@ -193,7 +179,6 @@ class ConversationController extends Controller
             }
         }
 
-        // Return with relationships loaded
         $conversation->load(['users', 'latestMessage', 'latestMessage.sender']);
 
         return response()->json([
@@ -207,14 +192,10 @@ class ConversationController extends Controller
     }
 
 
-    /**
-     * Get a specific conversation with its messages
-     */
     public function show(Request $request, $id)
     {
         $conversation = Conversation::findOrFail($id);
 
-        // Check if user is participant
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
             ->exists();
@@ -223,17 +204,14 @@ class ConversationController extends Controller
             return response()->json(['error' => 'You are not a participant in this conversation'], 403);
         }
 
-        // Pagination parameters
         $perPage = $request->query('per_page', 20);
         $page = $request->query('page', 1);
 
-        // Get messages
         $messages = $conversation->messages()
             ->with('sender:id,username,first_name,last_name')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
-        // Mark all messages as read
         if ($conversation->type === 'private') {
             Messenger::where('conversation_id', $conversation->id)
                 ->where('sender_id', '!=', Auth::id())
@@ -245,10 +223,8 @@ class ConversationController extends Controller
                 ]);
         }
 
-        // Update user's last_read_at
         Auth::user()->markConversationAsRead($conversation);
 
-        // Load conversation details
         $conversation->load(['users', 'image']);
 
         $result = [
@@ -261,7 +237,6 @@ class ConversationController extends Controller
             'updated_at' => $conversation->updated_at
         ];
 
-        // Add image if exists
         if ($conversation->image) {
             $result['image'] = [
                 'url' => $conversation->image->url,
@@ -269,7 +244,6 @@ class ConversationController extends Controller
             ];
         }
 
-        // Add participants info
         $result['participants'] = $conversation->users->map(function ($user) use ($conversation) {
             return [
                 'id' => $user->id,
@@ -280,7 +254,6 @@ class ConversationController extends Controller
             ];
         });
 
-        // Jump to a specific message if requested
         if ($request->has('message')) {
             $messageId = $request->query('message');
             $messagePosition = $conversation->messages()
@@ -300,14 +273,11 @@ class ConversationController extends Controller
         return response()->json($result);
     }
 
-    /**
-     * Update conversation details
-     */
+
     public function update(Request $request, $id)
     {
         $conversation = Conversation::findOrFail($id);
 
-        // Check if user is participant
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
             ->exists();
@@ -316,7 +286,6 @@ class ConversationController extends Controller
             return response()->json(['error' => 'You are not a participant in this conversation'], 403);
         }
 
-        // Can only update group conversations
         if ($conversation->type !== 'group') {
             return response()->json(['error' => 'Can only update group conversations'], 422);
         }
@@ -345,13 +314,12 @@ class ConversationController extends Controller
     }
 
     /**
-     * Update user nickname in a conversation
+     * Biệt danh
      */
     public function updateNickname(Request $request, $id, $userId)
     {
         $conversation = Conversation::findOrFail($id);
 
-        // Check if user is participant
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
             ->exists();
@@ -360,7 +328,6 @@ class ConversationController extends Controller
             return response()->json(['error' => 'You are not a participant in this conversation'], 403);
         }
 
-        // Check if target user is participant
         $targetUserExists = $conversation->users()
             ->where('user_id', $userId)
             ->exists();
@@ -373,7 +340,6 @@ class ConversationController extends Controller
             'nickname' => 'required|string|max:50',
         ]);
 
-        // Update nickname
         $conversation->users()->updateExistingPivot($userId, [
             'nickname' => $request->nickname
         ]);
@@ -386,13 +352,12 @@ class ConversationController extends Controller
     }
 
     /**
-     * Add users to a conversation
+     * Thêm vào nhóm
      */
     public function addUsers(Request $request, $id)
     {
         $conversation = Conversation::findOrFail($id);
 
-        // Check if user is participant
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
             ->exists();
@@ -401,7 +366,6 @@ class ConversationController extends Controller
             return response()->json(['error' => 'You are not a participant in this conversation'], 403);
         }
 
-        // Can only add users to group conversations
         if ($conversation->type !== 'group') {
             return response()->json(['error' => 'Can only add users to group conversations'], 422);
         }
@@ -411,10 +375,8 @@ class ConversationController extends Controller
             'user_ids.*' => 'uuid|exists:users,id',
         ]);
 
-        // Prepare user attachments with UUID for each pivot record
         $users = [];
         foreach ($request->user_ids as $userId) {
-            // Skip if user is already in conversation
             if ($conversation->users()->where('user_id', $userId)->exists()) {
                 continue;
             }
@@ -422,7 +384,6 @@ class ConversationController extends Controller
             $users[$userId] = ['id' => Str::uuid()];
         }
 
-        // Attach users
         if (!empty($users)) {
             $conversation->users()->attach($users);
         }
@@ -434,13 +395,12 @@ class ConversationController extends Controller
     }
 
     /**
-     * Remove a user from a conversation
+     * Xóa người dùng khỏi cuộc trò chuyện
      */
     public function removeUser(Request $request, $id, $userId)
     {
         $conversation = Conversation::findOrFail($id);
 
-        // Check if user is participant
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
             ->exists();
@@ -449,12 +409,10 @@ class ConversationController extends Controller
             return response()->json(['error' => 'You are not a participant in this conversation'], 403);
         }
 
-        // Can only remove users from group conversations
         if ($conversation->type !== 'group') {
             return response()->json(['error' => 'Can only remove users from group conversations'], 422);
         }
 
-        // Check if target user is participant
         $targetUserExists = $conversation->users()
             ->where('user_id', $userId)
             ->exists();
@@ -463,7 +421,6 @@ class ConversationController extends Controller
             return response()->json(['error' => 'Target user is not a participant'], 404);
         }
 
-        // Remove user
         $conversation->users()->detach($userId);
 
         return response()->json([
@@ -473,13 +430,12 @@ class ConversationController extends Controller
     }
 
     /**
-     * Leave a conversation
+     * Rời khỏi cuộc trò chuyện
      */
     public function leave($id)
     {
         $conversation = Conversation::findOrFail($id);
 
-        // Check if user is participant
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
             ->exists();
@@ -488,10 +444,8 @@ class ConversationController extends Controller
             return response()->json(['error' => 'You are not a participant in this conversation'], 403);
         }
 
-        // Remove user from conversation
         $conversation->users()->detach(Auth::id());
 
-        // If it's a private conversation or if no users left, delete the conversation
         if ($conversation->type === 'private' || $conversation->users()->count() === 0) {
             $conversation->delete();
         }
@@ -502,7 +456,6 @@ class ConversationController extends Controller
         ]);
     }
 
-    // Controller: ConversationController.php
     public function getMedia($id, Request $request)
     {
         $perPage = $request->input('perPage', 20);

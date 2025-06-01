@@ -48,6 +48,9 @@ class MessengerController extends Controller
             $conversation = Conversation::firstOrCreatePrivateConversation(Auth::user(), $receiver);
         }
 
+        $conversation->users()->updateExistingPivot(Auth::id(), ['is_archived' => false]);
+
+
         $message = new Messenger();
         $message->sender_id = Auth::id();
         $message->conversation_id = $conversation->id;
@@ -161,6 +164,36 @@ class MessengerController extends Controller
         return response()->json($messages);
     }
 
+    public function searchMessages(Request $request, $conversationId)
+    {
+        $conversation = Conversation::findOrFail($conversationId);
+
+        $isParticipant = $conversation->users()
+            ->where('user_id', Auth::id())
+            ->exists();
+
+        if (!$isParticipant) {
+            return response()->json(['error' => 'Bạn không thuộc về cuộc trò chuyện này'], 403);
+        }
+
+        $query = $request->query('query');
+        if (!$query) {
+            return response()->json(['error' => 'Yêu cầu từ khóa tìm kiếm'], 400);
+        }
+
+        $perPage = $request->query('per_page', 20);
+        $page = $request->query('page', 1);
+
+        $messages = Messenger::where('conversation_id', $conversationId)
+            ->where('content', 'LIKE', '%' . $query . '%')
+            ->orderBy('created_at', 'desc')
+            ->with(['sender:id,username,first_name,last_name,last_active'])
+            ->paginate($perPage, ['*'], 'page', $page);
+
+
+        return response()->json($messages);
+    }
+
     public function getMessage($id)
     {
         $message = Messenger::with('sender:id,username,first_name,last_name')->findOrFail($id);
@@ -210,7 +243,6 @@ class MessengerController extends Controller
                     $username = $otherUser->username;
                     $lastActive = $otherUser->last_active;
                 } else {
-                    // group
                     $name = $conversation->name;
                     $username = null;
                     $lastActive = null;
@@ -343,7 +375,7 @@ class MessengerController extends Controller
     }
 
     /**
-     * Search messages 
+     * search cuộc hội thoại
      */
     public function search(Request $request, $conversationId)
     {
@@ -358,7 +390,7 @@ class MessengerController extends Controller
             ->exists();
 
         if (!$isParticipant) {
-            return response()->json(['error' => 'You are not a participant in this conversation'], 403);
+            return response()->json(['error' => 'Bạn không phải thành viên'], 403);
         }
 
         $query = $request->query;
@@ -375,5 +407,32 @@ class MessengerController extends Controller
         });
 
         return response()->json($messages);
+    }
+
+
+    //lưu trữ 
+    public function archive(Request $request, $conversationId)
+    {
+        $request->validate([
+            'is_archived' => 'required|boolean',
+        ]);
+
+        $user = Auth::user();
+
+        $conversation = Conversation::findOrFail($conversationId);
+
+        $isParticipant = $conversation->users()->where('user_id', $user->id)->exists();
+        if (!$isParticipant) {
+            return response()->json(['error' => 'Bạn không tham gia cuộc hội thoại này'], 403);
+        }
+
+        $conversation->users()->updateExistingPivot($user->id, [
+            'is_archived' => $request->input('is_archived')
+        ]);
+
+        return response()->json([
+            'message' => $request->input('is_archived') ? 'Cuộc hội thoại đã được lưu trữ' : 'Cuộc hội thoại đã được mở lại',
+            'is_archived' => $request->input('is_archived'),
+        ]);
     }
 }

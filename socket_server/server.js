@@ -256,6 +256,7 @@ io.on("connection", (socket) => {
         conversation_id: data.conversation_id,
         type: data.type || "text",
         file_paths: data.file_paths,
+        client_temp_id: data.client_temp_id || null,
       });
       const messageResponse = await axios.post(
         "http://127.0.0.1:8000/api/messages/send",

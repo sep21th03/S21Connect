@@ -114,6 +114,9 @@ export const API_ENDPOINTS = {
       UNREAD_MESSAGES: "/read",
       GET_USER_GALLERY: (conversationId: string) => `/conversations/${conversationId}/media`,
       GET_UNREAD_MESSAGES_COUNT: "/conversations/message/count",
+      SEARCH_MESSAGES: (conversationId: string, query: string) => `/messages/conversations/${conversationId}/search?query=${query}`,
+      IS_ARCHIVED: (conversationId: string) => `/conversations/archive/${conversationId}`,
+      ARCHIVE_CONVERSATION: "/conversations/archive-conversations"
     },
   },
   IMAGES: {

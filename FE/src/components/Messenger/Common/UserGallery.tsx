@@ -1,42 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { Href, ImagePath } from "../../../utils/constant/index";
+import { Href } from "../../../utils/constant/index";
 import { Button, Col, Container, ModalBody, Modal, Row } from "reactstrap";
-import CustomImage from "@/Common/CustomImage";
-import axiosInstance from "@/utils/axiosInstance";
-import { API_ENDPOINTS } from "@/utils/constant/api";
 import Image from "next/image";
+import { getUserGalleryMessage } from "@/service/messageService";
+
 
 const UserGallery = ({ conversationId }: { conversationId: string }) => {
   const [allImages, setAllImages] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchMedia = async (perPage: number) => {
-
-      try {
-        setLoading(true);
-        const res = await axiosInstance.get(
-          API_ENDPOINTS.MESSAGES.MESSAGES.GET_USER_GALLERY(conversationId),
-          {
-            params: { perPage: perPage },
-          }
-        );
-        setAllImages(res.data);
-        setLoading(false);
-
-      } catch (err) {
-        console.error("Failed to fetch media", err);
-        setLoading(false);
-      }
-    };
-    if (conversationId) {
-      fetchMedia(3);
-      if (isModalOpen) {
-        fetchMedia(20);
-      }
+  
+  const fetchGallery = async (perPage: number) => {
+    try {
+      setLoading(true);
+      const images = await getUserGalleryMessage(conversationId, perPage);
+      setAllImages(images);
+    } catch (err) {
+    } finally {
+      setLoading(false);
     }
-    
+  };
+
+  useEffect(() => {
+    if (!conversationId) return;
+    fetchGallery(isModalOpen ? 20 : 3);
   }, [isModalOpen, conversationId]);
 
   const toggleModal = () => setIsModalOpen(!isModalOpen);
@@ -44,7 +32,7 @@ const UserGallery = ({ conversationId }: { conversationId: string }) => {
   return (
     <div className="user-gallery">
       <h5>
-        media{" "}
+        Ảnh{" "}
         <a
           href="#"
           onClick={(e) => {
@@ -52,7 +40,7 @@ const UserGallery = ({ conversationId }: { conversationId: string }) => {
             toggleModal();
           }}
         >
-          see all
+          Xem tất cả
         </a>
       </h5>
       <div className="gallery-section">

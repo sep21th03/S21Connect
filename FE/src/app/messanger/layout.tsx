@@ -17,6 +17,7 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [showArchived, setShowArchived] = useState(false);
 
   const { socket, onNewMessage } = useSocket((users: any) => {
     setOnlineUsers(users.map((user: any) => user.id));
@@ -25,7 +26,12 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
     const fetchUserList = async () => {
       try {
         const response = await axiosInstance.get(
-          API_ENDPOINTS.MESSAGES.MESSAGES.RECENT_CONVERSATIONS
+          API_ENDPOINTS.MESSAGES.MESSAGES.RECENT_CONVERSATIONS,
+          {
+            params: {
+              archived: showArchived,
+            },
+          }
         );
         setUserList(response.data);
         setIsInitialLoad(false);
@@ -35,7 +41,7 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
       }
     };
     fetchUserList();
-  }, []);
+  }, [showArchived]);
   useEffect(() => {
     const handlePopState = () => {
       const pathSegments = window.location.pathname.split("/");
@@ -98,8 +104,10 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
       activeTab,
       setActiveTab,
       onlineUsers,
+      showArchived,
+      setShowArchived,
     }),
-    [userList, activeTab, onlineUsers]
+    [userList, activeTab, onlineUsers, showArchived, setShowArchived]
   );
 
   return (
