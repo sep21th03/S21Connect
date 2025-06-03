@@ -14,14 +14,14 @@ const LoginHeaderSection = () => {
         </Link>
       </div>
       <div className="right-links">
-        <ul>
+        {/* <ul>
           <li>
             <a href={Href}>{About}</a>
           </li>
           <li>
             <a href={Href}>{Upgrade}</a>
           </li>
-        </ul>
+        </ul> */}
       </div>
     </div>
   );

@@ -1,18 +1,18 @@
 export const navSettingData = [
-  { icon: "home", title: "Home" },
-  { icon: "info", title: "personal info" },
-  { icon: "user", title: "account" },
-  { icon: "lock", title: "privacy" },
-  { icon: "bell", title: "notification" },
-  { icon: "photo-video", title: "story" },
-  { icon: "question-circle", title: "help", navigate: "/helpandsupport" },
+  { icon: "home", title: "trang chủ" },
+  { icon: "info", title: "thông tin cá nhân" },
+  { icon: "user", title: "tài khoản" },
+  { icon: "lock", title: "quyền riêng tư" },
+  { icon: "bell", title: "thông báo" },
+  { icon: "photo-video", title: "câu chuyện" },
+  { icon: "question-circle", title: "hỗ trợ", navigate: "/helpandsupport" },
 ];
 
 export const settingHomeData = [
-  { image: "profile", name: "personal details" },
-  { image: "account", name: "account" },
-  { image: "privacy", name: "privacy" },
-  { image: "notification", name: "notification" },
-  { image: "story", name: "story" },
-  { image: "help", name: "help" },
+  { image: "profile", name: "thông tin cá nhân" },
+  { image: "account", name: "tài khoản" },
+  { image: "privacy", name: "quyền riêng tư" },
+  { image: "notification", name: "thông báo" },
+  { image: "story", name: "câu chuyện" },
+  { image: "help", name: "hỗ trợ" },
 ];

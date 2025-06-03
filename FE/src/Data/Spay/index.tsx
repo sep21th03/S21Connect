@@ -1,7 +1,7 @@
 export const invoiceStats = [
   {
     id: "count_bill",
-    title: "Total Invoices",
+    title: "Tổng hóa đơn",
     value: 0,
     bg: "warning",
     icon: (
@@ -16,7 +16,7 @@ export const invoiceStats = [
   },
   {
     id: "count_bill_pay",
-    title: "Paid Invoices",
+    title: "Hóa đơn đã thanh toán",
     value: 0,
     bg: "success",
     icon: (
@@ -36,7 +36,7 @@ export const invoiceStats = [
   },
   {
     id: "count_bill_unpay",
-    title: "Pending Invoices",
+    title: "Hóa đơn chưa thanh toán",
     value: 0,
     bg: "info",
     icon: (
@@ -56,7 +56,7 @@ export const invoiceStats = [
   },
   {
     id: "count_bill_cancel",
-    title: "Canceled Invoices",
+    title: "Hóa đơn đã hủy",
     value: 0,
     bg: "secondary ",
     icon: (

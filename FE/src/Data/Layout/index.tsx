@@ -32,28 +32,28 @@ import ActivityFeedProfileSkelton from "@/layout/Skelton/ActivityFeedProfileSkel
 import PageList from "@/layout/Skelton/PageList";
 
 export const userMessageData = [
-  { status: "active", name: "Paige Turner", message: "Are you there ?" },
-  { name: "Bob Frapples", message: "Are you there ?" },
-  { status: "offline", name: "Paige Turner", message: "hello ! how are you ?" },
+  { status: "active", name: "Paige Turner", message: "bạn có ở đây không ?" },
+  { name: "Bob Frapples", message: "bạn có ở đây không ?" },
+  { status: "offline", name: "Paige Turner", message: "xin chào ! bạn thế nào ?" },
 ];
 
 export const notificationList = [
   {
     image: 6,
     name: "Bob Frapples",
-    message: "add their stories",
-    time: "8 hour ago",
+    message: "đã thêm câu chuyện của họ",
+    time: "8 giờ trước",
   },
   {
     image: 7,
     name: "Josephin water",
-    message: "have birthday today",
+    message: "có sinh nhật hôm nay",
     time: "sun at 5.55 AM",
   },
   {
     image: 2,
     name: "Petey Cruiser",
-    message: "added a new photo",
+    message: "đã thêm một bức ảnh mới",
     time: "sun at 5.40 AM",
   },
 ];
@@ -62,20 +62,20 @@ export const userMenuData: UserMenuDataInterFace[] = [
   {
     navigate: "/profile/timeline",
     icon: "User",
-    heading: "Profile",
-    headingDetail: "Profile preview & settings",
+    heading: "trang cá nhân",
+    headingDetail: "trang cá nhân và cài đặt",
   },
   {
     navigate: "/settings",
     icon: "Settings",
-    heading: "setting & privacy",
-    headingDetail: "all settings & privacy",
+    heading: "cài đặt và quyền riêng tư",
+    headingDetail: "tất cả cài đặt và quyền riêng tư",
   },
   {
     navigate: "/helpandsupport",
     icon: "HelpCircle",
-    heading: "help & support",
-    headingDetail: "browse help here",
+    heading: "hỗ trợ và trợ giúp",
+    headingDetail: "tìm kiếm hỗ trợ ở đây",
   },
 ];
 
@@ -205,11 +205,11 @@ interface dataInterFace {
   icon: "Clock" | "Info" | "Users" | "Image" | "List";
 }
 export const profileMenuData: dataInterFace[] = [
-  { navigate: "/profile/timeline", name: "timeline", icon: "Clock" },
-  { navigate: "/profile/about", name: "about", icon: "Info" },
-  { navigate: "/profile/friends", name: "friends", icon: "Users" },
-  { navigate: "/profile/gallery", name: "photos", icon: "Image" },
-  { navigate: "/profile/acitivityfeed", name: "acitivity feed", icon: "List" },
+  { navigate: "/profile/timeline", name: "bảng tin", icon: "Clock" },
+  { navigate: "/profile/about", name: "giới thiệu", icon: "Info" },
+  { navigate: "/profile/friends", name: "bạn bè", icon: "Users" },
+  { navigate: "/profile/gallery", name: "ảnh", icon: "Image" },
+  { navigate: "/profile/acitivityfeed", name: "hoạt động", icon: "List" },
 ];
 
 export const layoutFooterData = [

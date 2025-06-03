@@ -274,4 +274,30 @@ class FriendService
 
         return $friends;
     }
+    public function searchFriend(string $keyword = '')
+    {
+        $userId = Auth::id();
+
+        $friendIds = Friendship::where('status', 'accepted')
+            ->where(function ($query) use ($userId) {
+                $query->where('user_id', $userId)
+                    ->orWhere('friend_id', $userId);
+            })
+            ->get()
+            ->map(function ($friendship) use ($userId) {
+                return $friendship->user_id === $userId
+                    ? $friendship->friend_id
+                    : $friendship->user_id;
+            })
+            ->unique()
+            ->values()
+            ->toArray();
+
+        return User::whereIn('id', $friendIds)
+            ->where(function ($query) use ($keyword) {
+                $query->where('name', 'like', "%{$keyword}%")
+                    ->orWhere('username', 'like', "%{$keyword}%");
+            })
+            ->get();
+    }
 }

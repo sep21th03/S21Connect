@@ -16,7 +16,7 @@ const EventsCard: FC<EventsCardInterFace> = ({eventImage,diffrentPath}) => {
   return (
     <div className="event-box section-t-space ratio2_3">
       <div className="image-section bg-size blur-up lazyloaded">
-        <CustomImage src={`${ImagePath}/${diffrentPath?diffrentPath:"event"}/${eventImage}.jpg`} className="img-fluid blur-up lazyload bg-img" alt="event"/>
+        <CustomImage src={"https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/07/hinh-anh-giang-sinh-cute.jpg"} className="img-fluid blur-up lazyload bg-img" alt="event"/>
         <div className="card-title">
           <h3>{Event}</h3>
           <div className="settings">
@@ -49,11 +49,11 @@ const EventsCard: FC<EventsCardInterFace> = ({eventImage,diffrentPath}) => {
         </div>
       </div>
       <div className="event-content">
-        <h3>christmas 2023</h3>
-        <h6>26 january 2023</h6>
+        <h3>Giáng sinh 2025</h3>
+        <h6>26 tháng 1 năm 2025</h6>
         <p>
-          Lorem Ipsum is simply dummy text of the printing and typesetting industry
-          <span>15256 {PeopleGoing}</span>
+          Số người sẽ tham gia:
+          <span> 152 {PeopleGoing}</span>
         </p>
         <div className="bottom-part">
           <a href={Href} className="event-btn">{GoingNotGoing}</a>
@@ -63,7 +63,7 @@ const EventsCard: FC<EventsCardInterFace> = ({eventImage,diffrentPath}) => {
           />
         </a>
       </div>
-      <CommonVideoModal modal={eventModal} toggle={toggleEventModal}/>
+      <CommonVideoModal modal={eventModal} toggle={toggleEventModal} videoUrl={""}/>
     </div>
   );
 };

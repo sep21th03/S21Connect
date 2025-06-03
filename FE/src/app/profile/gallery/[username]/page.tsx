@@ -5,7 +5,7 @@ import { Container } from "reactstrap";
 
 const ProfileGalleryTimeLine = () => {
   return (
-    <ProfileLayout title="photos" loaderName="profileGallery">
+    <ProfileLayout title="ảnh" loaderName="profileGallery">
       <Container fluid className="section-t-space px-0">
         <div className="page-content">
           <div className="content-center w-100">

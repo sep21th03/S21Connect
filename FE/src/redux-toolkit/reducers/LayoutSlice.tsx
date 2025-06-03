@@ -3,7 +3,7 @@ import { LayoutSliceInterFace } from "../ReducersTypes";
 
 const initialState: LayoutSliceInterFace = {
   imageLink: "user-sm/15.jpg",
-  backgroundImage: "cover/1.jpg",
+  backgroundImage: "istockphoto-1370544962-612x612.jpg",
 };
 
 export const LayoutSlice = createSlice({

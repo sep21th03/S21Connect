@@ -12,7 +12,7 @@ const ContentRight: FC<{ userInforBirthday: UserInforBirthday | null }> = ({ use
       <Gallery />
       <div className="sticky-top">
         <EventsCard eventImage={1} />
-        <YourGames />
+        {/* <YourGames /> */}
       </div>
     </div>
   );

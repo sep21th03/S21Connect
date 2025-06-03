@@ -30,7 +30,7 @@ app.post("/notification", (req, res) => {
 
   if (targetSocketId) {
     io.to(targetSocketId).emit("notification", notificationData);
-  } 
+  }
 
   res.json({ message: "Notification sent" });
 });
@@ -45,7 +45,6 @@ app.post("/notification-message", (req, res) => {
     if (targetSocketId) {
       io.to(targetSocketId).emit("unread_message_update", message);
     }
-
   }
 
   res.sendStatus(200);
@@ -218,7 +217,7 @@ io.on("connection", (socket) => {
 
   socket.on("send_message", async (data) => {
     try {
-      if (!data.content || !data.receiver_id || !data.conversation_id) {
+      if (!data.content || !data.conversation_id) {
         console.error("Missing required message data");
         socket.emit("message_error", {
           error: "Missing required message data",
@@ -258,15 +257,32 @@ io.on("connection", (socket) => {
         file_paths: data.file_paths,
         client_temp_id: data.client_temp_id || null,
       });
+      const messagePayload = {
+        content: data.content,
+        type: data.type || "text",
+        file_paths: data.file_paths,
+        metadata: data.metadata,
+      };
+      if (data.conversation_id) {
+        messagePayload.conversation_id = data.conversation_id;
+      } else if (data.user_ids && Array.isArray(data.user_ids)) {
+        messagePayload.user_ids = data.user_ids;
+        messagePayload.group_name = data.group_name;
+        messagePayload.group_avatar = data.group_avatar;
+      } else if (data.receiver_id) {
+        messagePayload.receiver_id = data.receiver_id;
+        messagePayload.conversation_id = data.conversation_id;
+      }
       const messageResponse = await axios.post(
         "http://127.0.0.1:8000/api/messages/send",
-        {
-          receiver_id: data.receiver_id,
-          conversation_id: data.conversation_id,
-          content: data.content,
-          type: data.type || "text",
-          file_paths: data.file_paths,
-        },
+        // {
+        //   receiver_id: data.receiver_id,
+        //   conversation_id: data.conversation_id,
+        //   content: data.content,
+        //   type: data.type || "text",
+        //   file_paths: data.file_paths,
+        // },
+        messagePayload,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -288,10 +304,7 @@ io.on("connection", (socket) => {
         client_temp_id: data.client_temp_id || null,
       };
 
-      const allRooms = io.sockets.adapter.rooms;
-      // console.log("Available rooms:", Array.from(allRooms.keys()));
-
-      // Broadcast to conversation room
+      // broadcast
       io.to(room).emit("new_message", enrichedMessage);
 
       if (data.receiver_id) {
@@ -302,7 +315,51 @@ io.on("connection", (socket) => {
         //  if (receiver) {
         //   io.to(receiver.socketId).emit("unread_message_update", enrichedMessage);
         // }
+      } else if (conversationId) {
+        try {
+          const conversationResponse = await axios.get(
+            `http://127.0.0.1:8000/api/conversations/${conversationId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          const conversation = conversationResponse.data;
+
+          if (conversation.type === "group" && conversation.members) {
+            conversation.members.forEach((member) => {
+              if (member.id !== userId) {
+                const onlineMember = onlineUsers.get(member.id);
+                if (onlineMember) {
+                  io.to(onlineMember.socketId).emit(
+                    "unread_message_update",
+                    enrichedMessage
+                  );
+                }
+              }
+            });
+          } else if (
+            conversation.type === "private" &&
+            conversation.other_user
+          ) {
+            const otherUser = onlineUsers.get(conversation.other_user.id);
+            if (otherUser) {
+              io.to(otherUser.socketId).emit(
+                "unread_message_update",
+                enrichedMessage
+              );
+            }
+          }
+        } catch (error) {
+          console.error("Lỗi khi lấy thông tin conversation:", error.message);
+        }
       }
+
+      socket.emit("message_sent", {
+        success: true,
+        message: enrichedMessage,
+        client_temp_id: data.client_temp_id,
+      });
     } catch (error) {
       console.error(
         "Error sending message:",

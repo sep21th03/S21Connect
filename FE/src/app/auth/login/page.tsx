@@ -17,8 +17,8 @@ const Login = () => {
         <Media>
           <DynamicFeatherIcon iconName="PlayCircle" />
           <Media body>
-            <h2>LAM VIEC?</h2>
-            <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been.</p>
+            <h2>KẾT NỐI VỚI BẠN BÈ</h2>
+            <p>Tạo tài khoản và kết nối với bạn bè của bạn để bắt đầu sử dụng.</p>
           </Media>
         </Media>
       </div>

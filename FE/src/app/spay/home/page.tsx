@@ -120,7 +120,6 @@ const PaymentDashboard = () => {
                           bạn
                         </span>
                         <ul className="card-list mt-4" id="card-list-shop">
-                          {/* Thêm dữ liệu dòng tiền nếu có */}
                         </ul>
                       </Col>
                       <Col md="6" style={{ height: "200px" }}>

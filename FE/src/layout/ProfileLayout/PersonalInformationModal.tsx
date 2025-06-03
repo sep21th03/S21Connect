@@ -18,10 +18,8 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
   userProfile,
   onUpdateProfile,
 }) => {
-  // Define gender options
   const genderOptions = ["male", "female"];
 
-  // Define all possible relationship statuses (reused from EditProfileDetails)
   const relationshipStatuses = [
     "single",
     "in_a_relationship",
@@ -33,7 +31,6 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
     "widowed",
   ];
 
-  // Initial form state with values from userProfile
   const [formData, setFormData] = useState({
     bio: userProfile?.user.bio || "",
     birthday: userProfile?.user.birthday || "",
@@ -47,7 +44,6 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
     workplace: userProfile?.profile.workplace || "",
   });
 
-  // Handle input changes
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -107,7 +103,6 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
       <ModalHeader toggle={toggle}>{EditProfile}</ModalHeader>
       <ModalBody>
         <div className="edit-profile-sec">
-          {/* Bio Section */}
           <div className="profile-wrap">
             <div className="edit-title">
               <div className="icon">
@@ -130,7 +125,6 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
             </div>
           </div>
 
-          {/* Birthday Section */}
           <div className="profile-wrap">
             <div className="edit-title">
               <div className="icon">
@@ -152,7 +146,6 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
             </div>
           </div>
 
-          {/* Phone Section */}
           <div className="profile-wrap">
             <div className="edit-title">
               <div className="icon">
@@ -172,7 +165,6 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
             </div>
           </div>
 
-          {/* Gender Section */}
           <div className="profile-wrap">
             <div className="edit-title">
               <div className="icon">
@@ -205,7 +197,6 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
             </div>
           </div>
 
-          {/* Relationship Status Section */}
           <div className="profile-wrap">
             <div className="edit-title">
               <div className="icon">
@@ -240,7 +231,6 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
             </div>
           </div>
 
-          {/* Location Section */}
           <div className="profile-wrap">
             <div className="edit-title">
               <div className="icon">
@@ -317,7 +307,6 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
             </div>
           </div>
 
-          {/* Join Date Section (Read-only) */}
           <div className="profile-wrap">
             <div className="edit-title">
               <div className="icon">

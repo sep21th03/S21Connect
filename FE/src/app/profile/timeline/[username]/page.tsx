@@ -175,7 +175,7 @@ const ProfileTimeLine = () => {
 
 
   return (
-    <ProfileLayout title="timeline" loaderName="profileTimeLine">
+    <ProfileLayout title="bảng tin" loaderName="profileTimeLine">
       <Container fluid className="section-t-space px-0 layout-default">
         <div className="page-content">
           <div className="content-left">
@@ -276,14 +276,14 @@ const ProfileTimeLine = () => {
           </div>
 
           <div className="content-right d-xl-block d-none">
-            <CollegeMeetCard />
+            {/* <CollegeMeetCard /> */}
             <Gallery />
             <div ref={ref} className="d-xl-block d-none">
               {inView && <ActivityFeeds username={username} />}
             </div>
             <div className="sticky-top">
               <EventsCard eventImage={12} diffrentPath="post" />
-              <WorldWideTrend />
+              {/* <WorldWideTrend /> */}
             </div>
           </div>
         </div>

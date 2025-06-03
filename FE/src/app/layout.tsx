@@ -37,7 +37,7 @@ export default async function RootLayout({
         />
         <script
           type="text/javascript"
-          src="https://maps.googleapis.com/maps/api/js?key=your_api_key"
+          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJgF2Igh6xR6dQ572BBhq0B0"
         ></script>
       </head>
       <body>

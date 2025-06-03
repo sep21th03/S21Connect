@@ -87,6 +87,7 @@ export const API_ENDPOINTS = {
     USER_INFOR_BIRTHDAY: "/friends/birthday",
     FRIEND_REQUEST: "/friends/requests",
     FRIEND_REQUEST_COUNT: "/friends/count_new_requests",
+    SEARCH_BOX: (keyword: string) => `/friends/search-friend?searchTerm=${keyword}`,
   },
 
   USERS: {
@@ -114,9 +115,14 @@ export const API_ENDPOINTS = {
       UNREAD_MESSAGES: "/read",
       GET_USER_GALLERY: (conversationId: string) => `/conversations/${conversationId}/media`,
       GET_UNREAD_MESSAGES_COUNT: "/conversations/message/count",
-      SEARCH_MESSAGES: (conversationId: string, query: string) => `/messages/conversations/${conversationId}/search?query=${query}`,
+      SEARCH_MESSAGES: (conversationId: string, query: string) => `/conversations/${conversationId}/messages/search?query=${query}`,
       IS_ARCHIVED: (conversationId: string) => `/conversations/archive/${conversationId}`,
-      ARCHIVE_CONVERSATION: "/conversations/archive-conversations"
+      ARCHIVE_CONVERSATION: "/conversations/archive-conversations",
+      GET_NICKNAME: (conversationId: string) => `/conversations/getNickname/${conversationId}`,
+      UPDATE_NICKNAME: (conversationId: string, userId: string) => `/conversations/updateNickname/${conversationId}/${userId}`,
+      UPDATE_GROUP_NAME: (conversationId: string) => `/conversations/${conversationId}/group-name`,
+      UPDATE_GROUP_AVATAR: (conversationId: string) => `/conversations/${conversationId}/group-avatar`,
+      GET_GROUP_MEMBERS: (conversationId: string) => `/conversations/getMembers/${conversationId}`,
     },
   },
   IMAGES: {

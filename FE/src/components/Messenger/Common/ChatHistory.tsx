@@ -1,4 +1,3 @@
-// src/components/Messenger/Common/ChatHistory.tsx
 import {
   ChangeEvent,
   FC,
@@ -32,6 +31,7 @@ import { formatTime } from "@/utils/index";
 
 interface ChatHistoryProps extends ChatHistoryInterFace {
   enableInfiniteScroll: boolean;
+  messagesOffset?: number;
 }
 
 const ChatHistory: FC<ChatHistoryProps> = ({
@@ -39,6 +39,7 @@ const ChatHistory: FC<ChatHistoryProps> = ({
   setUserList,
   initialConversationId,
   enableInfiniteScroll,
+  messagesOffset,
 }) => {
   const [showButton, setShowButton] = useState(false);
   const [newMessage, setNewMessage] = useState("");
@@ -55,18 +56,29 @@ const ChatHistory: FC<ChatHistoryProps> = ({
       tempUrl?: string;
       created_at: string;
       sender_id: string;
+      sender_name?: string;
     }[]
   >([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [totalMessages, setTotalMessages] = useState(0);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<
+    string | null
+  >(null);
 
-  const { socket, joinChat, sendMessage, onNewMessage, leaveChat, markMessagesAsRead, onImageUploadStatus } =
-    useSocket(
-      (users) => console.log(users),
-      (message) => console.log(message)
-    );
+  const {
+    socket,
+    joinChat,
+    sendMessage,
+    onNewMessage,
+    leaveChat,
+    markMessagesAsRead,
+    onImageUploadStatus,
+  } = useSocket(
+    (users) => console.log(users),
+    (message) => console.log(message)
+  );
   const { data: session } = useSession();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -74,13 +86,27 @@ const ChatHistory: FC<ChatHistoryProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isScrollingToBottom = useRef<boolean>(false);
   const shouldScrollToBottom = useRef<boolean>(true);
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const scrollState = useRef<{
+    scrollTop: number;
+    scrollHeight: number;
+  } | null>(null);
+  const isLoadingOlderMessages = useRef<boolean>(false);
+  const previousMessagesLength = useRef<number>(0);
+
+  const perPage = 20;
 
   const scrollToBottom = useCallback(() => {
-    if (messagesEndRef.current && messagesContainerRef.current && shouldScrollToBottom.current) {
+    if (
+      messagesEndRef.current &&
+      messagesContainerRef.current &&
+      shouldScrollToBottom.current &&
+      !isLoadingOlderMessages.current
+    ) {
       requestAnimationFrame(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        messagesContainerRef.current.scrollTop =
-          messagesContainerRef.current.scrollHeight ?? 0;
+        messagesContainerRef.current!.scrollTop =
+          messagesContainerRef.current!.scrollHeight ?? 0;
         isScrollingToBottom.current = true;
         setTimeout(() => {
           isScrollingToBottom.current = false;
@@ -88,6 +114,96 @@ const ChatHistory: FC<ChatHistoryProps> = ({
       });
     }
   }, []);
+
+  const scrollToMessageByOffset = useCallback(
+    async (offset: number) => {
+      if (!initialConversationId || !messagesContainerRef.current) return;
+
+      const targetPage = Math.ceil((offset + 1) / perPage);
+
+      if (targetPage > currentPage && hasMoreMessages && !isLoadingMore) {
+        isLoadingOlderMessages.current = true;
+        setIsLoadingMore(true);
+        try {
+          for (
+            let page = currentPage + 1;
+            page <= targetPage && hasMoreMessages;
+            page++
+          ) {
+            await fetchMessages(
+              initialConversationId,
+              page,
+              true,
+              setIsLoading,
+              setIsLoadingMore,
+              setMessages,
+              setCurrentPage,
+              setHasMoreMessages,
+              setTotalMessages,
+              () => {}
+            );
+          }
+        } finally {
+          setIsLoadingMore(false);
+          isLoadingOlderMessages.current = false;
+        }
+      }
+
+      const allMessagesSorted = [
+        ...messages.map((msg) => ({ ...msg, isPending: false })),
+        ...pendingMessages.map((msg) => ({ ...msg, isPending: true })),
+      ].sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+
+      const targetIndex = allMessagesSorted.length - 1 - offset;
+
+      const targetMessage = allMessagesSorted[targetIndex];
+      if (targetMessage) {
+        const messageId = targetMessage.isPending
+          ? `pending-${targetMessage.id}`
+          : targetMessage.id;
+
+        setHighlightedMessageId((prev) => {
+          return messageId;
+        });
+        setTimeout(() => {
+          setHighlightedMessageId(null);
+        }, 3000);
+
+        const messageElement = messageRefs.current[messageId];
+        if (messageElement) {
+          messageElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        } else {
+          const estimatedMessageHeight = 50;
+          const scrollPosition = targetIndex * estimatedMessageHeight;
+          messagesContainerRef.current.scrollTop = scrollPosition;
+        }
+      } else {
+        console.error(
+          "Không tìm thấy tin nhắn tại offset:",
+          offset,
+          "Target index:",
+          targetIndex,
+          "Length:",
+          allMessagesSorted.length
+        );
+      }
+    },
+    [
+      initialConversationId,
+      currentPage,
+      hasMoreMessages,
+      isLoadingMore,
+      messages,
+      pendingMessages,
+      totalMessages,
+    ]
+  );
 
   const handleScroll = useCallback(() => {
     if (!messagesContainerRef.current || !enableInfiniteScroll) return;
@@ -98,13 +214,17 @@ const ChatHistory: FC<ChatHistoryProps> = ({
     const isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
     if (isAtBottom) {
       shouldScrollToBottom.current = true;
+    } else {
+      shouldScrollToBottom.current = false;
     }
 
     const threshold = 50;
     const isNearTop = scrollTop <= threshold;
     const isScrollingUp =
       scrollTop <
-      (container.dataset.lastScrollTop ? parseInt(container.dataset.lastScrollTop) : 0);
+      (container.dataset.lastScrollTop
+        ? parseInt(container.dataset.lastScrollTop)
+        : 0);
 
     container.dataset.lastScrollTop = scrollTop.toString();
 
@@ -115,25 +235,51 @@ const ChatHistory: FC<ChatHistoryProps> = ({
       !isLoadingMore &&
       !isScrollingToBottom.current
     ) {
+      // lưu trạng thái cuộn
+      scrollState.current = { scrollTop, scrollHeight };
+      isLoadingOlderMessages.current = true;
       loadMoreMessages();
     }
   }, [hasMoreMessages, isLoadingMore, enableInfiniteScroll]);
 
   const loadMoreMessages = useCallback(async () => {
-    if (!hasMoreMessages || isLoadingMore || !initialConversationId || !enableInfiniteScroll) return;
+    if (
+      !hasMoreMessages ||
+      isLoadingMore ||
+      !initialConversationId ||
+      !enableInfiniteScroll
+    )
+      return;
 
-    await fetchMessages(
-      initialConversationId,
-      currentPage + 1,
-      true,
-      setIsLoading,
-      setIsLoadingMore,
-      setMessages,
-      setCurrentPage,
-      setHasMoreMessages,
-      setTotalMessages,
-      scrollToBottom
-    );
+    setIsLoadingMore(true);
+    isLoadingOlderMessages.current = true;
+    try {
+      await fetchMessages(
+        initialConversationId,
+        currentPage + 1,
+        true,
+        setIsLoading,
+        setIsLoadingMore,
+        setMessages,
+        setCurrentPage,
+        setHasMoreMessages,
+        setTotalMessages,
+        () => {}
+      );
+
+      // khôi phục vị trí cuộn
+      if (messagesContainerRef.current && scrollState.current) {
+        const { scrollTop: oldScrollTop, scrollHeight: oldScrollHeight } =
+          scrollState.current;
+        const newScrollHeight = messagesContainerRef.current.scrollHeight;
+        const addedHeight = newScrollHeight - oldScrollHeight;
+        messagesContainerRef.current.scrollTop = oldScrollTop + addedHeight;
+      }
+    } finally {
+      scrollState.current = null;
+      setIsLoadingMore(false);
+      isLoadingOlderMessages.current = false;
+    }
   }, [
     currentPage,
     hasMoreMessages,
@@ -143,10 +289,28 @@ const ChatHistory: FC<ChatHistoryProps> = ({
   ]);
 
   useEffect(() => {
-    if (!isLoading && (messages.length > 0 || pendingMessages.length > 0)) {
+    if (messagesOffset !== undefined && !isLoading && !isLoadingMore) {
+      shouldScrollToBottom.current = false;
+      scrollToMessageByOffset(messagesOffset);
+    }
+  }, [messagesOffset, isLoading, isLoadingMore, scrollToMessageByOffset]);
+
+  useEffect(() => {
+    const currentMessagesLength = messages.length + pendingMessages.length;
+    const isNewMessage = currentMessagesLength > previousMessagesLength.current;
+
+    if (
+      !isLoading &&
+      currentMessagesLength > 0 &&
+      shouldScrollToBottom.current &&
+      !isLoadingOlderMessages.current &&
+      (isNewMessage || previousMessagesLength.current === 0)
+    ) {
       scrollToBottom();
     }
-  }, [messages, pendingMessages, isLoading, scrollToBottom]);
+
+    previousMessagesLength.current = currentMessagesLength;
+  }, [isLoading, messages.length, pendingMessages.length, scrollToBottom]);
 
   useEffect(() => {
     setMessages([]);
@@ -154,6 +318,7 @@ const ChatHistory: FC<ChatHistoryProps> = ({
     setHasMoreMessages(true);
     setIsLoading(true);
     shouldScrollToBottom.current = true;
+    previousMessagesLength.current = 0;
 
     if (user && initialConversationId) {
       fetchMessages(
@@ -168,8 +333,12 @@ const ChatHistory: FC<ChatHistoryProps> = ({
         setTotalMessages,
         scrollToBottom
       ).then((fetchedMessages) => {
-        if (user.other_user.id) {
-          markMessagesAsUnread(user.other_user.id, fetchedMessages, setUserList);
+        if (user.type === "private" && user.other_user?.id) {
+          markMessagesAsUnread(
+            user.other_user.id,
+            fetchedMessages,
+            setUserList
+          );
         }
       });
 
@@ -188,7 +357,7 @@ const ChatHistory: FC<ChatHistoryProps> = ({
         onNewMessage,
         onImageUploadStatus
       );
-  
+
       return cleanup;
     } else {
       setIsLoading(false);
@@ -228,11 +397,18 @@ const ChatHistory: FC<ChatHistoryProps> = ({
         ...messages.map((msg) => ({ ...msg, isPending: false })),
         ...pendingMessages.map((msg) => ({ ...msg, isPending: true })),
       ].sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       ),
     [messages, pendingMessages]
   );
-
+  const getSenderName = (senderId: string) => {
+    if (user?.type === "group" && user.members) {
+      const member = user.members.find((m) => m.id === senderId);
+      return member ? member.name || member.username : "Người dùng";
+    }
+    return user?.other_user?.name || "Người dùng";
+  };
   return (
     <div className="chat-history">
       <div className="avenue-messenger">
@@ -273,17 +449,52 @@ const ChatHistory: FC<ChatHistoryProps> = ({
 
             {!isLoading &&
               allMessages.map((data, index) => {
-                const previousMessage = index > 0 ? allMessages[index - 1] : null;
-                const showTimestamp = shouldShowTimestamp(data, previousMessage);
+                const previousMessage =
+                  index > 0 ? allMessages[index - 1] : null;
+                const showTimestamp = shouldShowTimestamp(
+                  data,
+                  previousMessage
+                );
+                const messageId = data.isPending
+                  ? `pending-${data.id}`
+                  : data.id;
+                const isOwnMessage = data.sender_id === session?.user?.id;
+                const senderName = isOwnMessage
+                  ? "Bạn"
+                  : getSenderName(data.sender_id);
                 return (
-                  <Fragment key={data.isPending ? `pending-${data.id}` : data.id}>
+                  <Fragment key={messageId}>
                     {data.sender_id === session?.user?.id ? (
-                      <div className="message message-personal new">
+                      <div
+                      className={`message ${isOwnMessage ? "message-personal" : ""} new ${
+                          highlightedMessageId === messageId
+                            ? "highlighted"
+                            : ""
+                        }`}
+                        ref={(el) => {
+                          if (el) {
+                            messageRefs.current[messageId] = el;
+                          }
+                        }}
+                        data-message-id={messageId}
+                      >
+                        {user?.type === "group" && !isOwnMessage && (
+                        <div className="sender-name" style={{ fontWeight: "bold", marginBottom: "4px" }}>
+                          {senderName}
+                        </div>
+                      )}
                         {data.isPending
                           ? renderPendingMessage(data, isUploading)
-                          : renderMessageContent(data as Message, scrollToBottom, shouldScrollToBottom)}
+                          : renderMessageContent(
+                              data as Message,
+                              scrollToBottom,
+                              shouldScrollToBottom
+                            )}
                         {showTimestamp && (
-                          <div className="timestamp" style={{ bottom: "-20px", right: "0px" }}>
+                          <div
+                            className="timestamp"
+                            style={{ bottom: "-20px", [isOwnMessage ? "right" : "left"]: "0px", }}
+                          >
                             {data.isPending
                               ? "Đang gửi..."
                               : formatTime(data.created_at || "")}
@@ -291,10 +502,32 @@ const ChatHistory: FC<ChatHistoryProps> = ({
                         )}
                       </div>
                     ) : (
-                      <div className="message new">
-                        {renderMessageContent(data as Message, scrollToBottom, shouldScrollToBottom)}
+                      <div
+                        className={`message ${isOwnMessage ? "message-personal" : ""} new ${
+                          highlightedMessageId === messageId
+                            ? "highlighted"
+                            : ""
+                        }`}
+                        ref={(el) => {
+                          if (el) messageRefs.current[messageId] = el;
+                        }}
+                        data-message-id={messageId}
+                      >
+                        {user?.type === "group" && !isOwnMessage && (
+                          <div className="sender-name" style={{ fontWeight: "bold", marginBottom: "4px" }}>
+                            {senderName}
+                          </div>
+                        )}
+                        {renderMessageContent(
+                          data as Message,
+                          scrollToBottom,
+                          shouldScrollToBottom
+                        )}
                         {showTimestamp && (
-                          <div className="timestamp" style={{ bottom: "-20px", left: "0px" }}>
+                          <div
+                            className="timestamp"
+                            style={{ bottom: "-20px", [isOwnMessage ? "right" : "left"]: "0px", }}
+                          >
                             {formatTime(data.created_at || "")}
                           </div>
                         )}
@@ -339,7 +572,10 @@ const ChatHistory: FC<ChatHistoryProps> = ({
               }}
             />
             {pendingImage && (
-              <div className="image-preview-wrapper" style={{ display: "relative" }}>
+              <div
+                className="image-preview-wrapper"
+                style={{ position: "relative" }}
+              >
                 <img
                   src={URL.createObjectURL(pendingImage)}
                   alt="preview"
@@ -411,6 +647,24 @@ const ChatHistory: FC<ChatHistoryProps> = ({
         style={{ display: "none" }}
         onChange={handleFileChange}
       />
+      <style jsx>{`
+        .highlighted {
+          color: #ffeb3b !important;
+          transition: background-color 0.3s ease !important;
+          animation: highlightPulse 0.5s ease-in-out 2;
+        }
+        @keyframes highlightPulse {
+          0% {
+            background-color: #ffeb3b;
+          }
+          50% {
+            background-color: #fff176;
+          }
+          100% {
+            background-color: #ffeb3b;
+          }
+        }
+      `}</style>
     </div>
   );
 };

@@ -8,6 +8,7 @@ import AuthSlice from "./slice/authSlice";
 import ProfileSlice from "./slice/profileSlice";
 import FriendSlice from "./slice/friendSlice";
 import UserSlice from "./slice/userSlice";
+import GroupChatSlice from "./slice/groupChatSlice";
 
 const rootReducer = combineReducers({
   storiesModalSlice,
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
   ProfileSlice,
   FriendSlice,
   user: UserSlice,
+  groupChat: GroupChatSlice,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

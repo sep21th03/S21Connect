@@ -1,4 +1,4 @@
-// components/Messenger/ChatUsers.tsx
+
 import { Nav } from "reactstrap";
 import UserHeader from "./UserHeader";
 import { FC, useCallback, useState } from "react";
@@ -41,10 +41,34 @@ const ChatUsers: FC = React.memo(() => {
     });
   }, [activeTab, setActiveTab, setUserList]);
 
-  const filteredUsers = userList?.filter(
-    (user) =>
-      user.other_user?.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleArchiveConversation = useCallback((conversationId: string) => {
+    setUserList((prevUsers) => {
+      if (!prevUsers) return prevUsers;
+
+      return prevUsers.map((user) => {
+        if (user.id === conversationId) {
+          return { ...user, is_archived: !user.is_archived };
+        }
+        return user;
+      });
+    });
+  }, [setUserList]);
+
+  const filteredUsers = userList
+    ?.filter((user) => {
+      if (!showArchived && user.is_archived) return false; 
+      
+      return (
+        user.other_user?.name
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        user.members?.some((member) =>
+          member.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        ) ||
+        user.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+
 
   return (
     <div className="chat-users">
@@ -58,6 +82,7 @@ const ChatUsers: FC = React.memo(() => {
             onClick={() => handleSetActiveTab(data.id)}
             online={onlineUsers.includes(data.other_user?.id || "")}
             sessionUserId={session?.user?.id}
+            onArchiveConversation={handleArchiveConversation}
           />
         ))}
       </Nav>

@@ -30,7 +30,7 @@ const SearchBar: FC<SearchBarProps> = ({ onSearch }) => {
         />
         <Input 
           type="text" 
-          placeholder="find friends..." 
+          placeholder="Tìm bạn bè..." 
           value={searchQuery}
           onChange={handleSearch}
         />
@@ -51,7 +51,7 @@ const SearchBar: FC<SearchBarProps> = ({ onSearch }) => {
           />
           <Input 
             type="text" 
-            placeholder="find friends..." 
+            placeholder="Tìm bạn bè..." 
             value={searchQuery}
             onChange={handleSearch}
           />

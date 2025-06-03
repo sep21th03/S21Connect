@@ -4,10 +4,18 @@ import Link from "next/link";
 import { DropdownToggle, DropdownItem, DropdownMenu, Dropdown, Input } from "reactstrap";
 import { useMessengerContext } from "@/contexts/MessengerContext";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { openModal } from "@/redux-toolkit/slice/groupChatSlice";
 
 const UserHeader = ({ onSearch }: { onSearch: (searchTerm: string) => void }) => {
   const { showArchived, setShowArchived } = useMessengerContext();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dispatch = useDispatch();
+
+  const handleCreateGroup = () => {
+    dispatch(openModal());
+    setIsDropdownOpen(false);
+  };
 
   return (
     <div className="user-header">
@@ -49,6 +57,13 @@ const UserHeader = ({ onSearch }: { onSearch: (searchTerm: string) => void }) =>
             >
               <DynamicFeatherIcon iconName="Archive" className="iw-14" />
               Cuộc hội thoại đã lưu trữ
+            </DropdownItem>
+            <DropdownItem
+               onClick={handleCreateGroup}
+              className="d-flex align-items-center gap-2"
+            >
+              <DynamicFeatherIcon iconName="Users" className="iw-14" />
+              Tạo nhóm
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>

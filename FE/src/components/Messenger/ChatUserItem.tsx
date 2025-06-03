@@ -7,7 +7,6 @@ import {
 } from "reactstrap";
 import { NavLink } from "reactstrap";
 import { NavItem } from "reactstrap";
-import { ImagePath } from "../../utils/constant";
 import { formatTime } from "@/utils/formatTime";
 import React, { useState } from "react";
 import { RecentMessage } from "@/hooks/useSocket";
@@ -15,6 +14,7 @@ import Image from "next/image";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import { useRouter } from "next/navigation";
 import { archiveConversation } from "@/service/messageService";
+import { ImagePath } from "@/utils/constant";
 
 const ChatUserItem = React.memo(
   ({
@@ -23,25 +23,27 @@ const ChatUserItem = React.memo(
     onClick,
     online,
     sessionUserId,
+    onArchiveConversation,
   }: {
     data: RecentMessage;
     active: boolean;
     onClick: () => void;
     online: boolean;
     sessionUserId?: string;
+    onArchiveConversation: (id: string, isArchived: boolean) => void;
   }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isIconVisible, setIsIconVisible] = useState(false);
-
     const renderContentPreview = (
       content?: string,
       senderId?: string,
       sessionUserId?: string,
       senderName?: string,
-      type?: string
+      type?: string,
+      chatType?: string,
+      groupName?: string
     ) => {
       if (!content) return "";
-
       const imageRegex = /\.(jpeg|jpg|gif|png|webp)$/i;
       const isImageUrl =
         imageRegex.test(content) ||
@@ -49,14 +51,36 @@ const ChatUserItem = React.memo(
           imageRegex.test(new URL(content).pathname));
 
       if (isImageUrl) {
+        if (chatType === "group") {
+          return senderId === sessionUserId
+            ? `Bạn đã gửi 1 ảnh trong ${groupName || "nhóm"}`
+            : `${senderName || "Người dùng"} đã gửi 1 ảnh trong ${
+                groupName || "nhóm"
+              }`;
+        }
         return senderId === sessionUserId
           ? "Bạn đã gửi 1 ảnh"
           : `${senderName || "Người dùng"} đã gửi 1 ảnh`;
       }
       if (type === "share_post") {
+        if (chatType === "group") {
+          return senderId === sessionUserId
+            ? `Bạn đã chia sẻ 1 bài viết trong ${groupName || "nhóm"}`
+            : `${senderName || "Người dùng"} đã chia sẻ 1 bài viết trong ${
+                groupName || "nhóm"
+              }`;
+        }
         return senderId === sessionUserId
           ? "Bạn đã chia sẻ 1 bài viết"
           : `${senderName || "Người dùng"} đã chia sẻ 1 bài viết`;
+      }
+
+      if (chatType === "group") {
+        return senderId === sessionUserId
+          ? `Bạn: ${content} (trong ${groupName || "nhóm"})`
+          : `${senderName || "Người dùng"}: ${content} (trong ${
+              groupName || "nhóm"
+            })`;
       }
 
       return senderId === sessionUserId ? `Bạn: ${content}` : content;
@@ -64,13 +88,27 @@ const ChatUserItem = React.memo(
 
     const router = useRouter();
 
+    const handleArchiveClick = async () => {
+      try {
+        const newArchivedStatus = !data.is_archived;
+        await archiveConversation(data.id, newArchivedStatus);
+        onArchiveConversation(data.id, newArchivedStatus);
+      } catch (error) {
+        console.error("Error archiving conversation:", error);
+      }
+    };
+
     const chatDropdownOptions = [
-      {
-        iconName: "User",
-        label: "Xem hồ sơ",
-        onClick: () =>
-          router.push(`/profile/timeline/${data.other_user.username}`),
-      },
+      ...(data.type === "group"
+        ? []
+        : [
+            {
+              iconName: "User",
+              label: "Xem hồ sơ",
+              onClick: () =>
+                router.push(`/profile/timeline/${data.other_user.username}`),
+            },
+          ]),
       {
         iconName: "Trash2",
         label: "Xóa hội thoại",
@@ -83,11 +121,10 @@ const ChatUserItem = React.memo(
       },
       {
         iconName: "Archive",
-        label: "Lưu hội thoại",
-        onClick: () => archiveConversation(data.id, !data.is_archived),
+        label: data.is_archived ? "Bỏ lưu trữ" : "Lưu trữ",
+        onClick: handleArchiveClick,
       },
     ];
-
     return (
       <NavItem
         className="d-flex justify-content-between align-items-center px-2"
@@ -107,7 +144,13 @@ const ChatUserItem = React.memo(
             <div className="story-img">
               <div className="user-img bg-size blur-up lazyloaded">
                 <Image
-                  src={data.other_user.avatar || `${ImagePath}/icon/user.png`}
+                  src={
+                    data.type === "group"
+                      ? data.avatar
+                      : data.other_user
+                      ? data.other_user.avatar
+                      : data.members[0].avatar || `${ImagePath}/icon/user.png`
+                  }
                   className="img-fluid blur-up bg-img lazyloaded rounded-circle"
                   alt="user"
                   width={120}
@@ -117,7 +160,15 @@ const ChatUserItem = React.memo(
             </div>
             <Media body>
               <h5>
-                {data.other_user.name}
+                {data.type === "group"
+                  ? data.name
+                  : data.other_user
+                  ? data.other_user.nickname
+                    ? data.other_user.nickname
+                    : data.other_user.name
+                  : data.members[0].nickname
+                  ? data.members[0].nickname
+                  : data.members[0].name}
                 <span>{formatTime(data.latest_message?.created_at || "")}</span>
               </h5>
               <h6>{online ? "online" : "offline"}</h6>
@@ -131,15 +182,19 @@ const ChatUserItem = React.memo(
                       data.latest_message?.content,
                       data.latest_message?.sender_id,
                       sessionUserId,
-                      data.other_user.name,
-                      data.latest_message?.type
+                      data.latest_message?.sender_name,
+                      data.latest_message?.type,
+                      data.type,
+                      data.name || ""
                     )}`
                   : renderContentPreview(
                       data.latest_message?.content,
                       data.latest_message?.sender_id,
                       sessionUserId,
-                      data.other_user.name,
-                      data.latest_message?.type
+                      data.latest_message?.sender_name,
+                      data.latest_message?.type,
+                      data.type,
+                      data.name || ""
                     )}
               </h6>
               <span className="count">{data.unread_count}</span>
@@ -151,15 +206,19 @@ const ChatUserItem = React.memo(
                     data.latest_message?.content,
                     data.latest_message?.sender_id,
                     sessionUserId,
-                    data.other_user.name,
-                    data.latest_message?.type
+                    data.latest_message?.sender_name,
+                    data.latest_message?.type,
+                    data.type,
+                    data.name || ""
                   )}`
                 : renderContentPreview(
                     data.latest_message?.content,
                     data.latest_message?.sender_id,
                     sessionUserId,
-                    data.other_user.name,
-                    data.latest_message?.type
+                    data.latest_message?.sender_name,
+                    data.latest_message?.type,
+                    data.type,
+                    data.name || ""
                   )}
             </h6>
           )}
@@ -213,6 +272,7 @@ export default React.memo(ChatUserItem, (prevProps, nextProps) => {
     prevProps.data.unread_count === nextProps.data.unread_count &&
     prevProps.active === nextProps.active &&
     prevProps.online === nextProps.online &&
-    prevProps.data.latest_message?.id === nextProps.data.latest_message?.id
+    JSON.stringify(prevProps.data.latest_message) ===
+      JSON.stringify(nextProps.data.latest_message)
   );
 });

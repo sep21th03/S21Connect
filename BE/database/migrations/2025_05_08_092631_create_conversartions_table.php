@@ -15,7 +15,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name')->nullable();
             $table->enum('type', ['private', 'group'])->default('private');
-            $table->uuid('image_id')->nullable(); 
+            // $table->uuid('image_id')->nullable(); 
+            $table->string('avatar')->nullable();
             $table->timestamps();
             
             $table->foreign('image_id')->references('id')->on('images')->onDelete('set null');

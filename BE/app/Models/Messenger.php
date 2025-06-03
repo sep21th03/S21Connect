@@ -32,6 +32,13 @@ class Messenger extends Model
         'metadata' => 'array',
     ];
 
+
+    public function conversation()
+    {
+        return $this->belongsTo(Conversation::class, 'conversation_id');
+    }
+
+
     // Người gửi
     public function sender()
     {

@@ -5,7 +5,7 @@ import { Container } from "reactstrap";
 
 const ProfileFriendTimeLine = () => {
   return (
-    <ProfileLayout title="friends" loaderName="profileFriend">
+    <ProfileLayout title="bạn bè" loaderName="profileFriend">
       <Container fluid className="section-t-space px-0">
         <div className="page-content">
           <div className="content-center w-100">

@@ -18,7 +18,7 @@ const FriendListBox: React.FC = () => {
               iconName="Search"
               className="icon-dark icon iw-16"
             />
-            <Input type="text" placeholder="find friends..." />
+            <Input type="text" placeholder="Tìm bạn bè..." />
           </div>
           <FriendSDropDown />
         </div>

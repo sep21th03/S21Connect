@@ -52,7 +52,7 @@ const AboutProfile = () => {
     return <UserNotFound />;
   }
   return (
-    <ProfileLayout title="about" loaderName="aboutProfileSkelton" >
+    <ProfileLayout title="giới thiệu" loaderName="aboutProfileSkelton" >
       <Container fluid className="section-t-space px-0">
         <Row>
           <Col xs="4" className="content-left  res-full-width order-1">

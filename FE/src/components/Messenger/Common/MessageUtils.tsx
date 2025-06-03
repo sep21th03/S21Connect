@@ -33,7 +33,7 @@ export const renderMessageContent = (
           className="message-image"
           loading="lazy"
           style={{ width: "100px", height: "100px", objectFit: "cover" }}
-          onLoad={() => {
+          onLoad={() => {     //*
             if (shouldScrollToBottom.current) {
               scrollToBottom();
             }

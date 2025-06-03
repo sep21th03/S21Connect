@@ -10,21 +10,6 @@ export const sendMessage = async (payload: any) => {
   };
 
 
-  export const getUserGalleryMessage = async (conversationId: string, perPage: number) => {
-  try {
-    const response = await axiosInstance.get(
-      API_ENDPOINTS.MESSAGES.MESSAGES.GET_USER_GALLERY(conversationId),
-      {
-        params: { perPage },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Tải ảnh thất bại", error);
-    throw error;
-  }
-};
-
 
 export const fetchMessages = async (
   conversationId: string,
@@ -162,7 +147,10 @@ export const handleSendMessage = async (
         }
         const success = sendMessage({
           content: base64Data,
-          receiver_id: user.other_user.id,
+          receiver_id:
+          user.type === "private"
+            ? user.other_user?.id
+            : user.members?.find((m) => m.id === session?.user?.id)?.id || "",
           conversation_id: user.id,
           type: "image",
           file_name: pendingImage.name,
@@ -202,7 +190,10 @@ export const handleSendMessage = async (
 
   const success = sendMessage({
     content: newMessage,
-    receiver_id: user.other_user.id,
+     receiver_id:
+          user.type === "private"
+            ? user.other_user?.id
+            : user.members?.find((m) => m.id === session?.user?.id)?.id || "",
     conversation_id: user.id,
     type: "text",
     client_temp_id: tempId, 
@@ -214,6 +205,23 @@ export const handleSendMessage = async (
     toast.error("Không thể gửi tin nhắn, vui lòng thử lại");
   } else {
     setNewMessage("");
+  }
+};
+
+
+
+export const getUserGalleryMessage = async (conversationId: string, perPage: number) => {
+  try {
+    const response = await axiosInstance.get(
+      API_ENDPOINTS.MESSAGES.MESSAGES.GET_USER_GALLERY(conversationId),
+      {
+        params: { perPage },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Tải ảnh thất bại", error);
+    throw error;
   }
 };
 
@@ -251,3 +259,70 @@ export const archiveConversation = async (conversationId: string, isArchived: bo
   }
 };
 
+
+export interface Nickname {
+  conversation_id: string;
+  users: {
+    id: string;
+    nickname: string;
+    first_name: string;
+    last_name: string;
+    avatar: string;
+  }[];
+}
+
+export const getNickname = async (
+  conversationId: string,
+): Promise<Nickname> => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.MESSAGES.MESSAGES.GET_NICKNAME(conversationId));
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy biệt danh:", error);
+    return { conversation_id: "", users: [] };
+  }
+};
+
+export const updateNickname = async (
+  conversationId: string,
+  userId: string,
+  nickname: string
+): Promise<void> => {
+  try {
+    await axiosInstance.post(API_ENDPOINTS.MESSAGES.MESSAGES.UPDATE_NICKNAME(conversationId, userId), {
+      nickname,
+    });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật biệt danh:", error);
+  }
+};
+
+export const getGroupMembers = async (conversationId: string) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.MESSAGES.MESSAGES.GET_GROUP_MEMBERS(conversationId));
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy thành viên nhóm:", error);
+    throw error;
+  }
+};
+
+
+
+export const getRecentConversations  = async (archived: boolean = false) => {
+  const response = await axiosInstance.get(
+    API_ENDPOINTS.MESSAGES.MESSAGES.RECENT_CONVERSATIONS,
+    {
+      params: { archived },
+    }
+  );
+  return response.data;
+};
+
+
+export const fetchUnreadMessageCount = async () => {
+  const response = await axiosInstance.get(
+    API_ENDPOINTS.MESSAGES.MESSAGES.GET_UNREAD_MESSAGES_COUNT
+  );
+  return response.data.unread_count;
+};

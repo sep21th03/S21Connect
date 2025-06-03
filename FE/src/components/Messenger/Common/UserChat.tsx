@@ -16,6 +16,10 @@ const UserChat: FC<UserChatInterFace> = ({
   setActiveTab,
   onlineUsers,
   initialConversationId,
+  messagesOffset,
+  showUserInfo,
+  setShowUserInfo,
+  groupMembers,
 }) => {
   const [lastActive, setLastActive] = useState<string>("");
   const [peerConnection, setPeerConnection] =
@@ -55,7 +59,7 @@ const UserChat: FC<UserChatInterFace> = ({
   }, []);
 
   useEffect(() => {
-    if (user?.other_user.last_active) {
+    if (user?.type === "private" && user?.other_user?.last_active) {
       const lastActiveDate = new Date(user.other_user.last_active);
       const now = new Date();
       const diffInMinutes = Math.floor(
@@ -69,16 +73,26 @@ const UserChat: FC<UserChatInterFace> = ({
       } else {
         setLastActive(`${Math.floor(diffInMinutes / 1440)}d ago`);
       }
+    } else {
+      setLastActive("");
     }
-  }, [user?.other_user.last_active]);
+  }, [user?.other_user?.last_active, user?.type]);
 
   const handleToggleInfiniteScroll = () => {
     setEnableInfiniteScroll(!enableInfiniteScroll);
     setShowSettingsDropdown(false);
   };
+  const chatAvatar =
+    user?.type === "group"
+      ? user.avatar || `${ImagePath}/icon/group.png`
+      : user?.other_user?.avatar || `${ImagePath}/icon/user.png`;
 
+  const chatName =
+    user?.type === "group"
+      ? user.name || "Nhóm chat"
+      : user?.other_user?.nickname || user?.other_user?.name || "Người dùng";
   return (
-    <div className="user-chat">
+    <div className="user-chat" style={{ width: showUserInfo ? "" : "100%" }}>
       <div className="user-title">
         <div
           className="back-btn d-block d-sm-none "
@@ -90,22 +104,20 @@ const UserChat: FC<UserChatInterFace> = ({
           <div className="story-img">
             <div className="user-img bg-size blur-up lazyloaded">
               <Image
-                src={
-                  user
-                    ? user.other_user?.avatar || `${ImagePath}/icon/user.png`
-                    : ""
-                }
+                src={user?.type === "group" ? groupMembers.conversation_avatar : chatAvatar}
                 className="img-fluid lazyload bg-img rounded-circle"
-                alt="user"
+                alt={user?.type === "group" ? "group" : "user"}
                 width={120}
                 height={120}
               />
             </div>
           </div>
           <Media body>
-            <h5>{user?.other_user.name}</h5>
+            <h5>{user?.type === "group" ? groupMembers.conversation_name : chatName}</h5>
             <h6>
-              {onlineUsers.includes(user?.other_user.id || "") ? (
+              {user?.type === "group" ? (
+                <span>{`${groupMembers.member_count || 0} thành viên`}</span>
+              ) : onlineUsers.includes(user?.other_user?.id || "") ? (
                 <span className="status online">
                   <span className="status-dot"></span> online
                 </span>
@@ -117,100 +129,131 @@ const UserChat: FC<UserChatInterFace> = ({
         </Media>
         <div className="menu-option">
           <ul>
-            <li>
-              <a href={Href}>
-                <DynamicFeatherIcon iconName="Phone" className="icon-dark" />
-              </a>
-            </li>
-            <li>
-              <a href={Href}>
-                <DynamicFeatherIcon iconName="Video" className="icon-dark" />
-              </a>
-            </li>
-            <li style={{ position: 'relative' }}>
-              <div ref={settingsDropdownRef as unknown as React.RefObject<HTMLDivElement>}>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setShowSettingsDropdown(!showSettingsDropdown);
-                }}
+            {user?.type === "group" ? (
+              <li>
+                <a href={Href}>
+                  <DynamicFeatherIcon iconName="Users" className="icon-dark" />
+                </a>
+              </li>
+            ) : (
+              <>
+                <li>
+                  <a href={Href}>
+                    <DynamicFeatherIcon
+                      iconName="Phone"
+                      className="icon-dark"
+                    />
+                  </a>
+                </li>
+                <li>
+                  <a href={Href}>
+                    <DynamicFeatherIcon
+                      iconName="Video"
+                      className="icon-dark"
+                    />
+                  </a>
+                </li>
+              </>
+            )}
+            <li style={{ position: "relative" }}>
+              <div
+                ref={
+                  settingsDropdownRef as unknown as React.RefObject<HTMLDivElement>
+                }
               >
-                <DynamicFeatherIcon iconName="Settings" className="icon-dark" />
-              </a>
-
-              {showSettingsDropdown && (
-                <div
-                  className="settings-dropdown"
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    right: "0",
-                    backgroundColor: "white",
-                    border: "1px solid #e4e6ea",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                    minWidth: "200px",
-                    zIndex: 1000,
-                    overflow: "hidden",
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setShowSettingsDropdown(!showSettingsDropdown);
                   }}
                 >
+                  <DynamicFeatherIcon
+                    iconName="Settings"
+                    className="icon-dark"
+                  />
+                </a>
+
+                {showSettingsDropdown && (
                   <div
-                    onClick={handleToggleInfiniteScroll}
+                    className="settings-dropdown"
                     style={{
-                      padding: "12px 16px",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      fontSize: "14px",
+                      position: "absolute",
+                      top: "100%",
+                      right: "0",
+                      backgroundColor: "white",
+                      border: "1px solid #e4e6ea",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                      minWidth: "200px",
+                      zIndex: 1000,
+                      overflow: "hidden",
                     }}
                   >
                     <div
+                      onClick={handleToggleInfiniteScroll}
                       style={{
+                        padding: "12px 16px",
+                        cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      <DynamicFeatherIcon
-                        iconName={enableInfiniteScroll ? "RotateCcw" : "Square"}
-                      />
-                      <span>Tự động tải tin nhắn</span>
-                    </div>
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "20px",
-                        backgroundColor: enableInfiniteScroll
-                          ? "#42b883"
-                          : "#ccc",
-                        borderRadius: "10px",
-                        position: "relative",
-                        transition: "background-color 0.3s",
+                        justifyContent: "space-between",
+                        fontSize: "14px",
                       }}
                     >
                       <div
                         style={{
-                          width: "16px",
-                          height: "16px",
-                          backgroundColor: "white",
-                          borderRadius: "50%",
-                          position: "absolute",
-                          top: "2px",
-                          left: enableInfiniteScroll ? "22px" : "2px",
-                          transition: "left 0.3s",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
                         }}
-                      />
+                      >
+                        <DynamicFeatherIcon
+                          iconName={
+                            enableInfiniteScroll ? "RotateCcw" : "Square"
+                          }
+                        />
+                        <span>Tự động tải tin nhắn</span>
+                      </div>
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "20px",
+                          backgroundColor: enableInfiniteScroll
+                            ? "#42b883"
+                            : "#ccc",
+                          borderRadius: "10px",
+                          position: "relative",
+                          transition: "background-color 0.3s",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "16px",
+                            height: "16px",
+                            backgroundColor: "white",
+                            borderRadius: "50%",
+                            position: "absolute",
+                            top: "2px",
+                            left: enableInfiniteScroll ? "22px" : "2px",
+                            transition: "left 0.3s",
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
               </div>
             </li>
-            <li className="d-block d-lg-none info-user">
-              <a href={Href}>
+            <li className="d-block info-user">
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowUserInfo && setShowUserInfo?.((prev) => !prev);
+                }}
+              >
                 <DynamicFeatherIcon iconName="Info" className="icon-dark" />
               </a>
             </li>
@@ -222,6 +265,7 @@ const UserChat: FC<UserChatInterFace> = ({
         setUserList={setUserList}
         initialConversationId={initialConversationId}
         enableInfiniteScroll={enableInfiniteScroll}
+        messagesOffset={messagesOffset}
       />
     </div>
   );

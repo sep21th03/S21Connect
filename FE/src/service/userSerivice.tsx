@@ -47,16 +47,12 @@ export async function userProfile() {
 }
 
 
-
 export const getListFriends = async (userId: string) => {
   const response = await axiosInstance.get(
     API_ENDPOINTS.USERS.BASE + API_ENDPOINTS.USERS.LIST_FRIENDS(userId)
   );
   return response.data;
 };
-
-
-
 
 export async function searchFriends(searchTerm: string = ''): Promise<User[]> {
   try {

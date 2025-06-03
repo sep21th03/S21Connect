@@ -15,7 +15,7 @@ const BlogSideBar:React.FC = () => {
       <div className="blog-sidebar">
         <div className="blog-wrapper">
           <div className="search-bar">
-            <Input type="text" placeholder="Search here.." />
+            <Input type="text" placeholder="Tìm kiếm..." />
             <DynamicFeatherIcon iconName="Search" className="iw-16 ih-16"/>
           </div>
         </div>

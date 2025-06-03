@@ -22,6 +22,8 @@ class AuthService
             'password' => Hash::make($data['password']),
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
+            'gender' => $data['gender'],
+            'birthday' => $data['birthday'],
         ]);
 
         $user->sendEmailVerificationNotification();

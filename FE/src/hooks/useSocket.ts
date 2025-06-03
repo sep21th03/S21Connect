@@ -34,6 +34,7 @@ export interface Message {
   };
   client_temp_id?: string;
   metadata?: SharePostMetadata;
+  offset?: number;
 }
 
 export interface SendMessagePayload {
@@ -56,13 +57,26 @@ export interface RecentMessage {
   created_at: string;
   updated_at: string;
   is_archived: boolean;
+  member_count: number;
+  avatar: string;
   other_user: {
     id: string;
     username: string;
     name: string;
     last_active?: string;
     avatar?: string;
+    nickname?: string;
   };
+  members: [
+    {
+      id: string;
+      username: string;
+      name: string;
+      last_active?: string;
+      avatar?: string;
+      nickname?: string;
+    }
+  ];
   latest_message?: {
     id: string;
     content: string;
@@ -72,6 +86,7 @@ export interface RecentMessage {
     sender_name: string;
   };
 }
+
 
 export interface TypingUser {
   user_id: string;
@@ -153,7 +168,6 @@ export function useSocket(
     socket.on("online_users_list", handleOnlineUsers);
 
     socket.on("incoming_call", (call: IncomingCall) => {
-      console.log("Incoming call:", call);
       setIncomingCall(call);
     });
     const heartbeatInterval = setInterval(() => {
@@ -193,23 +207,18 @@ export function useSocket(
     };
   }, []);
 
-  // Fix 1: Updated to accept string directly
   const joinChat = (conversationId: string) => {
     if (!socket?.connected) return;
-    console.log("Joining chat:", conversationId);
     socket.emit("join_chat", { conversation_id: conversationId });
   };
 
-  // Fix 2: Updated to accept string directly
   const leaveChat = (conversationId: string) => {
     if (!socket?.connected) return;
-    console.log("Leaving chat:", conversationId);
     socket.emit("leave_chat", { conversation_id: conversationId });
   };
 
   const sendMessage = (message: SendMessagePayload) => {
     if (!socket?.connected) {
-      console.error("Cannot send message: socket not connected");
       return false;
     }
 

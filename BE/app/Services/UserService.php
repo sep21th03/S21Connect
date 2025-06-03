@@ -154,6 +154,7 @@ class UserService
             return [
                 'id' => $conversationId,
                 'mutual_friends_count' => $mutualCount,
+                'type' => 'private',
                 'other_user' => [
                     'id' => $friend->id,
                     'name' => "{$friend->first_name} {$friend->last_name}",

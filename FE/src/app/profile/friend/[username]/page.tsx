@@ -22,7 +22,7 @@ const FriendSection: React.FC = () => {
     <CommonLayout mainClass="custom-padding profile-page" loaderName="profileTimeLine">
       <div className="page-center">
         <FriendSectionPageCover />
-        <ProfileMenu title="timeline" />
+        <ProfileMenu title="Bảng tin" />
         <Container fluid className="section-t-space px-0 layout-default">
           <div className="page-content">
             <div className="content-left">

@@ -6,37 +6,40 @@ import { Container } from "reactstrap";
 import ContentLeft from "@/components/NewsFeed/Style1/LeftContent";
 import ContentCenter from "@/components/NewsFeed/Style1/ContentCenter";
 import ContentRight from "@/components/NewsFeed/Style1/ContentRight";
-import axiosInstance from "@/utils/axiosInstance";
-import { API_ENDPOINTS } from "@/utils/constant/api";
 import { UserAbout, UserInforBirthday } from "@/utils/interfaces/user";
+import { getUserInforBirthday } from "@/service/newsfeedService";
+import { getUserAbout } from "@/service/newsfeedService";
 
-const NewsFeedStyle1: FC = () => { 
+const NewsFeedStyle1: FC = () => {
   const [userProfile, setUserProfile] = useState<UserAbout | null>(null);
-  const [userInforBirthday, setUserInforBirthday] = useState<UserInforBirthday | null>(null);
+  const [userInforBirthday, setUserInforBirthday] =
+    useState<UserInforBirthday | null>(null);
+
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      const response = await axiosInstance.get<ApiResponse<UserAbout>>(API_ENDPOINTS.PROFILE.USER_ABOUT);
-      setUserProfile(response.data.data);
+    const fetchProfile = async () => {
+      const data = await getUserAbout();
+      setUserProfile(data);
     };
-    fetchUserProfile();
+    fetchProfile();
   }, []);
 
   useEffect(() => {
-    const fetchUserInforBirthday = async () => {
-      const response = await axiosInstance.get<ApiResponse<UserInforBirthday>>(API_ENDPOINTS.FRIENDS.USER_INFOR_BIRTHDAY);
-      setUserInforBirthday(response.data.data);
+    const fetchBirthdayInfo = async () => {
+      const data = await getUserInforBirthday();
+      setUserInforBirthday(data);
     };
-    fetchUserInforBirthday();
+    fetchBirthdayInfo();
   }, []);
+
   return (
-    <CommonLayout mainClass="custom-padding" loaderName="style1"> 
+    <CommonLayout mainClass="custom-padding" loaderName="style1">
       <div className="page-center">
         <StorySection storyShow={8} />
         <Container fluid className="section-t-space px-0 layout-default">
           <div className="page-content">
             <ContentLeft userProfile={userProfile} />
             <ContentCenter />
-            <ContentRight userInforBirthday={userInforBirthday}/>
+            <ContentRight userInforBirthday={userInforBirthday} />
           </div>
         </Container>
       </div>

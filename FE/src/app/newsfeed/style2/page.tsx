@@ -8,39 +8,31 @@ import StorySection from "@/components/NewsFeed/Style1/StorySection";
 import CollegeMeetCard from "@/components/profile/CollegeMeetCard";
 import CommonLayout from "@/layout/CommonLayout";
 import { Container } from "reactstrap";
-import axiosInstance from "@/utils/axiosInstance";
-import { API_ENDPOINTS } from "@/utils/constant/api";
-import { UserAbout, UserInforBirthday } from "@/utils/interfaces/user";
+import { UserAbout } from "@/utils/interfaces/user";
 import { useEffect, useState } from "react";
+import { getUserAbout } from "@/service/newsfeedService";
 
 const newsFeedStyle2 = () => {
   const [userProfile, setUserProfile] = useState<UserAbout | null>(null);
-  const [userInforBirthday, setUserInforBirthday] = useState<UserInforBirthday | null>(null);
-  const [gallery, setGallery] = useState<Gallery[]>([]);
+  // const [userInforBirthday, setUserInforBirthday] = useState<UserInforBirthday | null>(null);
+  // const [gallery, setGallery] = useState<Gallery[]>([]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      const response = await axiosInstance.get<ApiResponse<UserAbout>>(API_ENDPOINTS.PROFILE.USER_ABOUT);
-      setUserProfile(response.data.data);
+      const data = await getUserAbout();
+      setUserProfile(data);
     };
     fetchUserProfile();
   }, []);
 
-  useEffect(() => {
-    const fetchUserInforBirthday = async () => {
-      const response = await axiosInstance.get<ApiResponse<UserInforBirthday>>(API_ENDPOINTS.FRIENDS.USER_INFOR_BIRTHDAY);
-      setUserInforBirthday(response.data.data);
-    };
-    fetchUserInforBirthday();
-  }, []);
-
   // useEffect(() => {
-  //   const fetchGallery = async () => {
-  //     const response = await axiosInstance.get<ApiResponse<Gallery[]>>(API_ENDPOINTS.MESSAGES.MESSAGES.GET_USER_GALLERY("112"));
-  //     setGallery(response.data.data);
+  //   const fetchUserInforBirthday = async () => {
+  //     const response = await axiosInstance.get<ApiResponse<UserInforBirthday>>(API_ENDPOINTS.FRIENDS.USER_INFOR_BIRTHDAY);
+  //     setUserInforBirthday(response.data.data);
   //   };
-  //   fetchGallery();
+  //   fetchUserInforBirthday();
   // }, []);
+
   return (
     <CommonLayout mainClass="custom-padding" headerClassName="header-light" sideBarClassName="sidebar-white" loaderName="style1" differentLogo="logo-color.png">
       <div className="page-center">
@@ -50,11 +42,11 @@ const newsFeedStyle2 = () => {
             <ContentLeft userProfile={userProfile} />
             <ContentCenter />
             <div className="content-right">
-              <CollegeMeetCard />
+              {/* <CollegeMeetCard /> */}
               <Gallery />
               <div className="sticky-top">
                 <EventsCard eventImage={1} />
-                <YourGames />
+                {/* <YourGames /> */}
               </div>
             </div>
           </div>

@@ -10,7 +10,7 @@ class Conversation extends Model
     protected $fillable = [
         'name',
         'type',
-        'image_id'
+        'avatar',
     ];
     protected $keyType = 'string';
     public $incrementing = false;
@@ -70,7 +70,6 @@ class Conversation extends Model
      */
     public static function createPrivateConversation($user1, $user2)
     {
-        // Check if a conversation already exists between these users
         $existingConversation = self::whereType('private')
             ->whereHas('users', function ($query) use ($user1) {
                 $query->where('user_id', $user1->id);
@@ -84,13 +83,11 @@ class Conversation extends Model
             return $existingConversation;
         }
 
-        // Create new conversation with UUID
         $conversation = new self();
         $conversation->id = Str::uuid();
         $conversation->type = 'private';
         $conversation->save();
 
-        // Attach users with UUID for pivot records
         $conversation->users()->attach([
             $user1->id => ['id' => Str::uuid()],
             $user2->id => ['id' => Str::uuid()]
@@ -109,20 +106,17 @@ class Conversation extends Model
      */
     public static function createGroupConversation($name, $userIds, $imageId = null)
     {
-        // Create new conversation
         $conversation = self::create([
             'name' => $name,
             'type' => 'group',
             'image_id' => $imageId
         ]);
 
-        // Prepare user attachments with UUID for each pivot record
         $users = [];
         foreach ($userIds as $userId) {
             $users[$userId] = ['id' => Str::uuid()];
         }
 
-        // Attach users
         $conversation->users()->attach($users);
 
         return $conversation;
@@ -141,6 +135,37 @@ class Conversation extends Model
 
         return self::createPrivateConversation($user1, $user2);
     }
+
+
+    public static function firstOrCreateGroup(array $userIds, array $options = []): self
+    {
+        $userIds = array_unique($userIds);
+        sort($userIds);
+
+        $existing = self::where('type', 'group')->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        $conversation = self::create([
+            'type' => 'group',
+            'name' => $options['name'] ?? 'Group Chat',
+            'avatar' => $options['avatar'] ?? null,
+        ]);
+
+        foreach ($userIds as $userId) {
+            $conversation->users()->attach($userId, [
+                'id' => (string) Str::uuid(),
+                'is_archived' => false,
+                'nickname' => null,
+                'last_read_at' => now(),
+            ]);
+        }
+
+        return $conversation;
+    }
+
 
     /**
      * Get the URL for this conversation
@@ -181,11 +206,31 @@ class Conversation extends Model
         return $this->messages()
             ->where('sender_id', '!=', $userId)
             ->where(function ($query) use ($userId) {
-                // Giả sử last_read_at được lưu trong bảng pivot conversation_user
-                $query->where(function ($q) use ($userId) {
+                $query->when($this->type === 'private', function ($q) {
                     $q->whereNull('read_at');
-                    // hoặc so sánh với last_read_at nếu có
+                })->when($this->type === 'group', function ($q) use ($userId) {
+                    $q->whereHas('conversation.users', function ($u) use ($userId) {
+                        $u->where('user_id', $userId)
+                            ->whereColumn('last_read_at', '<', 'messages.created_at');
+                    });
                 });
+            });
+    }
+
+    public function unreadMessagesPrivate($userId)
+    {
+        return $this->messages()
+            ->where('sender_id', '!=', $userId)
+            ->whereNull('read_at');
+    }
+
+    public function unreadMessagesGroup($userId)
+    {
+        return $this->messages()
+            ->where('sender_id', '!=', $userId)
+            ->whereHas('conversation.users', function ($u) use ($userId) {
+                $u->where('user_id', $userId)
+                    ->whereColumn('last_read_at', '<', 'messages.created_at');
             });
     }
 }

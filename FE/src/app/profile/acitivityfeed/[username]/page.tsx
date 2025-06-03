@@ -91,7 +91,7 @@ const ProfileTimeLine = () => {
 
   if (error && activityLogs.length === 0) {
     return (
-      <ProfileLayout title="activity feed" loaderName="activityFeedProfile">
+      <ProfileLayout title="hoạt động" loaderName="activityFeedProfile">
         <Container fluid className="section-t-space px-0">
           <Row>
             <Col lg="12">
@@ -117,7 +117,7 @@ const ProfileTimeLine = () => {
   }
 
   return (
-    <ProfileLayout title="activity feed" loaderName="activityFeedProfile">
+    <ProfileLayout title="hoạt động" loaderName="activityFeedProfile">
       <Container fluid className="section-t-space px-0">
         <Row>
           <Col lg="5" className="content-left">

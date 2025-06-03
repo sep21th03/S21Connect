@@ -11,7 +11,7 @@ const ProfileMenu: FC<ProfileMenuInterFaceCustom> = ({title, username}) => {
     <div className="profile-menu section-t-space">
       <ul>
         {profileMenuData.map((data, index) => (
-          <li className={`${data.name === title  ? "active":""} ${data.name === "acitivity feed" ?"d-xl-none d-inline-block":""}`} key={index}>
+          <li className={`${data.name === title  ? "active":""} ${data.name === "hoạt động" ?"d-xl-none d-inline-block":""}`} key={index}>
             <Link href={data.navigate + "/" + username}>
               <DynamicFeatherIcon iconName={data.icon} className="iw-14 ih-14"/>
               <h6>{data.name}</h6>
@@ -23,7 +23,7 @@ const ProfileMenu: FC<ProfileMenuInterFaceCustom> = ({title, username}) => {
         <li>
           <div className="search-bar input-style icon-left search-inmenu">
             <DynamicFeatherIcon iconName="Search" className="iw-16 ih-16 icon icon-theme"/>
-            <Input type="text" placeholder="search here..." />
+            <Input type="text" placeholder="Tìm kiếm..." />
           </div>
         </li>
         <li className={`${title === "acitivity feed"?"active":""}`}>

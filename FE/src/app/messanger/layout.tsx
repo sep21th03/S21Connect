@@ -2,12 +2,9 @@
 import { FC, ReactNode, useEffect, useState, useMemo } from "react";
 import CommonLayoutHeader from "@/layout/CommonLayout/CommonLayoutHeader";
 import ThemeCustomizer from "@/layout/CommonLayout/ThemeCustomizer";
-import { SingleUser } from "@/components/Messenger/MessengerType";
-import axiosInstance from "@/utils/axiosInstance";
-import { API_ENDPOINTS } from "@/utils/constant/api";
 import { RecentMessage, useSocket } from "@/hooks/useSocket";
 import { MessengerContextProvider } from "@/contexts/MessengerContext";
-
+import { getRecentConversations  } from "@/service/messageService";
 interface MessengerLayoutProps {
   children: ReactNode;
 }
@@ -25,15 +22,8 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
   useEffect(() => {
     const fetchUserList = async () => {
       try {
-        const response = await axiosInstance.get(
-          API_ENDPOINTS.MESSAGES.MESSAGES.RECENT_CONVERSATIONS,
-          {
-            params: {
-              archived: showArchived,
-            },
-          }
-        );
-        setUserList(response.data);
+        const response = await getRecentConversations (showArchived);
+        setUserList(response);
         setIsInitialLoad(false);
       } catch (error) {
         console.error("Error fetching user list:", error);
@@ -60,35 +50,51 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
 
   useEffect(() => {
     const cleanup = onNewMessage((message) => {
+
       if (!userList) return;
 
       setUserList((prevUsers: any) => {
         if (!prevUsers) return prevUsers;
 
-        return prevUsers.map((conversation: any) => {
-          const isSender = message.sender?.id === conversation.other_user?.id;
-
-          if (isSender) {
-            return {
-              ...conversation,
-              latest_message: {
-                content: message.content || "",
-                type: message.type || "",
-                created_at: message.created_at || "",
-                sender_id: message.sender?.id || "",
-                sender_name: `${message.sender?.first_name || ""} ${
-                  message.sender?.last_name || ""
-                }`.trim(),
-              },
-              unread_count:
-                conversation.id !== activeTab
-                  ? (conversation.unread_count ?? 0) + 1
-                  : conversation.unread_count,
-            };
+        const existing = prevUsers.find((conversation: any) => {
+          if (conversation.id === message.conversation_id) return true;
+          
+          if (conversation.type === 'group') {
+            if (message.conversation_id && conversation.id === message.conversation_id) return true; 
           }
-
-          return conversation;
+          
+          return false;
         });
+
+        if (existing) {
+          return prevUsers.map((conversation: any) => {
+            const isTargetConversation = 
+            conversation.id === message.conversation_id ||
+            (conversation.type === 'group' && 
+             (message.conversation_id === conversation.id));
+            if (isTargetConversation) {
+              return {
+                ...conversation,
+                latest_message: {
+                  content: message.content || "",
+                  type: message.type || "",
+                  created_at: message.created_at || "",
+                  sender_id: message.sender?.id || "",
+                  sender_name: `${message.sender?.first_name || ""} ${
+                    message.sender?.last_name || ""
+                  }`.trim(),
+                },
+                unread_count:
+                  conversation.id !== activeTab
+                    ? (conversation.unread_count ?? 0) + 1
+                    : conversation.unread_count,
+              };
+            }
+
+            return conversation;
+          });
+        }
+        return prevUsers;
       });
     });
 

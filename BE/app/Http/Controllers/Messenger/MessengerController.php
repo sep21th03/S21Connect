@@ -15,41 +15,125 @@ use App\Events\MessageSent;
 
 class MessengerController extends Controller
 {
+    // public function send(Request $request)
+    // {
+    //     $request->validate([
+    //         'content' => 'required_without:file_paths',
+    //         'receiver_id' => 'required_without:conversation_id|uuid|exists:users,id',
+    //         'conversation_id' => 'required_without:receiver_id|uuid|exists:conversations,id',
+    //         'type' => 'sometimes|in:text,image,video,sticker,file,share_post',
+    //         'file_paths' => 'sometimes|array',
+    //         'metadata' => 'sometimes|array',
+    //         'metadata.post_id' => 'nullable|numeric|exists:posts,id',
+    //         'metadata.image' => 'nullable|string',
+    //         'metadata.url' => 'nullable|string',
+    //         'metadata.content' => 'nullable|string',
+    //     ]);
+
+    //     if ($request->receiver_id) {
+    //         $receiver = User::find($request->receiver_id);
+    //         if ($receiver && $receiver->status === 'banned') {
+    //             return response()->json(['message' => 'Người nhận không khả dụng'], 403);
+    //         }
+    //     }
+
+    //     if ($request->filled('conversation_id')) {
+    //         $conversation = Conversation::findOrFail($request->conversation_id);
+    //         $isParticipant = $conversation->users()->where('user_id', Auth::id())->exists();
+    //         if (!$isParticipant) {
+    //             return response()->json(['error' => 'không phải của bạn'], 403);
+    //         }
+    //     } else {
+    //         $receiver = User::findOrFail($request->receiver_id);
+    //         $conversation = Conversation::firstOrCreatePrivateConversation(Auth::user(), $receiver);
+    //     }
+
+    //     $conversation->users()->updateExistingPivot(Auth::id(), ['is_archived' => false]);
+
+
+    //     $message = new Messenger();
+    //     $message->sender_id = Auth::id();
+    //     $message->conversation_id = $conversation->id;
+    //     $message->content = $request->content;
+    //     $message->type = $request->type ?? 'text';
+    //     $message->metadata = json_encode($request->metadata ?? []);
+
+    //     if ($conversation->type === 'private') {
+    //         $otherUser = $conversation->users()->where('user_id', '!=', Auth::id())->first();
+    //         if ($otherUser) {
+    //             $message->receiver_id = $otherUser->id;
+    //         }
+    //     }
+
+    //     if ($request->has('file_paths')) {
+    //         $message->file_paths = json_encode($request->file_paths);
+    //     }
+
+    //     $message->save();
+    //     $conversation->update([
+    //         'last_message_id' => $message->id,
+    //         'updated_at' => now()
+    //     ]);
+
+    //     event(new MessageSent($message));
+
+    //     Auth::user()->markConversationAsRead($conversation);
+
+    //     $messageWithSender = $message->toArray();
+    //     $messageWithSender['sender'] = Auth::user()->only(['id', 'username', 'first_name', 'last_name']);
+    //     $messageWithSender['url'] = $message->getUrl();
+
+    //     return response()->json($messageWithSender, 201);
+    // }
+
     public function send(Request $request)
     {
-        $request->validate([
+        $rules = [
             'content' => 'required_without:file_paths',
-            'receiver_id' => 'required_without:conversation_id|uuid|exists:users,id',
-            'conversation_id' => 'required_without:receiver_id|uuid|exists:conversations,id',
+            'receiver_id' => 'sometimes|uuid|exists:users,id',
+            'conversation_id' => 'sometimes|uuid|exists:conversations,id',
+            'user_ids' => 'array|min:2',
+            'user_ids.*' => 'uuid|exists:users,id',
             'type' => 'sometimes|in:text,image,video,sticker,file,share_post',
             'file_paths' => 'sometimes|array',
             'metadata' => 'sometimes|array',
-            'metadata.post_id' => 'nullable|numeric|exists:posts,id',
-            'metadata.image' => 'nullable|string',
-            'metadata.url' => 'nullable|string',
-            'metadata.content' => 'nullable|string',
-        ]);
+        ];
 
-        if ($request->receiver_id) {
-            $receiver = User::find($request->receiver_id);
-            if ($receiver && $receiver->status === 'banned') {
-                return response()->json(['message' => 'Người nhận không khả dụng'], 403);
-            }
+        $validated = $request->validate($rules);
+
+        if (
+            !$request->filled('conversation_id')
+            && !$request->filled('receiver_id')
+            && !$request->filled('user_ids')
+        ) {
+            return response()->json([
+                'message' => 'Cần cung cấp ít nhất conversation_id, receiver_id hoặc user_ids',
+                'errors' => [
+                    'conversation_id' => ['Cần có conversation_id, receiver_id hoặc user_ids'],
+                ],
+            ], 422);
         }
 
         if ($request->filled('conversation_id')) {
             $conversation = Conversation::findOrFail($request->conversation_id);
-            $isParticipant = $conversation->users()->where('user_id', Auth::id())->exists();
-            if (!$isParticipant) {
-                return response()->json(['error' => 'không phải của bạn'], 403);
+            if (!$conversation->users()->where('user_id', Auth::id())->exists()) {
+                return response()->json(['error' => 'Bạn không thuộc cuộc trò chuyện này'], 403);
             }
+        } elseif ($request->filled('user_ids')) {
+            $userIds = array_merge($request->user_ids, [Auth::id()]);
+            $conversation = Conversation::firstOrCreateGroup($userIds, [
+                'name' => $request->input('group_name'),
+                'avatar' => $request->input('group_avatar'),
+            ]);
         } else {
             $receiver = User::findOrFail($request->receiver_id);
+            if ($receiver->status === 'banned') {
+                return response()->json(['message' => 'Người nhận không khả dụng'], 403);
+            }
             $conversation = Conversation::firstOrCreatePrivateConversation(Auth::user(), $receiver);
         }
 
         $conversation->users()->updateExistingPivot(Auth::id(), ['is_archived' => false]);
-
 
         $message = new Messenger();
         $message->sender_id = Auth::id();
@@ -60,9 +144,7 @@ class MessengerController extends Controller
 
         if ($conversation->type === 'private') {
             $otherUser = $conversation->users()->where('user_id', '!=', Auth::id())->first();
-            if ($otherUser) {
-                $message->receiver_id = $otherUser->id;
-            }
+            $message->receiver_id = $otherUser?->id;
         }
 
         if ($request->has('file_paths')) {
@@ -70,9 +152,10 @@ class MessengerController extends Controller
         }
 
         $message->save();
+
         $conversation->update([
             'last_message_id' => $message->id,
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         event(new MessageSent($message));
@@ -85,6 +168,7 @@ class MessengerController extends Controller
 
         return response()->json($messageWithSender, 201);
     }
+
 
     public function markAsRead(Request $request)
     {
@@ -101,7 +185,7 @@ class MessengerController extends Controller
             ->exists();
 
         if (!$isParticipant) {
-            return response()->json(['error' => 'You are not a participant in this conversation'], 403);
+            return response()->json(['error' => 'Bạn không thuộc cuộc hội thoại này'], 403);
         }
 
         if ($conversation->type === 'private') {
@@ -114,16 +198,18 @@ class MessengerController extends Controller
                     'read_at' => $now
                 ]);
         } else {
-
-            $updatedRows = 0;
+            if ($conversation->type === 'group') {
+                $conversation->users()->updateExistingPivot(Auth::id(), [
+                    'last_read_at' => $now
+                ]);
+            }
         }
 
         Auth::user()->markConversationAsRead($conversation);
 
         return response()->json([
             'success' => true,
-            'updated_rows' => $updatedRows,
-            'read_at' => $now
+            'read_at' => $now,
         ]);
     }
 
@@ -190,6 +276,16 @@ class MessengerController extends Controller
             ->with(['sender:id,username,first_name,last_name,last_active'])
             ->paginate($perPage, ['*'], 'page', $page);
 
+        $messagesWithOffset = $messages->getCollection()->map(function ($message) use ($conversationId) {
+            $offset = Messenger::where('conversation_id', $conversationId)
+                ->where('created_at', '>=', $message->created_at)
+                ->count() - 1;
+
+            $message->offset = $offset;
+            return $message;
+        });
+
+        $messages->setCollection($messagesWithOffset);
 
         return response()->json($messages);
     }
@@ -310,7 +406,7 @@ class MessengerController extends Controller
             ->exists();
 
         if (!$isParticipant) {
-            return response()->json(['error' => 'You are not a participant in this conversation'], 403);
+            return response()->json(['error' => 'Bạn không thuộc cuộc hội thoại này'], 403);
         }
 
         $uploadedFiles = [];

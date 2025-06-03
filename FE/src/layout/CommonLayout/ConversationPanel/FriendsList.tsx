@@ -20,6 +20,7 @@ interface FriendData {
   name?: string;
   username?: string;
   avatar?: string;
+  type?: string;
   other_user: {
     id: string;
     name: string;
@@ -91,6 +92,7 @@ const FriendsList: FC<FriendsListProps> = ({ searchTerm = "" }) => {
     const chatUser: FriendData = {
       id: friend.id,
       mutual_friends_count: friend.mutual_friends_count,
+      type: friend.type,
       other_user: {
         id: friend.other_user.id,
         name: friend.other_user.name,

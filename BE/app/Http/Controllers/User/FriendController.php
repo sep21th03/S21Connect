@@ -6,6 +6,7 @@ use App\Services\FriendService;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class FriendController extends Controller
 {
@@ -61,7 +62,7 @@ class FriendController extends Controller
 
     public function upcomingBirthdays()
     {
-        $userId = Auth::id(); 
+        $userId = Auth::id();
         $daysAhead = 30;
 
         $friends = $this->friendService->getUpcomingBirthdays($userId, $daysAhead);
@@ -86,5 +87,16 @@ class FriendController extends Controller
             ->receivedFriendRequests()
             ->where('new', false)
             ->count();
+    }
+
+    public function searchFriend(Request $request)
+    {
+        $keyword = $request->input('q', '');
+
+        $friends = $this->friendService->searchFriend($keyword);
+
+        return response()->json([
+            'data' => $friends,
+        ]);
     }
 }

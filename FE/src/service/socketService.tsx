@@ -15,6 +15,7 @@ export const setupSocketListeners = (
         tempUrl?: string;
         created_at: string;
         sender_id: string;
+        sender_name?: string;
       }[]
     >
   >,
@@ -35,7 +36,6 @@ export const setupSocketListeners = (
     return () => {};
   }
 
-  const userId = user.other_user.id;
   const conversationId = user.id;
 
   if (conversationId) {
@@ -45,16 +45,14 @@ export const setupSocketListeners = (
 
   const cleanup = onNewMessage((message) => {
     if (
-      (message.sender_id === userId || message.sender_id === session?.user?.id) &&
-      message.conversation_id === conversationId
+      message.conversation_id === conversationId &&
+      (user.type === "group" || message.sender_id === user.other_user?.id || message.sender_id === session?.user?.id)
     ) {
         setMessages((prevMessages) => {
-            // Kiểm tra xem tin nhắn đã tồn tại chưa
             if (prevMessages.some((msg) => msg.id === message.id)) {
               return prevMessages;
             }
     
-            // Xóa tin nhắn pending nếu có client_temp_id
             if (message.client_temp_id) {
               setPendingMessages((prev) =>
                 prev.filter((msg) => msg.id !== message.client_temp_id)
@@ -62,7 +60,6 @@ export const setupSocketListeners = (
               setIsUploading(false);
             }
     
-            // Chỉ scroll khi tin nhắn mới được thêm
             scrollToBottom();
             return [...prevMessages, message];
           });

@@ -13,6 +13,19 @@ const BirthdayReminder: FC<BirthdayReminderInterFace> = ({mainClass, userInforBi
 
   const birthdayUser = userInforBirthday[0];
 
+  const getGenderPronoun = (gender: string | undefined) => {
+    switch (gender?.toLowerCase()) {
+      case "male":
+        return "anh";
+      case "female":
+        return "cô";
+      case "other":
+        return "họ";
+      default:
+        return "họ"; 
+    }
+  };
+
   return (
     <div className={`birthday-section bg-size blur-up lazyloaded section-t-space ${mainClass?mainClass:""}`}> 
       <CustomImage className="img-fluid blur-up lazyload bg-img" src={`${ImagePath}/birthday-bg.jpg`}/>
@@ -65,7 +78,7 @@ const BirthdayReminder: FC<BirthdayReminderInterFace> = ({mainClass, userInforBi
         <div className="details">
           <h3>{birthdayUser?.first_name} {birthdayUser?.last_name}</h3>
           <h6>{birthdayUser?.location}</h6>
-          <p> Gửi lời chúc đến {userInforBirthday[0]?.gender == "male" ? "anh" : "chị"} ấy!</p>
+          <p> Gửi lời chúc đến {getGenderPronoun(birthdayUser?.gender)} ấy!</p>
           <form onSubmit={(event: FormEvent<HTMLFormElement>)=>event.preventDefault()}>
             <Input type="text" placeholder="Gửi lời chúc đến bạn bè" />
             <Button>

@@ -4,9 +4,7 @@ namespace App\Http\Controllers\Messenger;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
-use App\Models\Message;
 use App\Models\User;
-use App\Models\Image;
 use App\Models\Messenger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,16 +15,17 @@ class ConversationController extends Controller
     public function new_message_count()
     {
         $user = Auth::user();
-        $userId = $user->id;
 
-        $conversations = $user->conversations()
-            ->withCount(['unreadMessages' => function ($query) use ($userId) {
-                $query->where('user_id', $userId)
-                    ->where('is_read', false);
-            }])
-            ->get();
+        $conversations = $user->conversations()->get();
 
-        $unreadCount = $conversations->sum('unread_messages_count');
+        $unreadCount = $conversations->sum(function ($conversation) use ($user) {
+            if ($conversation->type === 'private') {
+                return $conversation->unreadMessagesPrivate($user->id)->count();
+            } else {
+                return $conversation->unreadMessagesGroup($user->id)->count();
+            }
+        });
+
         return response()->json([
             'unread_count' => $unreadCount,
         ]);
@@ -86,16 +85,21 @@ class ConversationController extends Controller
                         'name' => trim($otherUser->first_name . ' ' . $otherUser->last_name),
                         'last_active' => $otherUser->last_active,
                         'avatar' => $otherUser->avatar,
+                        'nickname' => $otherUser->pivot->nickname
                     ];
                 }
             } else {
+                $data['name'] = $conversation->name;
+                $data['avatar'] = $conversation->avatar;
                 $data['member_count'] = $conversation->users->count();
                 $data['members'] = $conversation->users->map(function ($user) use ($conversation) {
                     return [
                         'id' => $user->id,
                         'username' => $user->username,
                         'name' => trim($user->first_name . ' ' . $user->last_name),
-                        'nickname' => $user->pivot->nickname
+                        'nickname' => $user->pivot->nickname,
+                        'last_active' => $user->last_active,
+                        'avatar' => $user->avatar,
                     ];
                 });
             }
@@ -124,6 +128,41 @@ class ConversationController extends Controller
         return response()->json($sortedConversations);
     }
 
+    public function getMembers($conversationId)
+    {
+        $user = Auth::user();
+
+        $conversation = $user->conversations()
+            ->where('conversations.id', $conversationId)
+            ->with(['users' => function ($query) {
+                $query->select('users.id', 'username', 'first_name', 'last_name', 'last_active', 'avatar')
+                    ->withPivot('nickname');
+            }])
+            ->first();
+
+        if (!$conversation) {
+            return response()->json(['message' => 'Conversation not found or access denied.'], 404);
+        }
+
+        $members = $conversation->users->map(function ($user) use ($conversation) {
+            return [
+                'id' => $user->id,
+                'username' => $user->username,
+                'name' => trim($user->first_name . ' ' . $user->last_name),
+                'nickname' => $user->pivot->nickname,
+                'last_active' => $user->last_active,
+                'avatar' => $user->avatar,
+            ];
+        });
+
+        return response()->json([
+            'conversation_id' => $conversation->id,
+            'conversation_name' => $conversation->name,
+            'conversation_avatar' => $conversation->avatar,
+            'member_count' => $members->count(),
+            'members' => $members
+        ]);
+    }
 
 
 
@@ -201,7 +240,7 @@ class ConversationController extends Controller
             ->exists();
 
         if (!$isParticipant) {
-            return response()->json(['error' => 'You are not a participant in this conversation'], 403);
+            return response()->json(['error' => 'Bạn không thuộc cuộc hội thoại này'], 403);
         }
 
         $perPage = $request->query('per_page', 20);
@@ -283,7 +322,7 @@ class ConversationController extends Controller
             ->exists();
 
         if (!$isParticipant) {
-            return response()->json(['error' => 'You are not a participant in this conversation'], 403);
+            return response()->json(['error' => 'Bạn không thuộc cuộc hội thoại này'], 403);
         }
 
         if ($conversation->type !== 'group') {
@@ -316,16 +355,37 @@ class ConversationController extends Controller
     /**
      * Biệt danh
      */
-    public function updateNickname(Request $request, $id, $userId)
+
+    public function getNicknames($conversationId)
     {
-        $conversation = Conversation::findOrFail($id);
+        $conversation = Conversation::findOrFail($conversationId);
 
         $isParticipant = $conversation->users()
             ->where('user_id', Auth::id())
             ->exists();
 
         if (!$isParticipant) {
-            return response()->json(['error' => 'You are not a participant in this conversation'], 403);
+            return response()->json(['error' => 'Bạn không thuộc cuộc hội thoại này'], 403);
+        }
+
+        $users = $conversation->users()->select('users.id', 'users.username', 'users.first_name', 'users.last_name', 'users.avatar', 'conversation_user.nickname')->get();
+
+        return response()->json([
+            'conversation_id' => $conversation->id,
+            'users' => $users,
+        ]);
+    }
+
+    public function updateNickname(Request $request, $conversationId, $userId)
+    {
+        $conversation = Conversation::findOrFail($conversationId);
+
+        $isParticipant = $conversation->users()
+            ->where('user_id', Auth::id())
+            ->exists();
+
+        if (!$isParticipant) {
+            return response()->json(['error' => 'Bạn không thuộc cuộc hội thoại này'], 403);
         }
 
         $targetUserExists = $conversation->users()
@@ -333,7 +393,7 @@ class ConversationController extends Controller
             ->exists();
 
         if (!$targetUserExists) {
-            return response()->json(['error' => 'Target user is not a participant'], 404);
+            return response()->json(['error' => 'Người dùng không thuộc cuộc hội thoại này'], 404);
         }
 
         $request->validate([
@@ -363,7 +423,7 @@ class ConversationController extends Controller
             ->exists();
 
         if (!$isParticipant) {
-            return response()->json(['error' => 'You are not a participant in this conversation'], 403);
+            return response()->json(['error' => 'Bạn không thuộc cuộc hội thoại này'], 403);
         }
 
         if ($conversation->type !== 'group') {
@@ -406,7 +466,7 @@ class ConversationController extends Controller
             ->exists();
 
         if (!$isParticipant) {
-            return response()->json(['error' => 'You are not a participant in this conversation'], 403);
+            return response()->json(['error' => 'Bạn không thuộc cuộc hội thoại này'], 403);
         }
 
         if ($conversation->type !== 'group') {
@@ -441,7 +501,7 @@ class ConversationController extends Controller
             ->exists();
 
         if (!$isParticipant) {
-            return response()->json(['error' => 'You are not a participant in this conversation'], 403);
+            return response()->json(['error' => 'Bạn không thuộc cuộc hội thoại này'], 403);
         }
 
         $conversation->users()->detach(Auth::id());

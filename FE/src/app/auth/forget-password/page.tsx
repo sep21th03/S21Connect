@@ -17,10 +17,9 @@ const ForgotPage = () => {
           <Media>
             <DynamicFeatherIcon iconName="PlayCircle" />
             <Media body>
-              <h2>how it work?</h2>
+              <h2>Kết nối với bạn bè!</h2>
               <p>
-                Lorem Ipsum is simply dummy text of the printing and typesetting
-                industry. Lorem Ipsum has been.
+                Tạo tài khoản và kết nối với bạn bè của bạn để bắt đầu sử dụng.
               </p>
             </Media>
           </Media>

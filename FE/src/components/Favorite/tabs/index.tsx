@@ -34,7 +34,7 @@ const FavouriteTabs: React.FC = () => {
             <li>
               <div className="search-bar input-style icon-left search-inmenu">
                 <DynamicFeatherIcon iconName="Search" className="iw-16 ih-16 icon icon-theme"/>
-                <Input type="text" placeholder="search here..." />
+                <Input type="text" placeholder="Tìm kiếm..." />  
               </div>
             </li>
           </ul>

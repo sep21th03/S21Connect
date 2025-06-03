@@ -1,6 +1,6 @@
 import { Col, Container, Row } from "reactstrap";
 import SocialLinks from "../login/SocialLinks";
-import { ImagePath, Register, WelcomeFriend } from "../../../utils/constant";
+import { Domain, ImagePath, Register, WelcomeFriend } from "../../../utils/constant";
 import RegisterForm from "./RegisterForm";
 import CustomImage from "@/Common/CustomImage";
 
@@ -11,7 +11,7 @@ const RegisterMainPage: React.FC = () => {
         <Col xl="6" lg="5" className=" d-none d-lg-block">
           <div className="login-welcome">
             <div>
-              <CustomImage src={`${ImagePath}/login/charcter.png`} className="img-fluid blur-up lazyloaded" alt="charcter" />
+              {/* <CustomImage src={`${Domain}${ImagePath}/login/charcter.png`} className="img-fluid blur-up lazyloaded" alt="charcter" /> */}
               <h1>{WelcomeFriend}</h1>
             </div>
           </div>
@@ -25,12 +25,12 @@ const RegisterMainPage: React.FC = () => {
               <div className="form-sec">
                 <div>
                   <RegisterForm />
-                  <div className="connect-with">
+                  {/* <div className="connect-with">
                     <h6>
                       <span>OR Connect With</span>
                     </h6>
                     <SocialLinks />
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

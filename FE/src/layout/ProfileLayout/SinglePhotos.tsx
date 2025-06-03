@@ -56,12 +56,10 @@ const SinglePhotos: FC<SinglePhotosInterFace> = ({
     }
   };
 
-  // Upload ảnh lên Cloudinary
   const uploadToCloudinary = async (file: File) => {
     try {
       setUploading(true);
 
-      // Tạo form data để upload
       const formData = new FormData();
       formData.append("file", file);
       formData.append(
@@ -73,13 +71,11 @@ const SinglePhotos: FC<SinglePhotosInterFace> = ({
         process.env.NEXT_PUBLIC_CLOUDINARY_FOLDER_ALBUM!
       );
 
-      // Upload trực tiếp lên Cloudinary
       const response = await axios.post(
         process.env.NEXT_PUBLIC_CLOUDINARY_API!,
         formData
       );
 
-      // Dữ liệu trả về từ Cloudinary
       const imageData = {
         url: response.data.secure_url,
         public_id: response.data.public_id,
@@ -91,13 +87,11 @@ const SinglePhotos: FC<SinglePhotosInterFace> = ({
         height: response.data.height,
       };
 
-      // Gửi dữ liệu lên backend
       const saveResponse = await axiosInstance.post(
         API_ENDPOINTS.IMAGES.POST_IMAGES,
         imageData
       );
 
-      // Thêm ảnh mới vào danh sách
       setImages([saveResponse.data.data, ...images]);
       setSelectedImage(saveResponse.data.data.url);
       handleImageUrl(saveResponse.data.data.url);

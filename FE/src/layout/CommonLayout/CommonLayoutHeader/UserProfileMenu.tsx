@@ -28,7 +28,7 @@ const UserProfileMenu: FC<UserProfileMenuProps> = ({username, isAdmin}) => {
       navigate: "/admin",
       icon: "List", 
       heading: "Admin Dashboard",
-      headingDetail: "Manage system & users",
+      headingDetail: "Quản lý hệ thống và người dùng",
     });
   }
 

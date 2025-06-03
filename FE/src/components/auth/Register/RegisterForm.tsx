@@ -23,11 +23,37 @@ const RegisterForm = () => {
     email: "",
     password: "",
     password_confirmation: "",
+    gender: "",
+    birthday: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [birthDay, setBirthDay] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+
   const router = useRouter();
+
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const currentYear = new Date().getFullYear();
+  const years = Array.from(
+    { length: currentYear - 1900 + 1 },
+    (_, i) => 1900 + i
+  ).reverse();
+
+  useEffect(() => {
+    if (birthDay && birthMonth && birthYear) {
+      const formattedDate = `${birthYear}-${birthMonth.padStart(
+        2,
+        "0"
+      )}-${birthDay.padStart(2, "0")}`;
+      setFormData((prev) => ({ ...prev, birthday: formattedDate }));
+    } else {
+      setFormData((prev) => ({ ...prev, birthday: "" }));
+    }
+  }, [birthDay, birthMonth, birthYear]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,6 +63,34 @@ const RegisterForm = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
+    if (!formData.gender) {
+      toast.error("Vui lòng chọn giới tính!");
+      setLoading(false);
+      return;
+    }
+    if (!formData.birthday || !birthDay || !birthMonth || !birthYear) {
+      toast.error("Vui lòng chọn đầy đủ ngày sinh!");
+      setLoading(false);
+      return;
+    }
+    if (formData.password !== formData.password_confirmation) {
+      toast.error("Mật khẩu không khớp!");
+      setLoading(false);
+      return;
+    }
+    if (
+      formData.first_name === "" ||
+      formData.last_name === "" ||
+      formData.username === "" ||
+      formData.email === "" ||
+      formData.password === "" ||
+      formData.password_confirmation === ""
+    ) {
+      toast.error("Vui lòng điền đầy đủ thông tin!");
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await axiosInstance.post(
@@ -68,11 +122,11 @@ const RegisterForm = () => {
       <Row>
         <Col md={6}>
           <FormGroup>
-            <Label>First Name</Label>
+            <Label>Họ</Label>
             <div className="position-relative">
               <Input
                 type="text"
-                placeholder="Your Name"
+                placeholder="Họ"
                 name="first_name"
                 value={formData.first_name}
                 onChange={handleChange}
@@ -82,11 +136,11 @@ const RegisterForm = () => {
         </Col>
         <Col md={6}>
           <FormGroup>
-            <Label>Last Name</Label>
+            <Label>Tên</Label>
             <div className="position-relative">
               <Input
                 type="text"
-                placeholder="Your Name"
+                placeholder="Tên"
                 name="last_name"
                 value={formData.last_name}
                 onChange={handleChange}
@@ -96,10 +150,10 @@ const RegisterForm = () => {
         </Col>
       </Row>
       <FormGroup>
-        <label htmlFor="exampleInputUsername">Username</label>
+        <label htmlFor="exampleInputUsername">Tên tài khoản</label>
         <Input
           type="text"
-          placeholder="Enter username"
+          placeholder="Tên tài khoản"
           name="username"
           value={formData.username}
           onChange={handleChange}
@@ -111,10 +165,10 @@ const RegisterForm = () => {
         />
       </FormGroup>
       <FormGroup>
-        <label htmlFor="exampleInputEmail1">Email address</label>
+        <label htmlFor="exampleInputEmail1">Email</label>
         <Input
           type="email"
-          placeholder="Enter email"
+          placeholder="Email"
           name="email"
           value={formData.email}
           onChange={handleChange}
@@ -159,6 +213,101 @@ const RegisterForm = () => {
           className="input-icon iw-20 ih-20 cursor-pointer"
           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
         />
+      </FormGroup>
+
+      <FormGroup>
+        <Label>Giới tính</Label>
+        <div className="d-flex gap-3">
+          <div className="radio radio-primary">
+            <Input
+              type="radio"
+              id="male"
+              name="gender"
+              value="male"
+              checked={formData.gender === "male"}
+              onChange={handleChange}
+              required
+            />
+            <Label for="male" className="cursor mx-3">Nam</Label>
+          </div>
+          <div className="radio radio-primary">
+            <Input
+              type="radio"
+              id="female"
+              name="gender"
+              value="female"
+              checked={formData.gender === "female"}
+              onChange={handleChange}
+              required
+            />
+            <Label for="female" className="cursor mx-3">Nữ</Label>
+          </div>
+          <div className="radio radio-primary">
+            <Input
+              type="radio"
+              id="other"
+              name="gender"
+              value="other"
+              checked={formData.gender === "other"}
+              onChange={handleChange}
+              required
+            />
+            <Label for="other" className="cursor mx-3">Khác</Label>
+          </div>
+        </div>
+      </FormGroup>
+      <FormGroup>
+        <Label>Sinh nhật</Label>
+        <Row>
+          <Col xs={4}>
+            <Input
+              type="select"
+              name="birthDay"
+              value={birthDay}
+              onChange={(e) => setBirthDay(e.target.value)}
+              required
+            >
+              <option value="">Ngày</option>
+              {days.map((day) => (
+                <option key={day} value={day}>
+                  {day}
+                </option>
+              ))}
+            </Input>
+          </Col>
+          <Col xs={4}>
+            <Input
+              type="select"
+              name="birthMonth"
+              value={birthMonth}
+              onChange={(e) => setBirthMonth(e.target.value)}
+              required
+            >
+              <option value="">Tháng</option>
+              {months.map((month) => (
+                <option key={month} value={month}>
+                  {month}
+                </option>
+              ))}
+            </Input>
+          </Col>
+          <Col xs={4}>
+            <Input
+              type="select"
+              name="birthYear"
+              value={birthYear}
+              onChange={(e) => setBirthYear(e.target.value)}
+              required
+            >
+              <option value="">Năm</option>
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </Input>
+          </Col>
+        </Row>
       </FormGroup>
       <div className="btn-section">
         <Button

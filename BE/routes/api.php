@@ -128,6 +128,7 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::get('/status/{friendId}', [FriendController::class, 'checkStatus']);
         Route::get('/birthday', [FriendController::class, 'upcomingBirthdays']);
         Route::get('/requests', [FriendController::class, 'getListRequestFriends']);
+        Route::get('/search-friend', [UserController::class, 'searchFriend']);
         Route::get('/count_new_requests', [FriendController::class, 'countNewFriendRequests']);
     });
 
@@ -198,6 +199,9 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::get('/{id}/media', [ConversationController::class, 'getMedia']);
         Route::get('/message/count', [ConversationController::class, 'new_message_count']);
         Route::post('/archive/{id}', [MessengerController::class, 'archive']);
+        Route::get('/getNickname/{conversationId}', [ConversationController::class, 'getNicknames']);
+        Route::post('/updateNickname/{conversationId}/{userid}', [ConversationController::class, 'updateNickname']);
+        Route::get('/getMembers/{conversationId}', [ConversationController::class, 'getMembers']);
     });
     //image
     Route::prefix('images')->group(function () {

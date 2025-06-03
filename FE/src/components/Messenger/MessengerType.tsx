@@ -56,7 +56,6 @@ export interface CommonChatBoxInterFace {
   onlineUsers: string[];
   initialConversationId?: string;
   messages?: Message[];
-  onSearchSelect?: (messageId: string) => void;
 }
 
 export interface UserChatInterFace {
@@ -65,6 +64,25 @@ export interface UserChatInterFace {
   user: RecentMessage | null;
   onlineUsers: string[];
   initialConversationId?: string;
+  messagesOffset?: number;
+  showUserInfo: boolean;
+  setShowUserInfo: Dispatch<SetStateAction<boolean>>;
+  groupMembers: GroupMember;
+}
+
+interface GroupMember {
+  conversation_id: string;
+  member_count: number;
+  conversation_name: string;
+  conversation_avatar: string;
+  members: {
+    id: string;
+    name: string;
+    username: string;
+    avatar: string;
+    nickname: string;
+    last_active: string;
+  }[];
 }
 
 export interface ChatHistoryInterFace {
