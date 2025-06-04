@@ -5,10 +5,13 @@ import type { NextRequest } from "next/server";
 export async function middleware(req: NextRequest) {
   const token = await getToken({ req });
   const { pathname } = req.nextUrl;
-  console.log(token);
   const publicPaths = ["/auth", "/payment"];
   const isPublicRoute = publicPaths.some((path) => pathname.startsWith(path));
 
+  console.log("TOKEN IN MIDDLEWARE:", token);
+  console.log("REQ COOKIES:", req.cookies.getAll());
+  console.log("URL:", req.nextUrl.pathname);
+  
   const isAuthenticated = !!token;
 
   if (pathname.startsWith("/auth") && isAuthenticated) {
