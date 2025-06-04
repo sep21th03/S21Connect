@@ -144,7 +144,7 @@ export function useSocket(
     if (!token) return;
 
     if (!socket) {
-      socket = io("http://localhost:3001", {
+      socket = io("https://s21connect.onrender.com", {
         auth: { token },
         reconnection: true,
       });

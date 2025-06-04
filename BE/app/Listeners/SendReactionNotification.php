@@ -44,7 +44,7 @@ class SendReactionNotification
 
 
 
-        Http::post("http://localhost:3001/notification", [
+        Http::post("https://s21connect.onrender.com:3001/notification", [
             'id' => $notification->id,
             'userId' => $postOwner->id,
             'type' => 'reaction',

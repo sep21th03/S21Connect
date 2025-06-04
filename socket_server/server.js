@@ -7,20 +7,51 @@ const app = express();
 
 app.use(express.json());
 
+// ========== CONFIG VARIABLES ==========
+const CONFIG = {
+  // API_BASE_URL: "http://127.0.0.1:8000",
+  // FRONTEND_URLS: ["http://localhost:3000", "http://127.0.0.1:8000"],
+  API_BASE_URL: "https://s21.codetifytech.io.vn",
+  FRONTEND_URLS: [
+    "https://www.sep21th03.tech",
+    "https://s21.codetifytech.io.vn",
+  ],
+
+  // Cloudinary Config
+  CLOUDINARY: {
+    BASE_URL: "https://api.cloudinary.com/v1_1/dyksxiq0e",
+    UPLOAD_PRESET: "upload_preset",
+    FOLDER: "message/image",
+  },
+
+  // Server Config
+  SERVER_PORT: 3001,
+  SOCKET_PATH: "/socket.io",
+  MAX_HTTP_BUFFER_SIZE: 20e6,
+
+  // API Endpoints
+  API_ENDPOINTS: {
+    USER: "/api/user",
+    UPDATE_LAST_ACTIVE: "/api/user/update-last-active",
+    MESSAGES_SEND: "/api/messages/send",
+    MESSAGES_MARK_READ: "/api/messages/mark-as-read",
+    CONVERSATIONS: "/api/conversations",
+  },
+};
+
+// Helper function to build full API URL
+const buildApiUrl = (endpoint) => `${CONFIG.API_BASE_URL}${endpoint}`;
+
+// Helper function to build Cloudinary URL
+const buildCloudinaryUrl = (action = "image/upload") =>
+  `${CONFIG.CLOUDINARY.BASE_URL}/${action}`;
+
+// ========== END CONFIG ==========
+
 const onlineUsers = new Map();
-
-// const server = http.createServer((req, res) => {
-//   if (req.url === "/") {
-//     res.writeHead(200, { "Content-Type": "text/plain" });
-//     res.end("Socket.io server is running!");
-//   } else {
-//     res.writeHead(404);
-//     res.end("Not Found");
-//   }
-// });
-const server = http.createServer(app);
-
 const userSocketMap = new Map();
+
+const server = http.createServer(app);
 
 app.post("/notification", (req, res) => {
   console.log("Notification received:", req.body);
@@ -51,19 +82,19 @@ app.post("/notification-message", (req, res) => {
 });
 
 const io = socketIo(server, {
-  path: "/socket.io",
+  path: CONFIG.SOCKET_PATH,
   cors: {
-    origin: ["http://localhost:3000", "http://127.0.0.1:8000"],
+    origin: CONFIG.FRONTEND_URLS,
     methods: ["GET", "POST"],
     credentials: true,
   },
-  maxHttpBufferSize: 20e6,
+  maxHttpBufferSize: CONFIG.MAX_HTTP_BUFFER_SIZE,
 });
 
 async function updateLastActive(userId, lastActive, token) {
   try {
     const res = await axios.post(
-      "http://127.0.0.1:8000/api/user/update-last-active",
+      buildApiUrl(CONFIG.API_ENDPOINTS.UPDATE_LAST_ACTIVE),
       {
         user_id: userId,
         last_active: lastActive,
@@ -104,7 +135,7 @@ io.use(async (socket, next) => {
   }
   try {
     console.log("Verifying token...");
-    const resp = await axios.get("http://127.0.0.1:8000/api/user", {
+    const resp = await axios.get(buildApiUrl(CONFIG.API_ENDPOINTS.USER), {
       headers: { Authorization: `Bearer ${token}` },
     });
     socket.user = resp.data;
@@ -137,17 +168,13 @@ async function uploadToCloudinary(base64Image, fileName) {
 
     const formData = new FormData();
     formData.append("file", base64Image);
+    formData.append("upload_preset", CONFIG.CLOUDINARY.UPLOAD_PRESET);
+    formData.append("folder", CONFIG.CLOUDINARY.FOLDER);
 
-    formData.append("upload_preset", "upload_preset");
-    formData.append("folder", "message/image");
-
-    const response = await fetch(
-      "https://api.cloudinary.com/v1_1/dyksxiq0e/image/upload",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const response = await fetch(buildCloudinaryUrl("image/upload"), {
+      method: "POST",
+      body: formData,
+    });
 
     const data = await response.json();
 
@@ -274,14 +301,7 @@ io.on("connection", (socket) => {
         messagePayload.conversation_id = data.conversation_id;
       }
       const messageResponse = await axios.post(
-        "http://127.0.0.1:8000/api/messages/send",
-        // {
-        //   receiver_id: data.receiver_id,
-        //   conversation_id: data.conversation_id,
-        //   content: data.content,
-        //   type: data.type || "text",
-        //   file_paths: data.file_paths,
-        // },
+        buildApiUrl(CONFIG.API_ENDPOINTS.MESSAGES_SEND),
         messagePayload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -312,13 +332,12 @@ io.on("connection", (socket) => {
         if (receiver) {
           io.to(receiver.socketId).emit("new_message", enrichedMessage);
         }
-        //  if (receiver) {
-        //   io.to(receiver.socketId).emit("unread_message_update", enrichedMessage);
-        // }
       } else if (conversationId) {
         try {
           const conversationResponse = await axios.get(
-            `http://127.0.0.1:8000/api/conversations/${conversationId}`,
+            buildApiUrl(
+              `${CONFIG.API_ENDPOINTS.CONVERSATIONS}/${conversationId}`
+            ),
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -378,7 +397,7 @@ io.on("connection", (socket) => {
       }
 
       await axios.post(
-        "http://127.0.0.1:8000/api/messages/mark-as-read",
+        buildApiUrl(CONFIG.API_ENDPOINTS.MESSAGES_MARK_READ),
         {
           conversation_id: data.conversation_id,
         },
@@ -407,7 +426,6 @@ io.on("connection", (socket) => {
     userSocketMap.delete(userId);
     if (onlineUsers.has(userId)) {
       const userData = onlineUsers.get(userId);
-      // updateLastActive(userId, now, token);
 
       // Remove user from onlineUsers
       onlineUsers.delete(userId);
@@ -436,7 +454,7 @@ io.on("connection", (socket) => {
     try {
       console.log(`Joining all conversations for ${username}`);
       const response = await axios.get(
-        "http://127.0.0.1:8000/api/conversations",
+        buildApiUrl(CONFIG.API_ENDPOINTS.CONVERSATIONS),
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -460,7 +478,9 @@ io.on("connection", (socket) => {
 });
 
 // Listen on port 3001 (can be customized)
-const PORT = 3001;
-server.listen(PORT, () => {
-  console.log(`Socket.io server running on port ${PORT}`);
+// server.listen(CONFIG.SERVER_PORT, () => {
+//   console.log(`Socket.io server running on port ${CONFIG.SERVER_PORT}`);
+// });
+server.listen(process.env.PORT || 3001, () => {
+  console.log(`Socket.io server running on port ${process.env.PORT}`);
 });
