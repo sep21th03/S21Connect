@@ -3,7 +3,7 @@ import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
-  const token = await getToken({ req });
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = req.nextUrl;
   const publicPaths = ["/auth", "/payment"];
   const isPublicRoute = publicPaths.some((path) => pathname.startsWith(path));
@@ -11,7 +11,7 @@ export async function middleware(req: NextRequest) {
   console.log("TOKEN IN MIDDLEWARE:", token);
   console.log("REQ COOKIES:", req.cookies.getAll());
   console.log("URL:", req.nextUrl.pathname);
-  
+
   const isAuthenticated = !!token;
 
   if (pathname.startsWith("/auth") && isAuthenticated) {
