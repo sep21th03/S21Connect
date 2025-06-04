@@ -54,7 +54,7 @@ const CommentSection: FC<CommentSectionProps> = ({
     setLoading(true);
     try {
       const fetchedComments = await axiosInstance.get(
-        API_ENDPOINTS.POSTS.COMMENTS.GET_COMMENTS(postId)
+        API_ENDPOINTS.POSTS.COMMENTS.GET_COMMENTS(postId.toString())
       );
       setComments(fetchedComments.data);
     } catch (error) {
