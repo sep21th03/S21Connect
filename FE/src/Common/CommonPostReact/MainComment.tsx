@@ -8,7 +8,7 @@ import { formatTime } from "@/utils/formatTime";
 import Image from "next/image";
 import styles from "@/style/modal.module.css";
 
-const MainComment: FC<MainCommentProps> = ({ comment, like,id, onReply, onDelete, onReplyClick, replyText, setReplyText, isReplying, toggleReply,  isHighlighted = false }) => {
+const MainComment: FC<MainCommentProps> = ({ comment, like,id, onReply, onReplyClick, replyText, setReplyText, isReplying, toggleReply,  isHighlighted = false }) => {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
 

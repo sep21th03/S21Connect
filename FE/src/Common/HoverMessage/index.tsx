@@ -19,8 +19,8 @@ interface HoverMessageProps {
   target: string;
   placement: "right" | "top" | "bottom" | "left";
   imagePath: string;
-  onMessageClick: () => void;
-  onFriendRequestClick: () => void;
+  onMessageClick?: () => void;
+  onFriendRequestClick?: () => void;
 }
 
 const HoverMessage: FC<HoverMessageProps> = ({ 

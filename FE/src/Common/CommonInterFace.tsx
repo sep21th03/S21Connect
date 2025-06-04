@@ -159,14 +159,14 @@ export interface MainCommentProps {
   like?: number;
   id: string;
   onReply: (commentId: number, content: string) => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   onReplyClick: (username: string, commentId: number) => void;
   replyText: string;
   setReplyText: (text: string) => void;
   isReplying: boolean;
   toggleReply: () => void;
   setIsReplying: (value: boolean) => void;
-  isHighlighted: boolean;
+  isHighlighted?: boolean;
 }
 
 export interface Comment {
@@ -190,12 +190,12 @@ export interface SubCommentProps {
   image: number;
   id: string;
   comment: Comment;
-  onDelete: () => void;
+  onDelete?: () => void;
   onReplyClick: (name: string, commentId: number) => void;
   isReplying: boolean;
   toggleReply: () => void;
   setIsReplying: (value: boolean) => void;
-  isHighlighted: boolean;
+  isHighlighted?: boolean;
 }
 
 export interface GalleryModalInterFace {

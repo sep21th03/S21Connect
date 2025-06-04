@@ -5,7 +5,7 @@ import { SubCommentProps } from "../CommonInterFace";
 import HoverMessage from "../HoverMessage";
 import { formatTime } from "@/utils/formatTime";
 import Image from "next/image";
-const SubComment: FC<SubCommentProps> = ({ image, id, comment, onDelete, onReplyClick, isReplying, toggleReply, setIsReplying }) => {
+const SubComment: FC<SubCommentProps> = ({ image, id, comment, onReplyClick, isReplying, toggleReply, setIsReplying }) => {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [showOptions, setShowOptions] = useState(false);
@@ -38,7 +38,7 @@ const SubComment: FC<SubCommentProps> = ({ image, id, comment, onDelete, onReply
       <HoverMessage
         placement={"right"}
         target={id}
-        name={comment?.user.first_name + " " + comment?.user.last_name}
+        data={comment?.user}
         imagePath={`user-sm/${image}.jpg`}
       />
       <Media body>

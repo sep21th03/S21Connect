@@ -221,7 +221,6 @@ const CommentSection: FC<CommentSectionProps> = ({
                 }
                 comment={comment}
                 onReply={handleReply}
-                // onDelete={() => handleDeleteComment(comment.id, false)}
                 onReplyClick={handleReplyClick}
                 like={comment?.likes}
                 replyText={replyText}
@@ -229,7 +228,7 @@ const CommentSection: FC<CommentSectionProps> = ({
                 isReplying={isReplying}
                 toggleReply={toggleReply}
                 setIsReplying={setIsReplying}
-                isHighlighted={highlightCommentId && highlightCommentId === comment.id.toString()}
+                isHighlighted={Boolean(highlightCommentId && highlightCommentId === comment.id.toString())}
               />
 
               {comment.replies && comment.replies.length > 0 && (
@@ -240,14 +239,11 @@ const CommentSection: FC<CommentSectionProps> = ({
                       id={`reply-${reply.id}`}
                       image={reply?.user?.avatar}
                       comment={reply}
-                      // onDelete={() =>
-                      //   handleDeleteComment(reply.id, true, comment.id)
-                      // }
                       onReplyClick={handleReplyClick}
                       isReplying={isReplying}
                       toggleReply={toggleReply}
                       setIsReplying={setIsReplying}
-                      isHighlighted={highlightReplyId && highlightReplyId === reply.id.toString()}
+                      isHighlighted={Boolean(highlightReplyId && highlightReplyId === reply.id.toString())}
                     />
                   ))}
 
