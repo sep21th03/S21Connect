@@ -45,7 +45,7 @@ interface Bill {
   share: string;
   action: string;
 }
-export const renderShareButton = (id: string, sotien: number) => {
+const renderShareButton = (id: string, sotien: number) => {
   return (
     <Button color="primary" size="sm" onClick={() => copyLink(id, sotien)}>
       <i className="fas fa-share"></i>
