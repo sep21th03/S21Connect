@@ -10,7 +10,10 @@ import { NotificationType } from "@/layout/LayoutTypes";
 import { useSocket, Notification as NotificationData } from "@/hooks/useSocket";
 import { Spinner } from "reactstrap";
 
-const Notification: React.FC<{notificationList: NotificationType[], setNotificationList: (notificationList: NotificationType[]) => void}> = ({notificationList, setNotificationList}) => {
+const Notification: React.FC<{
+  notificationList: NotificationType[];
+  setNotificationList: React.Dispatch<React.SetStateAction<NotificationType[]>>;
+}> = ({ notificationList, setNotificationList }) => {
   const { isComponentVisible, ref, setIsComponentVisible } =
     useOutsideDropdown(false);
   const [shouldMarkRead, setShouldMarkRead] = useState(false);
@@ -19,7 +22,6 @@ const Notification: React.FC<{notificationList: NotificationType[], setNotificat
   // const NotificationListsMemo = React.memo(NotificationLists);
   const [hasFetched, setHasFetched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
 
   useEffect(() => {
     if (isComponentVisible && !hasFetched) {
@@ -45,7 +47,7 @@ const Notification: React.FC<{notificationList: NotificationType[], setNotificat
           await axiosInstance.post(
             API_ENDPOINTS.NOTIFICATIONS.MARK_ALL_AS_READ
           );
-          setNotificationList((prev: NotificationType[]) =>
+          setNotificationList((prev: NotificationType[]): NotificationType[] =>
             prev.map((n) => ({ ...n, is_read: true }))
           );
         } catch (error) {
@@ -61,7 +63,7 @@ const Notification: React.FC<{notificationList: NotificationType[], setNotificat
     }
     setWasOpen(isComponentVisible);
   }, [isComponentVisible, hasFetched]);
-// console.log(notificationList);
+  // console.log(notificationList);
   const unreadNotificationCount = notificationList.filter(
     (n) => !n.is_read
   ).length;
@@ -100,7 +102,7 @@ const Notification: React.FC<{notificationList: NotificationType[], setNotificat
         {isComponentVisible && (
           <div className="dropdown-content text-center">
             {isLoading ? (
-                <Spinner />
+              <Spinner />
             ) : notificationList.length === 0 ? (
               <div className="no-notifications">Không có thông báo</div>
             ) : (

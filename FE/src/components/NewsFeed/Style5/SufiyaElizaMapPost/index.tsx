@@ -9,12 +9,12 @@ import MapImage from "./MapImage";
 const SufiyaElizaMapPost: FC = () => {
   return (
     <div className="post-wrapper">
-      <CommonUserHeading image={1} id="SufiyaElizaMapPost" />
+      <CommonUserHeading postUser={null as any} onPostUpdated={() => {}} onPostDeleted={() => {}} isShared={false} id="SufiyaElizaMapPost" />
       <div className="post-details ratio_55">
         <MapImage />
-        <DetailBox heading={MapHeading} span={MapSpan} />
+        <DetailBox heading={MapHeading} span={MapSpan} post={null as any} />
         <CommonLikePanel />
-        <CommonPostReact />
+        <CommonPostReact post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />
       </div>
     </div>
   );

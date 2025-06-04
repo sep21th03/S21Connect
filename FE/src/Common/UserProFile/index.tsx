@@ -30,7 +30,7 @@ const UserProFile: FC<{ userProfile: UserAbout | null }> = ({ userProfile }) => 
           <div className="description">
             <p>{userProfile?.bio}</p>
           </div>
-          <CounterStats userData={userProfile?.user_data} />
+          <CounterStats userData={userProfile?.user_data ?? null} />
           <a href={`${Domain}/profile/timeline/${userProfile?.username}`} className="btn btn-solid">{ViewProfile}</a>
         </div>
       </div>

@@ -12,16 +12,16 @@ const CenterContent: React.FC = () => {
   const level = useSelector((state: RootState) => state.ShowMorePostSlice.style4);
   return (
     <div className="content-center">
-      <CreatePost />
+      <CreatePost onPostCreated={() => {}} />
       <div className="overlay-bg" />
       <div className="post-panel infinite-loader-sec section-t-space">
-        <SufiyaElizaFirstPost mainImage={28} userImage={1} />
+        <SufiyaElizaFirstPost  post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
         <SufiyaElizaTwoPhotoPost />
-        <SufiyaElizaSecondPost userImage={1} />
-        <SufiyaElizaSecondPost userImage={1} />
-        <SufiyaElizaSecondPost userImage={1} />
-        <SufiyaElizaThirdPost fourthPost={2} userImage={1} />
-        <SufiyaElizaSecondPost userImage={1} />
+        <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+        <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+        <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+        <SufiyaElizaThirdPost fourthPost={2} post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+        <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
         {styleOneMoreComponent.map((data, index) => (level.includes(index) ? data : ""))}
       </div>
       <ShowMorePostIcon dataLength={styleOneMoreComponent.length} value="style4" />

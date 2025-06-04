@@ -18,11 +18,11 @@ const Modal = () => {
   }
 
   let modals:{ [key: string]: React.ReactElement } = {
-    modal1: <StoriesModal showModal toggle={modalClose} />,
-    modal2: <ShareModal showModal toggleModal={modalClose} />,
-    modal3: <CommonGalleryModal modal toggle={modalClose} />,
-    modal4: <CommonVideoModal modal toggle={modalClose}/>,
-    modal5: <EditCoverModal isOpen toggle={modalClose} />,
+    modal1: <StoriesModal showModal toggle={modalClose} initialUserIndex={undefined} />,
+    modal2: <ShareModal showModal toggleModal={modalClose} post={null as any} />,
+    modal3: <CommonGalleryModal modal toggle={modalClose} post={null as any} galleryList={[]} onReactionChange={() => {}} />,
+    modal4: <CommonVideoModal modal toggle={modalClose} videoUrl={""} />,
+    modal5: <EditCoverModal isOpen toggle={modalClose} userProfile={null as any} onUpdateProfile={() => {}} />,
     modal6: <UpdateImageModal isOpen toggle={modalClose} />,
   };
   const data = [

@@ -110,14 +110,14 @@ const PostPanel: React.FC = () => {
   const renderPost = (post: Post) => {
     switch (post.type) {
       case 'first':
-        return <SufiyaElizaFirstPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />;
+        return <SufiyaElizaFirstPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />;
       case 'multiple':
-        return <SufiyaElizaMultiplePost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />;
+        return <SufiyaElizaMultiplePost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />;
       case 'third':
-        return <SufiyaElizaThirdPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />;
+        return <SufiyaElizaThirdPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />;
       case 'second':
       default:
-        return <SufiyaElizaSecondPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />;
+        return <SufiyaElizaSecondPost key={post.id} post={post} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />;
     }
   };
 

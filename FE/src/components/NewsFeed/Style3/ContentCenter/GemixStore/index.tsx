@@ -17,9 +17,9 @@ const GemixStore = () => {
       <GemixStoreTitle />
       <div className="post-details">
         <StoreProducts />
-        <DetailBox heading={storeHeading} span={storeSpan} />
+        <DetailBox heading={storeHeading} span={storeSpan} post={null as any} />
         <CommonLikePanel />
-        <CommonPostReact />
+        <CommonPostReact post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} />
       </div>
     </div>
   );

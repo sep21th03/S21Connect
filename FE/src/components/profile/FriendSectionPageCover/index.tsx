@@ -30,7 +30,7 @@ const FriendSectionPageCover = () => {
                 {/* {userProfile?.name} <span>❤</span> */}
               </h2>
               {/* <h5>{userProfile?.email}</h5> */}
-              <UserData />
+              <UserData userData={null as any}/>
             </div>
           </div>
         </div>

@@ -6,14 +6,15 @@ import { Container } from "reactstrap";
 import ContentLeft from "@/components/NewsFeed/Style1/LeftContent";
 import ContentCenter from "@/components/NewsFeed/Style1/ContentCenter";
 import ContentRight from "@/components/NewsFeed/Style1/ContentRight";
-import { UserAbout, UserInforBirthday } from "@/utils/interfaces/user";
+import { UserAbout } from "@/utils/interfaces/user";
+import { UserInforBirthday } from "@/components/NewsFeed/Style1/Style1Types";
 import { getUserInforBirthday } from "@/service/newsfeedService";
 import { getUserAbout } from "@/service/newsfeedService";
 
 const NewsFeedStyle1: FC = () => {
   const [userProfile, setUserProfile] = useState<UserAbout | null>(null);
   const [userInforBirthday, setUserInforBirthday] =
-    useState<UserInforBirthday | null>(null);
+    useState<UserInforBirthday[] | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -26,7 +27,7 @@ const NewsFeedStyle1: FC = () => {
   useEffect(() => {
     const fetchBirthdayInfo = async () => {
       const data = await getUserInforBirthday();
-      setUserInforBirthday(data);
+      setUserInforBirthday([data] as unknown as UserInforBirthday[]);
     };
     fetchBirthdayInfo();
   }, []);

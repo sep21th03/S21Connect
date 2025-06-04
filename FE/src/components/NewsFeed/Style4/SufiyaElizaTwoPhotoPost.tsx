@@ -14,7 +14,7 @@ const SufiyaElizaTwoPhotoPost:FC<SufiyaElizaTwoPhotoPostInterFace>  = ({diffrent
   const toggle = () => setModalOpen(!modalOpen);
   return (
     <div className="post-wrapper col-grid-box section-t-space d-block">
-      <CommonUserHeading image={1} id="SufiyaElizaTwoPhotoPost" />
+      <CommonUserHeading  id="SufiyaElizaTwoPhotoPost" postUser={null as any} onPostUpdated={() => {}} onPostDeleted={() => {}} isShared={false}/>
       <div className="post-details">
         <div className="img-wrapper">
           <div className="gallery-section">
@@ -22,20 +22,20 @@ const SufiyaElizaTwoPhotoPost:FC<SufiyaElizaTwoPhotoPostInterFace>  = ({diffrent
               <Container fluid className="p-0">
                 <Row>
                   <Col xs="6" onClick={toggle}>
-                    <MultipleImage image={diffrentImage?39:16} />
+                    <MultipleImage mediaUrl={null as any} moreImage={null as any} moreImageCount={null as any} registerVideoRef={null as any} />
                   </Col>
                   <Col xs="6" className="m-0" onClick={toggle}>
-                    <MultipleImage image={diffrentImage?40:17} />
+                    <MultipleImage mediaUrl={null as any} moreImage={null as any} moreImageCount={null as any} registerVideoRef={null as any} />
                   </Col>
                 </Row>
-                <CommonGalleryModal toggle={toggle} modal={modalOpen} />
+                <CommonGalleryModal toggle={toggle} modal={modalOpen} post={null as any} galleryList={null as any} onReactionChange={() => {}}/>
               </Container>
             </div>
           </div>
         </div>
-        <DetailBox heading={BirthdayHeading} span={BirthdaySpan} />
-        <CommonLikePanel />
-        <CommonPostReact />
+        <DetailBox heading={BirthdayHeading} span={BirthdaySpan} post={null as any} />
+        <CommonLikePanel reactionCount={null as any} total_reactions={null as any} commentCount={null as any} shareCount={null as any}/>
+        <CommonPostReact post={null as any} onReactionChange={() => {}} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null}/>
       </div>
     </div>
   );

@@ -20,12 +20,10 @@ import {
   ModalHeader,
   ModalBody,
 } from "reactstrap";
-import ReportStats from "./ReportStats";
 import styles from "@/style/invoiceCard.module.css";
 import {
   REASON_CODE_MAP,
   Report,
-  ReportablePost,
   ReportTypeEnum,
   ReportStatusEnum,
 } from "@/Data/admin";
@@ -35,12 +33,24 @@ import { formatDate } from "@/utils/formatTime";
 import { API_ENDPOINTS } from "@/utils/constant/api";
 import axiosInstance from "@/utils/axiosInstance";
 
+type ReportableType = keyof typeof REASON_CODE_MAP;
+type ReasonCodeMap = typeof REASON_CODE_MAP;
+
+const getReasonText = (
+  reportable_type: ReportableType,
+  reason_code: keyof ReasonCodeMap[ReportableType]
+) => REASON_CODE_MAP[reportable_type][reason_code];
+type SortConfig = {
+  key: keyof Report;
+  direction: "asc" | "desc";
+};
+
 const SortIcon = ({
   column,
   sortConfig,
 }: {
-  column: string;
-  sortConfig: { key: string; direction: string };
+  column: keyof Report;
+  sortConfig: SortConfig;
 }) => {
   if (sortConfig.key !== column) {
     return (
@@ -54,7 +64,7 @@ const SortIcon = ({
   );
 };
 
-const ReportTable = () => {
+const ReportTable: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
@@ -64,24 +74,34 @@ const ReportTable = () => {
   const [reportAction, setReportAction] = useState("");
   const [actionModalOpen, setActionModalOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      const response = await axiosInstance.get(API_ENDPOINTS.ADMIN.REPORTS);
-      setReports(response.data);
-    };
-    fetchReports();
-  }, []);
-
   const [filters, setFilters] = useState({
     status: "all",
     type: "all",
     searchTerm: "",
   });
 
-  const [sortConfig, setSortConfig] = useState({
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "created_at",
     direction: "desc",
   });
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get<Report[]>(
+          API_ENDPOINTS.ADMIN.REPORTS
+        );
+        setReports(response.data);
+      } catch (error) {
+        console.error("Failed to fetch reports:", error);
+        setReports([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReports();
+  }, []);
 
   useEffect(() => {
     let result = [...reports];
@@ -96,31 +116,39 @@ const ReportTable = () => {
       );
     }
 
-    if (filters.searchTerm) {
+    if (filters.searchTerm.trim() !== "") {
       const searchLower = filters.searchTerm.toLowerCase();
-      result = result.filter(
-        (report) =>
-          report.reason_text.toLowerCase().includes(searchLower) ||
-          (report.reportable?.content &&
-            report.reportable.content.toLowerCase().includes(searchLower))
-      );
+      result = result.filter((report) => {
+        const reasonText = report.reason_text?.toLowerCase() || "";
+        const content = report.reportable?.content?.toLowerCase() || "";
+        return (
+          reasonText.includes(searchLower) || content.includes(searchLower)
+        );
+      });
     }
 
+    // Sort with fallback if fields are undefined or null
     result.sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) {
-        return sortConfig.direction === "asc" ? -1 : 1;
-      }
-      if (a[sortConfig.key] > b[sortConfig.key]) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+
+      if (aValue === undefined || aValue === null) return 1;
+      if (bValue === undefined || bValue === null) return -1;
+
+      // Convert to string for comparison if not number or Date string
+      const aStr = typeof aValue === "string" ? aValue : String(aValue);
+      const bStr = typeof bValue === "string" ? bValue : String(bValue);
+
+      if (aStr < bStr) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aStr > bStr) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
 
     setFilteredReports(result);
   }, [reports, filters, sortConfig]);
 
-  const handleSort = (key: string) => {
-    let direction = "asc";
+  const handleSort = (key: keyof Report) => {
+    let direction: "asc" | "desc" = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
       direction = "desc";
     }
@@ -139,14 +167,14 @@ const ReportTable = () => {
   };
 
   const submitAction = () => {
+    if (!selectedReport) return;
     setActionModalOpen(false);
 
-    // In a real app, you would call an API here
     const updatedReports = reports.map((report) => {
       if (report.id === selectedReport.id) {
         return {
           ...report,
-          status: reportAction,
+          status: reportAction as ReportStatusEnum,
           admin_note: adminNote,
           updated_at: new Date().toISOString(),
         };
@@ -154,20 +182,15 @@ const ReportTable = () => {
       return report;
     });
 
-    setReports(updatedReports);
+    // setReports(updatedReports);
     setAdminNote("");
     setReportAction("");
-
-    // Close details modal if open
-    if (isModalOpen) {
-      setIsModalOpen(false);
-    }
+    setIsModalOpen(false);
   };
 
   return (
     <div>
       {/* <ReportStats reports={reports} /> */}
-
       <Card className={styles.card}>
         <div className={styles.cardHeader}>
           <h3 className={styles.dashboardTitle}>Danh sách báo cáo</h3>
@@ -194,7 +217,7 @@ const ReportTable = () => {
                   setFilters({ ...filters, status: e.target.value })
                 }
               >
-                <option value={ReportStatusEnum.All}>Tất cả trạng thái</option>
+                <option value="all">Tất cả trạng thái</option>
                 <option value={ReportStatusEnum.Pending}>Chờ xử lý</option>
                 <option value={ReportStatusEnum.Reviewed}>Đã duyệt</option>
                 <option value={ReportStatusEnum.Rejected}>Từ chối</option>
@@ -210,7 +233,7 @@ const ReportTable = () => {
                   setFilters({ ...filters, type: e.target.value })
                 }
               >
-                <option value={ReportTypeEnum.All}>Tất cả loại</option>
+                <option value="all">Tất cả loại</option>
                 <option value={ReportTypeEnum.Post}>Bài viết</option>
                 <option value={ReportTypeEnum.Comment}>Bình luận</option>
                 <option value={ReportTypeEnum.User}>Người dùng</option>
@@ -247,7 +270,7 @@ const ReportTable = () => {
                         className="cursor-pointer"
                       >
                         <div className="flex items-center">
-                          Ngày báo cáo{" "}
+                          Ngày báo cáo
                           <SortIcon
                             column="created_at"
                             sortConfig={sortConfig}
@@ -259,7 +282,7 @@ const ReportTable = () => {
                         className="cursor-pointer"
                       >
                         <div className="flex items-center">
-                          Trạng thái{" "}
+                          Trạng thái
                           <SortIcon column="status" sortConfig={sortConfig} />
                         </div>
                       </th>
@@ -267,269 +290,116 @@ const ReportTable = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredReports.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className={styles.emptyState}>
-                          <AlertCircle
-                            size={40}
-                            className={styles.emptyStateIcon}
-                          />
-                          <p>Không tìm thấy báo cáo nào.</p>
+                    {filteredReports.map((report) => (
+                      <tr key={report.id}>
+                        <td>{report.id}</td>
+                        <td>
+                          {/* {REASON_CODE_MAP[report.reason_code]} */}
+
+                        </td>
+                        <td>{truncateText(report.reason_text || "", 30)}</td>
+                        <td>{formatDate(report.created_at)}</td>
+                        <td>
+                          
+                          {/* <Badge color={STATUS_MAP[report.status].color}>
+                            
+                            {STATUS_MAP[report.status].label}
+                          </Badge> */}
+                        </td>
+                        <td className="text-right">
+                          
+                          <Button
+                            size="sm"
+                            color="info"
+                            onClick={() => viewReportDetails(report)}
+                          >
+                            
+                            <Eye size={14} />
+                          </Button>
                         </td>
                       </tr>
-                    ) : (
-                      filteredReports.map((report) => {
-                        const status = STATUS_MAP[report.status] || {};
-                        return (
-                          <tr key={report.id}>
-                            <td>#{report.id}</td>
-                            <td>
-                              <Badge
-                                color={
-                                  report.reportable_type === "Post"
-                                    ? "info"
-                                    : "secondary"
-                                }
-                                pill
-                                className="text-xs"
-                              >
-                                {report.reportable_type === "Post"
-                                  ? "Bài viết"
-                                  : report.reportable_type === "Comment"
-                                  ? "Bình luận"
-                                  : report.reportable_type === "User"
-                                  ? "Người dùng"
-                                  : report.reportable_type === "Page"
-                                  ? "Trang"
-                                  : "Nhóm"}
-                              </Badge>
-                            </td>
-                            <td title={report.reason_text}>
-                              {REASON_CODE_MAP[report.reason_code] ||
-                                truncateText(report.reason_text)}
-                            </td>
-                            <td>{formatDate(report.created_at)}</td>
-                            <td>
-                              <span
-                                className={`${styles.statusBadge} ${status.className}`}
-                              >
-                                {status.icon &&
-                                  React.createElement(status.icon, {
-                                    size: 14,
-                                  })}
-                                {status.label || report.status}
-                              </span>
-                            </td>
-                            <td className="text-right">
-                              <Button
-                                color="info"
-                                size="sm"
-                                className={`${styles.actionButton} ${styles.actionButtonInfo}`}
-                                onClick={() => viewReportDetails(report)}
-                              >
-                                <Eye size={14} /> Chi tiết
-                              </Button>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
+                    ))}
                   </tbody>
                 </table>
+                {filteredReports.length === 0 && (
+                  <div className={styles.emptyState}>
+                    
+                    <AlertCircle size={40} className="text-warning mb-2" />
+                    <p>Không tìm thấy báo cáo nào.</p>
+                  </div>
+                )}
               </div>
             </>
           )}
         </CardBody>
       </Card>
-
-      {/* Modal xem chi tiết báo cáo */}
-      <Modal
-        isOpen={isModalOpen}
-        toggle={() => setIsModalOpen(!isModalOpen)}
-        size="lg"
-      >
-        <ModalHeader
-          toggle={() => setIsModalOpen(!isModalOpen)}
-          className={styles.modalTitle}
-        >
-          Chi tiết báo cáo #{selectedReport?.id}
+      {/* Modal: Xem chi tiết */}
+      <Modal isOpen={isModalOpen} toggle={() => setIsModalOpen(!isModalOpen)}>
+        <ModalHeader toggle={() => setIsModalOpen(!isModalOpen)}>
+          Chi tiết báo cáo
         </ModalHeader>
-        <ModalBody className={styles.modalContent}>
+        <ModalBody>
           {selectedReport && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className={styles.modalField}>
-                  <label className={styles.modalLabel}>Loại báo cáo</label>
-                  <div className="font-medium">
-                    <Badge
-                      color={
-                        selectedReport.reportable_type === "Post"
-                          ? "info"
-                          : "secondary"
-                      }
-                      pill
-                    >
-                      {selectedReport.reportable_type === "Post"
-                        ? "Bài viết"
-                        : "Bình luận"}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className={styles.modalField}>
-                  <label className={styles.modalLabel}>Trạng thái</label>
-                  <div>
-                    {(() => {
-                      const status = STATUS_MAP[selectedReport.status];
-                      if (!status) return <span>{selectedReport.status}</span>;
-                      const IconComponent = status.icon;
-                      return (
-                        <span
-                          className={`${styles.statusBadge} ${status.className}`}
-                        >
-                          {IconComponent && <IconComponent size={14} />}
-                          {status.label}
-                        </span>
-                      );
-                    })()}
-                  </div>
-                </div>
-
-                <div className={styles.modalField}>
-                  <label className={styles.modalLabel}>Lý do báo cáo</label>
-                  <div className="font-medium">
-                    {REASON_CODE_MAP[selectedReport.reason_code] ||
-                      selectedReport.reason_text ||
-                      "Không có lý do"}
-                  </div>
-                </div>
-
-                <div className={styles.modalField}>
-                  <label className={styles.modalLabel}>Ngày báo cáo</label>
-                  <div className="font-medium">
-                    {formatDate(selectedReport.created_at)}
-                  </div>
-                </div>
+            <div>
+              <p>
+                <strong>ID:</strong> {selectedReport.id}
+              </p>
+              <p>
+                <strong>Lý do:</strong> {selectedReport.reason_text}
+              </p>
+              <p>
+                <strong>Nội dung:</strong>
+                {selectedReport.reportable?.content || "Không có"}
+              </p>
+              <div className="d-flex gap-2 mt-3">
+                <Button
+                  color="success"
+                  onClick={() =>
+                    handleActionReport(
+                      selectedReport,
+                      ReportStatusEnum.Reviewed
+                    )
+                  }
+                >
+                  <CheckCircle size={16} className="me-1" />
+                  Chấp nhận
+                </Button>
+                <Button
+                  color="danger"
+                  onClick={() =>
+                    handleActionReport(
+                      selectedReport,
+                      ReportStatusEnum.Rejected
+                    )
+                  }
+                >
+                  <XCircle size={16} className="me-1" />
+                  Từ chối
+                </Button>
               </div>
-
-              <div className={styles.modalField}>
-                <label className={styles.modalLabel}>Nội dung báo cáo</label>
-                <Card className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  {selectedReport.reportable?.content ? (
-                    <p>{selectedReport.reportable.content}</p>
-                  ) : (
-                    <p className="text-gray-500 italic">
-                      Không có nội dung chi tiết
-                    </p>
-                  )}
-                </Card>
-              </div>
-              {selectedReport.reportable_type === "Post" && (
-                <div className="mt-2">
-                  <a
-                    href={`/posts/${selectedReport.reportable?.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline"
-                  >
-                    Xem bài viết
-                  </a>
-                </div>
-              )}
-
-              {selectedReport.reportable_type === "User" && (
-                <div className="mt-2">
-                  <a
-                    href={`/profile/timeline/${selectedReport.reportable?.username}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline"
-                  >
-                    Xem hồ sơ người dùng
-                  </a>
-                </div>
-              )}
-
-              <div className={styles.modalField}>
-                <label className={styles.modalLabel}>Ghi chú của admin</label>
-                <div>
-                  <textarea
-                    className="p-3 bg-blue-50 rounded-lg border border-blue-100 w-full"
-                    value={adminNote} 
-                    onChange={(e) => setAdminNote(e.target.value)} 
-                    placeholder="Nhập ghi chú của admin..."
-                    rows={4}
-                  />
-                </div>
-              </div>
-
-              {selectedReport.status === "pending" && (
-                <div className="flex gap-3 mt-6 justify-end">
-                  <Button
-                    color="success"
-                    className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
-                    onClick={() =>
-                      handleActionReport(selectedReport, "approved")
-                    }
-                  >
-                    <CheckCircle size={16} /> Duyệt báo cáo
-                  </Button>
-                  <Button
-                    color="danger"
-                    className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
-                    onClick={() =>
-                      handleActionReport(selectedReport, "rejected")
-                    }
-                  >
-                    <XCircle size={16} /> Từ chối
-                  </Button>
-                </div>
-              )}
-            </>
+            </div>
           )}
         </ModalBody>
       </Modal>
-
-      {/* Modal xử lý báo cáo */}
-      {/* <Modal
-        isOpen={actionModalOpen}
-        toggle={() => setActionModalOpen(!actionModalOpen)}
-      >
-        <ModalHeader
-          toggle={() => setActionModalOpen(!actionModalOpen)}
-          className={styles.modalTitle}
-        >
-          {reportAction === "approved" ? "Duyệt báo cáo" : "Từ chối báo cáo"}
+      {/* Modal: Ghi chú */}
+      <Modal isOpen={actionModalOpen} toggle={() => setActionModalOpen(false)}>
+        <ModalHeader toggle={() => setActionModalOpen(false)}>
+          Thêm ghi chú cho hành động
         </ModalHeader>
-        <ModalBody className={styles.modalContent}>
-          <div className={styles.modalField}>
-            <label className={styles.modalLabel}>Ghi chú của admin</label>
-            <Input
-              type="textarea"
-              placeholder="Nhập ghi chú của admin..."
-              rows={4}
-              value={adminNote}
-              onChange={(e) => setAdminNote(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 mt-4">
-            <Button color="secondary" onClick={() => setActionModalOpen(false)}>
-              Hủy
-            </Button>
-            <Button
-              color={reportAction === "approved" ? "success" : "danger"}
-              className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
-              onClick={submitAction}
-            >
-              {reportAction === "approved"
-                ? "Duyệt báo cáo"
-                : "Từ chối báo cáo"}
+        <ModalBody>
+          <Input
+            type="textarea"
+            placeholder="Nhập ghi chú của admin..."
+            value={adminNote}
+            onChange={(e) => setAdminNote(e.target.value)}
+          />
+          <div className="text-end mt-3">
+            <Button color="primary" onClick={submitAction}>
+              Xác nhận
             </Button>
           </div>
         </ModalBody>
-      </Modal> */}
+      </Modal>
     </div>
   );
 };

@@ -55,7 +55,7 @@ const Gallery: FC = () => {
           </Row>
         </Container>
       </div>
-      <CommonGalleryModal modal={galleryModal} toggle={toggleGalleryModal} />
+      <CommonGalleryModal modal={galleryModal} toggle={toggleGalleryModal} post={null as any} galleryList={[]} onReactionChange={() => {}} />
     </div>
   );
 };

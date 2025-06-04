@@ -60,7 +60,7 @@ const Reviews: FC<ReviewsInterFace> = ({ image, details }) => {
           </div>
         </div>
       <CommonLikePanel/>
-      <CommonPostReact/>
+      <CommonPostReact onReactionChange={() => {}} post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null}/>
       </div>
     </div>
   );

@@ -37,8 +37,8 @@ const CommonLayoutHeader: React.FC<CommonLayoutHeaderInterFace> = ({
         <div className="header-section">
           <LeftHeader differentLogo={differentLogo} />
           <RightHeader
-            total_posts={userProfile?.total_posts}
-            total_friends={userProfile?.total_friends}
+            total_posts={userProfile?.total_posts || 0}
+            total_friends={userProfile?.total_friends || 0}
           />
         </div>
       </Container>

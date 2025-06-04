@@ -77,8 +77,8 @@ const BirthdayReminder: FC<BirthdayReminderInterFace> = ({mainClass, userInforBi
         </div>
         <div className="details">
           <h3>{birthdayUser?.first_name} {birthdayUser?.last_name}</h3>
-          <h6>{birthdayUser?.location}</h6>
-          <p> Gửi lời chúc đến {getGenderPronoun(birthdayUser?.gender)} ấy!</p>
+          <h6>{birthdayUser?.location ?? ""}</h6>
+          <p> Gửi lời chúc đến {getGenderPronoun(birthdayUser?.gender ?? "")} ấy!</p>
           <form onSubmit={(event: FormEvent<HTMLFormElement>)=>event.preventDefault()}>
             <Input type="text" placeholder="Gửi lời chúc đến bạn bè" />
             <Button>

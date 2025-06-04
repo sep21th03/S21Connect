@@ -27,7 +27,7 @@ const PopoverCardBody = () => {
           <HoverMessage 
             placement={"right"}
             target={"PaigeTurner"}
-            name={"Paige Turner"}
+            data={null as any}
             imagePath={`user-sm/1.jpg`}
           />
         </Media>

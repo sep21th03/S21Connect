@@ -3,7 +3,7 @@ import { Dispatch, ReactNode, SetStateAction } from "react";
 
 export interface UserMenuDataInterFace {
   navigate: string;
-  icon: "User" | "Settings" | "HelpCircle";
+  icon: "User" | "Settings" | "HelpCircle" | "List";
   heading: string;
   headingDetail: string;
 }
@@ -12,7 +12,7 @@ export interface SideBarDataInterFace {
   path?: string;
   title?: string;
   tooltipTittle?: string;
-  icon: "File" | "Star" | "User" | "Headphones" | "Cloud" | "Calendar" ;
+  icon: "File" | "Star" | "User" | "Headphones" | "Cloud" | "Calendar";
 }
 
 export interface sideBarDataType {
@@ -96,9 +96,9 @@ export interface ThemeSettingsInterFace {
 export interface SingleData {
   id: string;
   name: string;
-  image: string;
+  avatar: string;
+  username: string;
 }
-
 
 export interface OnlineUser {
   id: string;
@@ -138,6 +138,12 @@ export interface ModalInterFace {
   isOpen: boolean;
   updateBackGround?: (url: string) => void | undefined | null;
   toggle: () => void;
+}
+
+export interface UserProfileBoxInterFace {
+  toggle: () => void;
+  userProfile: FullUserProfile | null;
+  isOwnProfile: boolean;
 }
 
 export interface UserProfileInterFace {

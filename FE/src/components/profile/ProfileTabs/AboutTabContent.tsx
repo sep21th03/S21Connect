@@ -9,7 +9,7 @@ const AboutTabContent: React.FC = () => {
     <Container fluid>
       <Row className="page-content">
         <Col xs="4" className="content-left  res-full-width order-1">
-          <ProfileAbout />
+          <ProfileAbout userProfile={null as any} isOwnProfile={false} />
         </Col>
         <Col xs="8" className="content-center about-profile-item">
           <HobbiesProfile />

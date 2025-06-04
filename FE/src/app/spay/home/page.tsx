@@ -25,7 +25,7 @@ interface Info {
 const PaymentDashboard = () => {
   const [reload_history, setReload_history] = useState(false);
   const [history, setHistory] = useState([]);
-  const [info, setInfo] = useState<Info>({});
+  const [info, setInfo] = useState<Info>({} as Info);
   const reload_Click = (id: string, list_id: string) => {
     setReload_history(!reload_history);
   };

@@ -4,7 +4,7 @@ import CommonLayoutHeader from "@/layout/CommonLayout/CommonLayoutHeader";
 import ThemeCustomizer from "@/layout/CommonLayout/ThemeCustomizer";
 import { RecentMessage, useSocket } from "@/hooks/useSocket";
 import { MessengerContextProvider } from "@/contexts/MessengerContext";
-import { getRecentConversations  } from "@/service/messageService";
+import { getRecentConversations } from "@/service/messageService";
 interface MessengerLayoutProps {
   children: ReactNode;
 }
@@ -12,17 +12,22 @@ interface MessengerLayoutProps {
 const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
   const [userList, setUserList] = useState<RecentMessage[] | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<string | null>();
+  const [activeTab, setActiveTab] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
 
-  const { socket, onNewMessage } = useSocket((users: any) => {
-    setOnlineUsers(users.map((user: any) => user.id));
-  });
+  const { socket, onNewMessage } = useSocket(
+    (users: any) => {
+      setOnlineUsers(users.map((user: any) => user.id));
+    },
+    (users: any) => {
+      setOnlineUsers(users.map((user: any) => user.id));
+    }
+  );
   useEffect(() => {
     const fetchUserList = async () => {
       try {
-        const response = await getRecentConversations (showArchived);
+        const response = await getRecentConversations(showArchived);
         setUserList(response);
         setIsInitialLoad(false);
       } catch (error) {
@@ -50,7 +55,6 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
 
   useEffect(() => {
     const cleanup = onNewMessage((message) => {
-
       if (!userList) return;
 
       setUserList((prevUsers: any) => {
@@ -58,20 +62,24 @@ const MessengerLayout: FC<MessengerLayoutProps> = ({ children }) => {
 
         const existing = prevUsers.find((conversation: any) => {
           if (conversation.id === message.conversation_id) return true;
-          
-          if (conversation.type === 'group') {
-            if (message.conversation_id && conversation.id === message.conversation_id) return true; 
+
+          if (conversation.type === "group") {
+            if (
+              message.conversation_id &&
+              conversation.id === message.conversation_id
+            )
+              return true;
           }
-          
+
           return false;
         });
 
         if (existing) {
           return prevUsers.map((conversation: any) => {
-            const isTargetConversation = 
-            conversation.id === message.conversation_id ||
-            (conversation.type === 'group' && 
-             (message.conversation_id === conversation.id));
+            const isTargetConversation =
+              conversation.id === message.conversation_id ||
+              (conversation.type === "group" &&
+                message.conversation_id === conversation.id);
             if (isTargetConversation) {
               return {
                 ...conversation,

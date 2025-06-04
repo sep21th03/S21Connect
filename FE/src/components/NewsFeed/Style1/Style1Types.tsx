@@ -79,7 +79,7 @@ export interface EventsCardInterFace{
 
 export interface BirthdayReminderInterFace  {
   mainClass?:string
-  userInforBirthday?: UserInforBirthday
+  userInforBirthday?: UserInforBirthday[] | null
 }
 
 export interface UserInforBirthday {
@@ -88,6 +88,8 @@ export interface UserInforBirthday {
   avatar: string;
   first_name: string;
   last_name: string;
+  location?: string;
+  gender?: string;
 }
 
 export interface SufiyaElizaMultiplePostInterFace {
@@ -148,8 +150,8 @@ export interface Post {
     first_name: string;
     last_name: string;
   };
-  images?: string[];
-  videos?: string[];
+  images?: string;
+  videos?: string;
   created_at: string;
   updated_at: string;
   bg_id: number;

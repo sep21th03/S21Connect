@@ -31,9 +31,9 @@ const RightSection: FC = () => {
             <DropdownContent />
           </div>
         </li>
-        <HeaderMessage />
+        <HeaderMessage unreadMessageUpdate={null} onlineUsers={[]} />
         <DarkLight />
-        <Notification />
+        <Notification notificationList={[]} setNotificationList={() => {}} />
         <UserProfile />
       </ul>
     </div>

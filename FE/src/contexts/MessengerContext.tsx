@@ -5,8 +5,8 @@ import { createContext, useContext, ReactNode } from "react";
 interface MessengerContextType {
   userList: RecentMessage[] | null;
   setUserList: React.Dispatch<React.SetStateAction<RecentMessage[] | null>>;
-  activeTab: string | null | undefined;
-  setActiveTab: React.Dispatch<React.SetStateAction<string | null | undefined>>;
+  activeTab: string | null;
+  setActiveTab: React.Dispatch<React.SetStateAction<string | null>>;
   onlineUsers: string[];
   showArchived: boolean;
   setShowArchived: React.Dispatch<React.SetStateAction<boolean>>;
@@ -31,10 +31,9 @@ interface MessengerContextProviderProps {
   value: MessengerContextType;
 }
 
-export const MessengerContextProvider: React.FC<MessengerContextProviderProps> = ({ 
-  children, 
-  value 
-}) => {
+export const MessengerContextProvider: React.FC<
+  MessengerContextProviderProps
+> = ({ children, value }) => {
   return (
     <MessengerContext.Provider value={value}>
       {children}

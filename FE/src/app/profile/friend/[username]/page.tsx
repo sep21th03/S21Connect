@@ -22,23 +22,23 @@ const FriendSection: React.FC = () => {
     <CommonLayout mainClass="custom-padding profile-page" loaderName="profileTimeLine">
       <div className="page-center">
         <FriendSectionPageCover />
-        <ProfileMenu title="Bảng tin" />
+        <ProfileMenu title="Bảng tin" username={""} />
         <Container fluid className="section-t-space px-0 layout-default">
           <div className="page-content">
             <div className="content-left">
-              <AboutUser />
+              <AboutUser userProfile={null as any} isOwnProfile={false} />
               <FriendSuggestion mainClassName="d-xl-block d-none" />
               <div className="sticky-top d-xl-block d-none">
                 <LikePage />
               </div>
             </div>
-            <div className="content-center">
-              <CreatePost />
+            {/* <div className="content-center">
+              <CreatePost onPostCreated={() => {}} />
               <div className="overlay-bg" />
               <div className="post-panel infinite-loader-sec section-t-space">
                 <SufiyaElizaFirstPost mainImage={11} userImage={15} />
                 <SufiyaElizaMultiplePost
-                  moreImage
+                  moreImage={false}
                   main={40}
                   second={41}
                   third={42}
@@ -52,11 +52,11 @@ const FriendSection: React.FC = () => {
                 <SufiyaElizaSecondPost userImage={1} />
                 <SufiyaElizaSecondPost userImage={10} />
               </div>
-            </div>
+            </div> */}
             <div className="content-right d-xl-block d-none">
               <CollegeMeetCard />
               <Gallery />
-              <ActivityFeeds />
+              <ActivityFeeds username={""} />
               <div className="sticky-top">
                 <EventsCard eventImage={12} diffrentPath="post" />
                 <WorldWideTrend />

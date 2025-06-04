@@ -13,20 +13,20 @@ const CenterContent: FC = () => {
     <div className="content-center content-full">
       <Row>
         <Col xl="6">
-          <CreatePost />
+          <CreatePost onPostCreated={() => {}} />
           <div className="overlay-bg" />
           <div className="post-panel section-t-space">
-            <SufiyaElizaThirdPost fourthPost={29} userImage={14} />
+            <SufiyaElizaThirdPost fourthPost={29} post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
             <GemixStore />
-            <SufiyaElizaThirdPost fourthPost={2} userImage={1} />
+            <SufiyaElizaThirdPost fourthPost={2} post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
           </div>
         </Col>
         <Col xl="6">
           <div className="post-panel">
             <SufiyaElizaMapPost />
-            <SufiyaElizaFirstPost mainImage={3} userImage={1}  className="section-t-space" />
-            <SufiyaElizaMultiplePost moreImage main={4} second={5} third={6} />
-            <SufiyaElizaSecondPost userImage={1} />
+            <SufiyaElizaFirstPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} className="section-t-space" />
+            <SufiyaElizaMultiplePost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+            <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
           </div>
         </Col>
       </Row>

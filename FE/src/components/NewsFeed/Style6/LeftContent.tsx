@@ -6,7 +6,7 @@ import WeatherSection from "../Style1/LeftContent/WeatherSection";
 const LeftContent = ({padding}:{padding?:boolean}) => {
   return (
     <div className={`content-left ${!padding ?"p-0":""}`}>
-      <UserProFile />
+      <UserProFile userProfile={null as any} />
       <FriendSuggestion />
       <div className="sticky-top">
       <LikePage />

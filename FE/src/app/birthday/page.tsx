@@ -18,7 +18,7 @@ const BirthDay = () => {
               <BirthdayCards />
             </div>
             <div className="content-left d-none d-xl-block">
-              <UserProFile />
+              <UserProFile userProfile={null} />
               <FriendSuggestion />
               <BirthdayReminder />
             </div>

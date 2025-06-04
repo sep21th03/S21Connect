@@ -96,10 +96,10 @@ export const gemixStoreDroDown: menuList[] = [
 ];
 
 export const styleOneMoreComponent = [
-  <SufiyaElizaThirdPost fourthPost={2} userImage={1} />,
-  <SufiyaElizaSecondPost userImage={1} />,
+  <SufiyaElizaThirdPost fourthPost={2} post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />,
+  <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />,
 ];
 
 export const styleTwoMoreComponent = [
-  <SufiyaElizaSecondPost userImage={1} />
+  <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
 ];

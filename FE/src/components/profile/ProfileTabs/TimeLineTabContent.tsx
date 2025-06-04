@@ -18,32 +18,28 @@ const TimeLineTabContent: React.FC = () => {
     <Container fluid>
       <div className="page-content">
         <div className="content-left">
-          <AboutUser />
+          <AboutUser userProfile={null as any} isOwnProfile={false} />
           <FriendSuggestion mainClassName="d-xl-block d-none" />
           <div className="sticky-top d-xl-block d-none">
             <LikePage />
           </div>
         </div>
         <div className="content-center">
-            <CreatePost />
+            <CreatePost onPostCreated={() => {}} />
             <div className="overlay-bg" />
             <div className="post-panel infinite-loader-sec section-t-space">
-              <SufiyaElizaFirstPost mainImage={11} userImage={15} />
-              <SufiyaElizaMultiplePost moreImage diffrentImage userImage={14} main={40} second={41} third={42}/>
-              <SufiyaElizaSecondPost userImage={10} />
-              <SufiyaElizaThirdPost
-                userImage={1}
-                iframeLink="https://giphy.com/embed/xl2zRzM8sVo3td58kS"
-              />
-              <SufiyaElizaSecondPost userImage={15} />
-              <SufiyaElizaSecondPost userImage={15} />
-              <SufiyaElizaSecondPost userImage={10} />
+              <SufiyaElizaFirstPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+              <SufiyaElizaMultiplePost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+              <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+              <SufiyaElizaThirdPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+              <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+              <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
             </div>
         </div>
         <div className="content-right d-xl-block d-none">
             <CollegeMeetCard />
             <Gallery />
-            <ActivityFeeds />
+            <ActivityFeeds username={null as any} />
             <div className="sticky-top">
               <EventsCard eventImage={12} diffrentPath="post" />
               <WorldWideTrend />

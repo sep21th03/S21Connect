@@ -51,7 +51,7 @@ const PostImageShare: FC<PostImagesProps> = ({ images }) => {
                 )}
               </Col>
             </Row>
-            <CommonGalleryModal toggle={toggle} modal={modalOpen} post={post} galleryList={galleryList} onReactionChange={onReactionChange} />
+            <CommonGalleryModal toggle={toggle} modal={modalOpen} post={null as any} galleryList={[]} onReactionChange={() => {}} />
           </Container>
         </div>
       </div>

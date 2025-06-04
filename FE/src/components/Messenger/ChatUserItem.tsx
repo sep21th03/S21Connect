@@ -125,6 +125,13 @@ const ChatUserItem = React.memo(
         onClick: handleArchiveClick,
       },
     ];
+
+    const avatarSrc =
+      data.type === "group"
+        ? data.avatar || `${ImagePath}/icon/user.png`
+        : data.other_user
+        ? data.other_user.avatar || `${ImagePath}/icon/user.png`
+        : data.members[0]?.avatar ?? `${ImagePath}/icon/user.png`;
     return (
       <NavItem
         className="d-flex justify-content-between align-items-center px-2"
@@ -144,13 +151,7 @@ const ChatUserItem = React.memo(
             <div className="story-img">
               <div className="user-img bg-size blur-up lazyloaded">
                 <Image
-                  src={
-                    data.type === "group"
-                      ? data.avatar
-                      : data.other_user
-                      ? data.other_user.avatar
-                      : data.members[0].avatar || `${ImagePath}/icon/user.png`
-                  }
+                  src={avatarSrc}
                   className="img-fluid blur-up bg-img lazyloaded rounded-circle"
                   alt="user"
                   width={120}

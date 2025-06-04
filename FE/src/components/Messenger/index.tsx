@@ -1,10 +1,10 @@
-// components/Messenger/index.tsx
 import { FC, useCallback, useEffect } from "react";
 import ChatUsers from "./ChatUsers";
 import ChatContent from "./ChatContent";
 import { useMessengerContext } from "@/contexts/MessengerContext";
 import { RecentMessage } from "@/hooks/useSocket";
 import React from "react";
+import { SetStateAction } from "react";
 
 interface MessengerSectionProps {
   initialConversationId?: string;
@@ -15,6 +15,7 @@ const MessengerSection: FC<MessengerSectionProps> = ({
 }) => {
   const { userList, setUserList, activeTab, setActiveTab, onlineUsers } =
     useMessengerContext();
+  
   useEffect(() => {
     if (initialConversationId && !activeTab) {
       setActiveTab(initialConversationId);
@@ -22,7 +23,7 @@ const MessengerSection: FC<MessengerSectionProps> = ({
   }, [initialConversationId, activeTab, setActiveTab]);
 
   const handleUpdateUserList = useCallback(
-    (updatedList: RecentMessage[]) => {
+    (updatedList: SetStateAction<RecentMessage[] | null>) => {
       setUserList(updatedList);
     },
     [setUserList]
@@ -32,6 +33,7 @@ const MessengerSection: FC<MessengerSectionProps> = ({
     activeTab && userList
       ? userList.find((u) => u.id === activeTab) || null
       : null;
+      
   return (
     <section className="messenger-section">
       <ChatUsers />

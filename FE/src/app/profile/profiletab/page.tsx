@@ -65,12 +65,12 @@ const ProfileTab: React.FC = () => {
           <Container fluid>
             <div className="page-content">
               <Col lg="5" className="content-left">
-                <ActivityFeed />
+                {/* <ActivityFeed /> */}
               </Col>
               <Col lg="7" className="content-center d-none d-xl-block about-profile-item">
                 <div className="post-panel">
                   <div className="post-wrapper">
-                    <SufiyaElizaFirstPost mainImage={1} userImage={1} />
+                    {/* <SufiyaElizaFirstPost mainImage={1} userImage={1} /> */}
                   </div>
                 </div>
               </Col>

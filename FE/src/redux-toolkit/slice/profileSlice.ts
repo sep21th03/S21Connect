@@ -30,7 +30,7 @@ export const updateProfile = createAsyncThunk(
   "profile/updateProfile",
   async (formData: Partial<FullUserProfile>) => {
     const response = await axiosInstance.put<ApiResponse<FullUserProfile>>(
-      API_ENDPOINTS.PROFILE.UPDATE_PROFILE,
+      API_ENDPOINTS.PROFILE.MY_PROFILE.UPDATE,
       formData
     );
     return response.data.data;

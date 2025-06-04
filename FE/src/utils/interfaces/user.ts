@@ -43,6 +43,9 @@ export interface User {
     status: "active" | "banned" | "deleted";
     created_at: string;
     updated_at: string;
+    followers: number | null;
+    following: number | null;
+    friends: number | null;
   }
   
 
@@ -99,6 +102,7 @@ export interface User {
     first_name: string;
     last_name: string;
     username: string;
+    avatar: string;
     bio: string;
     user_data: {
       followers: number;

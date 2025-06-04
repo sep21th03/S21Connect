@@ -9,24 +9,17 @@ import axiosInstance from "@/utils/axiosInstance";
 import { ImagePath } from "@/utils/constant";
 import { API_ENDPOINTS } from "@/utils/constant/api";
 import Image from "next/image";
-import { useSocket, User } from "@/hooks/useSocket";
+import { useSocket, User, RecentMessage, UserData } from "@/hooks/useSocket";
 import { useDispatch, useSelector } from "react-redux";
 import { setFriends } from "@/redux-toolkit/slice/friendSlice";
 import { RootState } from "@/redux-toolkit/rootReducer";
+import { Notification } from "@/hooks/useSocket";
 
-interface FriendData {
+interface FriendData extends RecentMessage {
   id: string;
   mutual_friends_count: number;
-  name?: string;
-  username?: string;
-  avatar?: string;
-  type?: string;
-  other_user: {
-    id: string;
-    name: string;
-    avatar: string;
-    username: string;
-  };
+  type: "private" | "group";
+  other_user: UserData;
 }
 
 interface FriendsListProps {
@@ -48,7 +41,9 @@ const FriendsList: FC<FriendsListProps> = ({ searchTerm = "" }) => {
 
   useSocket((users: User[]) => {
     setOnlineUsers(users);
-  }, []);
+  }, (data: Notification) => {
+    console.log(data);
+  });
   
   const getListFriends = async (userId: string) => {
     setIsLoading(true);
@@ -89,7 +84,7 @@ const FriendsList: FC<FriendsListProps> = ({ searchTerm = "" }) => {
   }, [session?.user?.id]);  
 
   const handleOpenChatBox = (friend: FriendData) => {
-    const chatUser: FriendData = {
+    const chatData: FriendData = {
       id: friend.id,
       mutual_friends_count: friend.mutual_friends_count,
       type: friend.type,
@@ -99,9 +94,19 @@ const FriendsList: FC<FriendsListProps> = ({ searchTerm = "" }) => {
         avatar: friend.other_user.avatar || `${ImagePath}/user-sm/1.jpg`,
         username: friend.other_user.username,
       },
+      name: friend.name,
+      url: friend.url,
+      avatar: friend.avatar,
+      unread_count: friend.unread_count,
+      created_at: friend.created_at,
+      updated_at: friend.updated_at,
+      is_archived: friend.is_archived,
+      member_count: friend.member_count,
+      members: friend.members,
+      latest_message: friend.latest_message,
     };
     
-    setSelectedUser(chatUser);
+    setSelectedUser(chatData);
     setChatBox(true);
   };
   
@@ -188,7 +193,7 @@ const FriendsList: FC<FriendsListProps> = ({ searchTerm = "" }) => {
         ) : (
           <div className="online-friends">
             <ul>
-              {filteredFriends.map((friend, index) => renderFriendItem(friend, index))}
+              {filteredFriends.map((friend, index) => renderFriendItem(friend as FriendData, index))}
             </ul>
           </div>
         )}

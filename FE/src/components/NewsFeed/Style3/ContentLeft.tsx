@@ -10,8 +10,8 @@ import WeatherSection from "../Style1/LeftContent/WeatherSection";
 const ContentLeft: FC = () => {
   return (
     <div className="content-left">
-      <UserProFile />
-      <BirthdayReminder />
+      <UserProFile userProfile={null as any} />
+      <BirthdayReminder userInforBirthday={null as any} />
       <Gallery />
       <LikePage />
       <EventsCard eventImage={1} />

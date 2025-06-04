@@ -32,7 +32,7 @@ export default function PostModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     if (!postId || !username) return;
     setIsLoading(true);
-    getPost(postId, commentId, replyCommentId, reactionId, notificationId)
+    getPost(postId,  commentId ?? undefined, replyCommentId ?? undefined, reactionId ?? undefined, notificationId ?? undefined)
       .then((data) => {
         setPost(data.post);
         setHighlightCommentId(data.highlight_comment_id);
@@ -78,14 +78,14 @@ export default function PostModal({ onClose }: { onClose: () => void }) {
       };
     switch (post.type) {
       case "first":
-        return <SufiyaElizaFirstPost key={post.id} {...postProps} />;
+        return <SufiyaElizaFirstPost key={post.id} {...postProps} isShared={false} />;
       case "multiple":
-        return <SufiyaElizaMultiplePost key={post.id} {...postProps} />;
+        return <SufiyaElizaMultiplePost key={post.id} {...postProps} isShared={false} />;
       case "third":
-        return <SufiyaElizaThirdPost key={post.id} {...postProps} />;
+        return <SufiyaElizaThirdPost key={post.id} {...postProps} isShared={false} />;
       case "second":
       default:
-        return <SufiyaElizaSecondPost key={post.id} {...postProps} />;
+        return <SufiyaElizaSecondPost key={post.id} {...postProps} isShared={false} />;
     }
   };
   return (

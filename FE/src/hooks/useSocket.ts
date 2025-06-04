@@ -48,6 +48,15 @@ export interface SendMessagePayload {
   client_temp_id?: string;
 }
 
+export interface UserData {
+  id: string;
+  username: string;
+  name: string;
+  last_active?: string;
+  avatar?: string;
+  nickname?: string;
+}
+
 export interface RecentMessage {
   id: string;
   name: string | null;
@@ -59,24 +68,16 @@ export interface RecentMessage {
   is_archived: boolean;
   member_count: number;
   avatar: string;
-  other_user: {
+  other_user: UserData;
+  members: {
     id: string;
     username: string;
     name: string;
     last_active?: string;
     avatar?: string;
     nickname?: string;
-  };
-  members: [
-    {
-      id: string;
-      username: string;
-      name: string;
-      last_active?: string;
-      avatar?: string;
-      nickname?: string;
-    }
-  ];
+  }[];
+
   latest_message?: {
     id: string;
     content: string;
@@ -86,7 +87,6 @@ export interface RecentMessage {
     sender_name: string;
   };
 }
-
 
 export interface TypingUser {
   user_id: string;
@@ -113,11 +113,13 @@ export interface Notification {
   content: string;
   link: string | null;
   is_read: boolean;
+  created_at: string;
   from_user: {
     id: string;
     name: string;
     avatar: string;
   };
+  post_id: string;
 }
 
 export function useSocket(
@@ -181,9 +183,11 @@ export function useSocket(
       if (typeof onNotificationCallbackRef.current === "function") {
         onNotificationCallbackRef.current(data);
       } else {
-        console.warn("onNotificationCallbackRef.current is not a function:", onNotificationCallbackRef.current);
+        console.warn(
+          "onNotificationCallbackRef.current is not a function:",
+          onNotificationCallbackRef.current
+        );
       }
-      
     };
 
     const handleUnreadMessageUpdate = (data: RecentMessage) => {

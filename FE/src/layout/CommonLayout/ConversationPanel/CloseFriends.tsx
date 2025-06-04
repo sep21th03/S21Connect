@@ -1,17 +1,15 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Collapse, Media, Spinner } from "reactstrap";
 import { useSession } from "next-auth/react";
-import CustomImage from "@/Common/CustomImage";
-import HoverMessage from "@/Common/HoverMessage";
 import ChatBoxCommon from "./common/ChatBoxCommon";
 import CommonHeader from "./common/CommonHeader";
 import useMobileSize from "@/utils/useMobileSize";
 import axiosInstance from "@/utils/axiosInstance";
 import { ImagePath } from "@/utils/constant";
-import { OnlineUser, SingleData, commonInterFace } from "@/layout/LayoutTypes";
 import { API_ENDPOINTS } from "@/utils/constant/api";
-import { User, useSocket } from "@/hooks/useSocket";
+import { User, useSocket, UserData, RecentMessage } from "@/hooks/useSocket";
 import Image from "next/image";
+import { Notification } from "@/hooks/useSocket";
 
 const MAX_DISPLAY_USERS = 20;
 
@@ -30,7 +28,7 @@ interface Friend {
 const CloseFriends = () => {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(true);
-  const [selectedUser, setSelectedUser] = useState<SingleData | null>(null);
+  const [selectedUser, setSelectedUser] = useState<RecentMessage | null>(null);
   const [chatBox, setChatBox] = useState(false);
   const mobileSize = useMobileSize();
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -39,7 +37,10 @@ const CloseFriends = () => {
 
   useSocket((users: User[]) => {
     setOnlineUsers(users);
-  }, []);
+  }, (data: Notification) => {
+    console.log(data);
+  });
+
   const getListFriends = async (userId: string) => {
     setIsLoading(true);
     try {
@@ -70,14 +71,28 @@ const CloseFriends = () => {
   }, [session?.user?.id]);
 
   const handleOpenChatBox = (friend: Friend) => {
-    const chatUser: SingleData = {
+    const chatData: RecentMessage = {
       id: friend.id,
       name: friend.name,
-      image: friend.avatar || `${ImagePath}/user-sm/1.jpg`,
-      username: friend.username,
+      type: "private",
+      url: "",
+      unread_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_archived: false,
+      member_count: 2,
+      avatar: friend.avatar || `${ImagePath}/user-sm/1.jpg`,
+      other_user: {
+        id: friend.id,
+        username: friend.username,
+        name: friend.name,
+        avatar: friend.avatar,
+      },
+      members: []
     };
+  
 
-    setSelectedUser(chatUser);
+    setSelectedUser(chatData);
     setChatBox(true);
   };
   const renderFriendItem = (friend: Friend, index: number) => (
@@ -148,7 +163,7 @@ const CloseFriends = () => {
         )}
 
         {chatBox && selectedUser && (
-          <ChatBoxCommon setChatBox={setChatBox} data={selectedUser} />
+          <ChatBoxCommon setChatBox={setChatBox} data={selectedUser} handleMessagesRead={() => {}} />
         )}
       </Collapse>
     </div>

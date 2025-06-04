@@ -2,10 +2,15 @@ import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import { Button, Media } from "reactstrap";
 import { ImagePath, MutualFriend, SendYouFriendRequest } from "../../../utils/constant";
 import Image from "next/image";
-import { NotificationListsProps } from "@/layout/LayoutTypes";
-import { FC } from "react";
+import { NotificationListsProps, NotificationType } from "@/layout/LayoutTypes";
+import { Dispatch, FC, SetStateAction } from "react";
 
-const FriendRequest: FC<NotificationListsProps> = ({setShowNotification, notification}) => {
+interface FriendRequestProps {
+  notification: NotificationType;  
+  setShowNotification: Dispatch<SetStateAction<boolean>>;
+}
+
+const FriendRequest: FC<FriendRequestProps> = ({setShowNotification, notification}) => {
   return (
     <li className="d-block" onClick={() => setShowNotification(false)}>
       <div>

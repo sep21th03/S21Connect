@@ -21,7 +21,7 @@ const Widget = () => {
         <div className="page-center w-100">
           <div className="page-content justify-content-center">
             <div className="content-left">
-              <UserProFile />
+              <UserProFile userProfile={null as any} />
               <FriendSuggestion />
               <WeatherSection />
               <YourGames />

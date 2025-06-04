@@ -12,7 +12,7 @@ import StoriesModal from "@/Common/StoriesModal";
 import CustomImage from "@/Common/CustomImage";
 import { Story } from "@/Common/CommonInterFace";
 
-interface CommonStoryBoxProps extends OverlayNames {
+interface CommonStoryBoxProps {
   story?: Story;
   hasUnseen?: boolean;
   onClick?: () => void;
@@ -102,7 +102,7 @@ const CommonStoryBox: FC<CommonStoryBoxProps> = ({
                         ? "story-unseen-highlight"
                         : ""
                     }`}
-                    onClick={(e: any) => handleIconClick(e)}
+                    // onClick={(e: any) => handleIconClick(e)}
                   />
                 </a>
                 {!isFakeStory && (

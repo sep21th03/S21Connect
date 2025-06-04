@@ -14,13 +14,13 @@ const ContentCenter = () => {
 
   return (
     <div className="content-center">
-      <CreatePost />
+      <CreatePost onPostCreated={() => {}} />
       <div className="post-panel infinite-loader-sec section-t-space">
-        <SufiyaElizaThirdPost userImage={1} iframeLink="https://giphy.com/embed/dSdoQogGblKnid5Wb3"/>
+        <SufiyaElizaThirdPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
         <GemixStore/>
-        <SufiyaElizaThirdPost fourthPost={2} userImage={1} />
-        <SufiyaElizaFirstPost mainImage={3} userImage={1} />
-        <SufiyaElizaMultiplePost main={4} second={5} third={6}  />
+        <SufiyaElizaThirdPost fourthPost={2} post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+        <SufiyaElizaFirstPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+        <SufiyaElizaMultiplePost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
         {styleTwoMoreComponent.map((data, index) => (level.includes(index) ? data : ""))}
       </div>
       <ShowMorePostIcon dataLength={styleTwoMoreComponent.length} value="style3" />

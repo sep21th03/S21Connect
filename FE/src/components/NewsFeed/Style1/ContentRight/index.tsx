@@ -3,9 +3,9 @@ import BirthdayReminder from "./BirthdayReminder";
 import Gallery from "./Gallery";
 import EventsCard from "./EventsCard";
 import YourGames from "./YourGames";
-import { UserInforBirthday } from "@/utils/interfaces/user";
+import { UserInforBirthday } from "@/components/NewsFeed/Style1/Style1Types";
 
-const ContentRight: FC<{ userInforBirthday: UserInforBirthday | null }> = ({ userInforBirthday }) => {
+const ContentRight: FC<{ userInforBirthday: UserInforBirthday[] | null }> = ({ userInforBirthday }) => {
   return (
     <div className="content-right">
       {userInforBirthday && <BirthdayReminder userInforBirthday={userInforBirthday}/>}

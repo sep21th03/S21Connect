@@ -32,11 +32,13 @@ const ProfileLayout: FC<ProfileLayoutInterFace> = ({ children, title,profileTab,
     <CommonLayout mainClass="custom-padding profile-page" loaderName={loaderName}>
       <div className="page-center">
         <UserProfile toggle={toggle} userProfile={userProfile} isOwnProfile={isOwnProfile}  setFriendshipStatus={setFriendshipStatus} friendshipStatus={friendshipStatus}/>
-        <UserProfileBox toggle={toggle} userProfile={userProfile} isOwnProfile={isOwnProfile} />
+        <UserProfileBox toggle={toggle} userProfile={userProfile} isOwnProfile={isOwnProfile}/>
         {!profileTab && <ProfileMenu title={title?title:""} username={username}/>}
         {children}
       </div>
-      <EditCoverModal isOpen={isOpen} toggle={toggle} userProfile={userProfile} />
+      {isOwnProfile && (
+        <EditCoverModal isOpen={isOpen} toggle={toggle} userProfile={userProfile!} onUpdateProfile={() => {}}/>
+      )}
     </CommonLayout>
   );
 };
