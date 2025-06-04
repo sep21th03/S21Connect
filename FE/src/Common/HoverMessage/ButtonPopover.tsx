@@ -3,8 +3,8 @@ import Image from "next/image";
 import React from "react";
 
 interface ButtonPopoverProps {
-  onMessageClick: () => void;
-  onFriendRequestClick: () => void;
+  onMessageClick?: () => void;
+  onFriendRequestClick?: () => void;
 }
 
 const ButtonPopover: React.FC<ButtonPopoverProps> = ({ onMessageClick, onFriendRequestClick }) => {

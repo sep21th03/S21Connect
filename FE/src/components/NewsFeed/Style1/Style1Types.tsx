@@ -19,6 +19,11 @@ export interface LikePageInterFace {
   active: boolean;
 }
 
+export interface Reason {
+  reason_code: string;
+  reason_text: string;
+}
+
 export interface postDropDownOptionInterface {
   iconName: "Bookmark" | "XSquare" | "X" | "Edit" | "AlertCircle";
   post: string;

@@ -37,7 +37,7 @@ const MainComment: FC<MainCommentProps> = ({ comment, like,id, onReply, onReplyC
       <a href={Href} className="user-img popover-cls bg-size blur-up lazyloaded" id={id} onClick={(e) => e.preventDefault()}>
         <img src={`${comment?.user?.avatar}`} className="img-fluid lazyload bg-img rounded-circle" alt="user" width={30} height={30}/>
       </a>
-      <HoverMessage placement={"right"} target={id} name={comment?.user?.first_name + " " + comment?.user?.last_name} imagePath={`user-sm/2.jpg`} />
+      <HoverMessage placement={"right"} target={id} data={comment?.user} imagePath={`user-sm/2.jpg`} />
       <Media body>
         <a href={Href} onClick={(e) => e.preventDefault()}>
           <h5>{comment?.user?.first_name} {comment?.user?.last_name}</h5>

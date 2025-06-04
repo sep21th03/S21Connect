@@ -43,7 +43,7 @@ const UserDropDown: FC<UserDropDownProps> = ({setShowOption, showOption, user })
               <DropdownToggle color="transparent">
                 <h6 onClick={() => setShowDropDown(!showDropDown)}>
                   <DynamicFeatherIcon
-                    iconName={selectedOption?.icon}
+                    iconName={selectedOption?.icon as any}
                     className="icon-font-light left-icon iw-12 ih-12"
                   />
                   {selectedOption?.name}

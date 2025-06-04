@@ -1,9 +1,6 @@
 import { Message, RecentMessage } from "@/hooks/useSocket";
 import { Dispatch, SetStateAction } from "react";
-interface messengerInterFace {
-  receiverMessage?: string;
-  senderMessage?: string;
-}
+
 
 export interface SingleUser {
   id: string;
@@ -70,7 +67,7 @@ export interface UserChatInterFace {
   groupMembers: GroupMember;
 }
 
-interface GroupMember {
+export interface GroupMember {
   conversation_id: string;
   member_count: number;
   conversation_name: string;

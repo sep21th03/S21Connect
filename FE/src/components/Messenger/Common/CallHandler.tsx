@@ -30,7 +30,11 @@ const CallHandler = ({ user, onCallEnd, callType, isIncoming = false, callerId }
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { socket, sendMessage } = useSocket(() => {});
+  const { socket, sendMessage } = useSocket(() => {
+    console.log("socket connected");
+  }, () => {
+    console.log("socket disconnected");
+  });
 
   useEffect(() => {
     if (callStatus === "connected" && !timerRef.current) {

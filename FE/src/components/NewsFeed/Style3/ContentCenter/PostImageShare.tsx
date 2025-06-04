@@ -31,19 +31,19 @@ const PostImageShare: FC<PostImagesProps> = ({ images }) => {
             <Row>
               {imageList[0] && (
                 <Col xs="8" className="pt-cls" onClick={toggle}>
-                  <MultipleImage imageUrl={imageList[0]} />
+                  <MultipleImage mediaUrl={imageList[0]} />
                 </Col>
               )}
               <Col xs="4" className="row m-0">
                 {imageList[1] && (
                   <Col xs="12" className="pt-cls p-0" onClick={toggle}>
-                    <MultipleImage imageUrl={imageList[1]} />
+                    <MultipleImage mediaUrl={imageList[1]} />
                   </Col>
                 )}
                 {imageList[2] && (
                   <Col xs="12" className="pt-cls p-0" onClick={toggle}>
                     <MultipleImage
-                      imageUrl={imageList[2]}
+                      mediaUrl={imageList[2]}
                       moreImage={moreImageCount > 0}
                       moreImageCount={moreImageCount}
                     />
@@ -51,7 +51,7 @@ const PostImageShare: FC<PostImagesProps> = ({ images }) => {
                 )}
               </Col>
             </Row>
-            <CommonGalleryModal toggle={toggle} modal={modalOpen} />
+            <CommonGalleryModal toggle={toggle} modal={modalOpen} post={post} galleryList={galleryList} onReactionChange={onReactionChange} />
           </Container>
         </div>
       </div>

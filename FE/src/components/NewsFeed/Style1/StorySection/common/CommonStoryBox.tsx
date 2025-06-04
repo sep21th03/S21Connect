@@ -43,7 +43,7 @@ const CommonStoryBox: FC<CommonStoryBoxProps> = ({
     toggleStoryModal();
   };
 
-  const handleIconClick = (e: React.MouseEvent) => {
+  const handleIconClick = (e: any) => {
     e.stopPropagation();
     handleSelectedStory();
   };
@@ -102,7 +102,7 @@ const CommonStoryBox: FC<CommonStoryBoxProps> = ({
                         ? "story-unseen-highlight"
                         : ""
                     }`}
-                    onClick={(e) => handleIconClick(e)}
+                    onClick={(e: any) => handleIconClick(e)}
                   />
                 </a>
                 {!isFakeStory && (

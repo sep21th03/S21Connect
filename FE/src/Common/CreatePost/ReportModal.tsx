@@ -9,18 +9,13 @@ import {
   Label,
   Input,
 } from "reactstrap";
-import axiosInstance from "@/utils/axiosInstance";
-import { API_ENDPOINTS } from "@/utils/constant/api";
+import {Reason} from "@/components/NewsFeed/Style1/Style1Types";
 
-interface Reason {
-  value: string;
-  label: string;
-}
 
 interface ReportModalProps {
   isOpen: boolean;
   toggle: () => void;
-  onSubmit: (data: { reason_code: string; reason_text?: string }) => void;
+  onSubmit: (data: { reason_code: string; reason_text?: string }) => Promise<void> | void;
   reasons: Reason[];
 }
 
@@ -40,9 +35,9 @@ const ReportModal = ({
     }
   }, [isOpen]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedReason) return;
-    onSubmit({
+    await onSubmit({
       reason_code: selectedReason,
       reason_text: customReason.trim() || undefined,
     });
@@ -62,8 +57,8 @@ const ReportModal = ({
           >
             <option value="">-- Chọn một lý do --</option>
             {reasons.map((reason) => (
-              <option key={reason.value} value={reason.value}>
-                {reason.label}
+              <option key={reason.reason_code} value={reason.reason_code}>
+                {reason.reason_text}
               </option>
             ))}
           </Input>

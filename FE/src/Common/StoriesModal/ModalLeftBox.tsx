@@ -508,7 +508,7 @@ const ModalLeftBox: FC<{
                         {story.user.first_name} {story.user.last_name}
                       </h5>
                       <h6 className="text-muted mb-0">
-                        {lastItem ? formatTimeAgo(lastItem.created_at) : ""}
+                        {lastItem ? formatTimeAgo(lastItem.created_at ?? "") : ""}
                       </h6>
                     </div>
                   </div>
@@ -555,7 +555,7 @@ const ModalLeftBox: FC<{
                         {story.user.first_name} {story.user.last_name}
                       </h5>
                       <h6 className="text-muted mb-0">
-                        {lastItem ? formatTimeAgo(lastItem.created_at) : ""}
+                        {lastItem ? formatTimeAgo(lastItem.created_at ?? "") : ""}
                       </h6>
                     </div>
                   </div>

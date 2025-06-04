@@ -1,6 +1,6 @@
 import { useState } from "react"; 
 import EditPostModal from "@/Common/CreatePost/EditPostModal"; 
-import { postDropDownOptionInterface, Post } from "@/components/NewsFeed/Style1/Style1Types";
+import { postDropDownOptionInterface, Post, Reason } from "@/components/NewsFeed/Style1/Style1Types";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import { DropdownMenu } from "reactstrap";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
@@ -8,11 +8,6 @@ import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
 import { toast } from "react-toastify";
 import ReportModal from "./ReportModal";
-
-interface Reason {
-  reason_code: string;
-  reason_text: string;
-}
 
 
 const EditModalPostHeader = ({ postUser, onPostUpdated, onPostDeleted }: { postUser: Post, onPostUpdated: (updatedPost: Post) => void, onPostDeleted: () => void }) => {
@@ -56,11 +51,11 @@ const EditModalPostHeader = ({ postUser, onPostUpdated, onPostDeleted }: { postU
     }
   };
 
-  const handleReport = async ({reason_code, reason_text}: {reason_code: string, reason_text: string}) => {
+  const handleReport = async ({ reason_code, reason_text }: { reason_code: string; reason_text?: string }) => {
     try {
       const res = await axiosInstance.post(API_ENDPOINTS.REPORTS.POST("Post", postUser.id.toString()), {
         reason_code: reason_code,
-        reason_text: reason_text,
+        reason_text: reason_text || "",  
       });
       if (res.status === 200) {
         toggleReportModal();

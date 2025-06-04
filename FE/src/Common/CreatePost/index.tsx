@@ -263,7 +263,6 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
                         <video
                           controls
                           src={URL.createObjectURL(file)}
-                          alt={`Preview video ${index + 1}`}
                           style={{ width: "100%", height: "100%" }}
                         />
                       )}
