@@ -155,6 +155,9 @@ export const API_ENDPOINTS = {
   ADMIN: {
     GET_STATS: "/admin/get-stats",
     REPORTS: "/admin/get-report-all",
+    USERS: {
+      GET_USERS: "/admin/users",
+    },
   },
 
   CLOUDINARY: {

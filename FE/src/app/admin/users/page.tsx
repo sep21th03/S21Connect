@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Input,
@@ -27,6 +27,7 @@ import {
   Edit,
   Trash2,
 } from "react-feather";
+import { adminService } from "@/service/adminService";
 
 const SortIcon = ({
   column,
@@ -63,68 +64,21 @@ interface User {
   created_at: string;
 }
 
-interface Props {
-  users?: User[];
-}
-
-const filteredUsers = [
-  {
-    id: "9eac242f-d01b-49e9-bd78-ff28e1429a30",
-    username: "ngh10",
-    first_name: "Ng",
-    last_name: "aaaa",
-    gender: "male",
-    birthday: "2003-05-16",
-    email: "nguyenhoathpt03@gmail.com",
-    email_verified_at: "2025-04-14T09:44:31.000000Z",
-    last_active: "2025-05-16 07:55:17",
-    avatar:
-      "https://res.cloudinary.com/dxzwfef7y/image/upload/v1746889129/avatars/album/esogeuqwu1ir69zvkhw9.png",
-    cover_photo: null,
-    bio: null,
-    is_admin: 0,
-    status: "active",
-    created_at: "2025-04-14T09:09:46.000000Z",
-    updated_at: "2025-05-16T00:55:18.000000Z",
-    vnd: "0",
-    secret_code: null,
-  },
-  {
-    id: "9ec0eb53-84e1-4b0d-932f-b935cd0f1801",
-    username: "hehehee",
-    first_name: "hehehhe",
-    last_name: "heeee",
-    gender: null,
-    birthday: "2003-06-20",
-    email: "sep21th03luv@gmail.com",
-    email_verified_at: "2025-04-24T17:08:21.000000Z",
-    last_active: "2025-05-11 10:13:52",
-    avatar:
-      "https://scontent.fhan5-3.fna.fbcdn.net/v/t39.30808-6/477608114_548393474881278_5290903854719436454_n.jpg?stp=c256.0.1536.1536a_dst-jpg_s206x206_tt6&_nc_cat=110&ccb=1-7&_nc_sid=50ad20&_nc_ohc=MGHheFejCLoQ7kNvwGhYkKH&_nc_oc=AdmQ-PQ9-kJJr_zRPmNFMokF06HCXLJM5La8fxlyWKkc-3O4vH7ji_8Vn1Ki4P1xXWkOwTJas-1apH5xTmrnkxHR&_nc_zt=23&_nc_ht=scontent.fhan5-3.fna&_nc_gid=HNK-wr_IOL2q4b_XbBTbyg&oh=00_AfJJC6Kabs5H2nTfPAAjX_anPfs-rHu3ssYEfwiuqzz2aA&oe=682BEA94",
-    cover_photo: null,
-    bio: null,
-    is_admin: 0,
-    status: "active",
-    created_at: "2025-04-24T17:03:10.000000Z",
-    updated_at: "2025-05-11T10:13:55.000000Z",
-    vnd: "0",
-    secret_code: null,
-  },
-];
-
-const UserTable: React.FC<Props> = () => {
+const UserTable: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
   const [filters, setFilters] = useState({
     searchTerm: "",
     is_admin: "all",
-    status: "all", 
-    min_reports: "", 
+    status: "all",
+    min_reports: "",
   });
-
   const [sortConfig, setSortConfig] = useState({
     key: "created_at",
     direction: "desc",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // State modal chỉnh sửa trạng thái user
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -135,6 +89,39 @@ const UserTable: React.FC<Props> = () => {
   const [warnModalOpen, setWarnModalOpen] = useState(false);
   const [warnMessage, setWarnMessage] = useState("");
 
+  // Hàm gọi API
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await adminService.fetchUsers({
+        page: currentPage,
+        search: filters.searchTerm,
+        is_admin: filters.is_admin,
+        status: filters.status,
+        min_reports: filters.min_reports,
+      });
+
+      if (response === null) {
+        setUsers([]);
+        setTotalPages(1);
+      } else {
+        setUsers(response.data || []);
+        setTotalPages(response.last_page || 1);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setUsers([]);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Gọi API khi filters, currentPage hoặc sortConfig thay đổi
+  useEffect(() => {
+    loadUsers();
+  }, [filters, currentPage, sortConfig]);
+
   // Hàm mở modal sửa trạng thái
   const openEditModal = (user: User) => {
     setSelectedUser(user);
@@ -142,16 +129,16 @@ const UserTable: React.FC<Props> = () => {
     setEditModalOpen(true);
   };
 
-  // Hàm lưu trạng thái mới (thường gọi API)
-  const saveStatus = () => {
+  // Hàm lưu trạng thái mới
+  const saveStatus = async () => {
     if (!selectedUser) return;
-    // Gọi API cập nhật trạng thái ở đây
-    console.log(
-      `Cập nhật trạng thái user ${selectedUser.username} thành ${newStatus}`
-    );
-    // Giả sử thành công:
-    // Cập nhật local state hoặc refetch data, demo đóng modal
-    setEditModalOpen(false);
+    try {
+      await adminService.updateStatus(selectedUser.id, newStatus);
+      loadUsers(); // Refetch danh sách user
+      setEditModalOpen(false);
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
   };
 
   // Mở modal cảnh cáo
@@ -161,14 +148,27 @@ const UserTable: React.FC<Props> = () => {
     setWarnModalOpen(true);
   };
 
-  // Gửi cảnh cáo (gọi API)
-  const sendWarning = () => {
+  // Gửi cảnh cáo
+  const sendWarning = async () => {
     if (!selectedUser) return;
-    console.log(
-      `Gửi cảnh cáo cho user ${selectedUser.username}: ${warnMessage}`
-    );
-    // Gọi API gửi cảnh cáo
-    setWarnModalOpen(false);
+    try {
+      await adminService.sendWarning(selectedUser.id, warnMessage);
+      setWarnModalOpen(false);
+    } catch (error) {
+      console.error("Error sending warning:", error);
+    }
+  };
+
+  // Xử lý xóa user
+  const handleDeleteUser = async (user: User) => {
+    if (confirm(`Bạn có chắc muốn xóa user ${user.username}?`)) {
+      try {
+        await adminService.deleteUser(user.id);
+        loadUsers(); // Refetch danh sách user
+      } catch (error) {
+        console.error("Error deleting user:", error);
+      }
+    }
   };
 
   // Xử lý sort
@@ -185,61 +185,6 @@ const UserTable: React.FC<Props> = () => {
       });
     }
   };
-
-  // Filter + search + sort users
-  const filteredUsers = useMemo(() => {
-    let filtered = [...users];
-
-    // Filter trạng thái
-    if (filters.status !== "all") {
-      filtered = filtered.filter((u) => u.status === filters.status);
-    }
-
-    // Filter is_admin
-    if (filters.is_admin !== "all") {
-      filtered = filtered.filter(
-        (u) => u.is_admin.toString() === filters.is_admin
-      );
-    }
-
-    // Search username, first_name, last_name
-    if (filters.searchTerm.trim() !== "") {
-      const term = filters.searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (u) =>
-          u.username.toLowerCase().includes(term) ||
-          u.first_name.toLowerCase().includes(term) ||
-          u.last_name.toLowerCase().includes(term)
-      );
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      const key = sortConfig.key as keyof User;
-
-      let aValue = a[key];
-      let bValue = b[key];
-
-      // Nếu là ngày, chuyển về số timestamp để so sánh
-      if (key === "created_at" || key === "last_active" || key === "birthday") {
-        aValue = aValue ? new Date(aValue).getTime() : 0;
-        bValue = bValue ? new Date(bValue).getTime() : 0;
-      }
-
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-
-      if (aValue && bValue && aValue < bValue)
-        return sortConfig.direction === "asc" ? -1 : 1;
-      if (aValue && bValue && aValue > bValue)
-        return sortConfig.direction === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return filtered;
-  }, [users, filters, sortConfig]);
 
   return (
     <div>
@@ -347,7 +292,7 @@ const UserTable: React.FC<Props> = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredUsers.length === 0 && (
+                    {users.length === 0 && (
                       <tr>
                         <td
                           colSpan={6}
@@ -357,7 +302,7 @@ const UserTable: React.FC<Props> = () => {
                         </td>
                       </tr>
                     )}
-                    {filteredUsers.map((user) => (
+                    {users.map((user) => (
                       <tr key={user.id}>
                         <td>{user.id.slice(0, 8)}...</td>
                         <td>
@@ -390,7 +335,6 @@ const UserTable: React.FC<Props> = () => {
                             {user.status}
                           </Badge>
                         </td>
-
                         <td className="text-right">
                           <Button
                             color="link"
@@ -422,6 +366,28 @@ const UserTable: React.FC<Props> = () => {
                   </tbody>
                 </table>
               </div>
+              {/* Phân trang */}
+              {totalPages > 1 && (
+                <div className="mt-4 flex justify-center">
+                  <Button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    className="mx-1"
+                  >
+                    Trước
+                  </Button>
+                  <span className="mx-2 self-center">
+                    Trang {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    className="mx-1"
+                  >
+                    Sau
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </CardBody>
