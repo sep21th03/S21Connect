@@ -17,18 +17,20 @@ class CloudinaryController extends ImageController
     {
         $request->validate([
             'file' => 'required|string',
-            'muted' => 'nullable|string',
-            'audio_url' => 'nullable|string',
         ]);
 
         $dataUri = $request->input('file');
 
         if (!preg_match('/^data:(\w+)\/(\w+);base64,/', $dataUri, $matches)) {
-            return response()->json(['message' => 'File format không hợp lệ'], 422);
+            return response()->json(['message' => 'Định dạng file không hợp lệ'], 422);
         }
 
         $mimeType = $matches[1];
         $extension = $matches[2];
+
+        if ($mimeType !== 'image') {
+            return response()->json(['message' => 'Chỉ hỗ trợ upload ảnh'], 422);
+        }
 
         $base64String = preg_replace('/^data:\w+\/\w+;base64,/', '', $dataUri);
         $fileContent = base64_decode($base64String);
@@ -43,27 +45,24 @@ class CloudinaryController extends ImageController
         $tempPath = tempnam(sys_get_temp_dir(), 'upload_') . '.' . $extension;
         file_put_contents($tempPath, $fileContent);
 
-        if ($mimeType === 'video') {
-            $muted = filter_var($request->input('muted'), FILTER_VALIDATE_BOOLEAN);
-            $audioUrl = $request->input('audio_url');
-
-            $result = $this->cloudinaryService->uploadVideoWithAudio($tempPath, $muted, $audioUrl);
-        } else if ($mimeType === 'image') {
-            $result = $this->cloudinaryService->uploadImage($tempPath);
-        } else {
-            unlink($tempPath);
-            return response()->json(['message' => 'Chỉ hỗ trợ upload file ảnh hoặc video'], 422);
-        }
+        $result = $this->cloudinaryService->uploadImage($tempPath);
 
         unlink($tempPath);
 
+        // Check if upload was successful
+        if (!$result['success']) {
+            return response()->json([
+                'message' => 'Upload failed: ' . $result['error'],
+            ], 500);
+        }
+
         return response()->json([
             'message' => 'Uploaded successfully',
-            'url' => $result['secure_url'] ?? null,
-            'resource_type' => $result['resource_type'] ?? null,
-            'duration' => $result['duration'] ?? null,
+            'url' => $result['data']['url'],
+            'resource_type' => 'image',
         ]);
     }
+
 
     public function uploadFiles(Request $request): JsonResponse
     {

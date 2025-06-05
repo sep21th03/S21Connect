@@ -149,22 +149,41 @@ const StoriesModal: FC<StoriesModalProps> = ({
     let duration: number = STORY_DURATION;
 
     if (storyCreationMode === "image" || storyCreationMode === "video") {
+      
       try {
         if (!selectedFile) {
           toast.error("Vui lòng chọn ảnh hoặc video trước khi đăng.");
           return;
         }
+        const fileToBase64 = (file: File) => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+          });
+        };
+        let base64String;
+        if (selectedFile instanceof File) {
+          base64String = await fileToBase64(selectedFile);
+        } else if (selectedFile.url && selectedFile.url.startsWith('data:')) {
+          // If it's already a base64 string
+          base64String = selectedFile.url;
+        } else {
+          throw new Error("Invalid file format");
+        }
 
-        const formData = new FormData();
-        formData.append("file", selectedFile?.url || "");
-        formData.append("muted", videoMuted.toString());
-        formData.append("audio_url", selectedTrack?.audio || "");
-
-        const response = await axiosInstance(
-          `${API_ENDPOINTS.CLOUDINARY.UPLOAD}`,
+        const response = await axiosInstance.post(
+          API_ENDPOINTS.CLOUDINARY.UPLOAD,
           {
-            method: "POST",
-            data: formData,
+            file: base64String,
+            muted: videoMuted.toString(),
+            audio_url: selectedTrack?.audio || "",
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            }
           }
         );
 

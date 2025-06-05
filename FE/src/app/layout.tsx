@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "../../public/assets/scss/globals.scss";
 import "../../public/assets/scss/style.scss";
+import './layout.css'
 import { Providers } from "@/redux-toolkit/provider";
 import { ToastContainer } from "react-toastify";
 import { getServerSession } from "next-auth";

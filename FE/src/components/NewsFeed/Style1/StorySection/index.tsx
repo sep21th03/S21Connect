@@ -28,13 +28,13 @@ const StorySection: FC<StorySectionProps> = ({ storyShow = 8 }) => {
   const createFakeStories = () => {
     const fakeStories: any[] = [];
     const fakeUsers = [
-      { name: "John Doe", avatar: "/assets/images/avatar/1.jpg" },
-      { name: "Jane Smith", avatar: "/assets/images/avatar/2.jpg" },
-      { name: "Mike Johnson", avatar: "/assets/images/avatar/3.jpg" },
-      { name: "Sarah Wilson", avatar: "/assets/images/avatar/4.jpg" },
-      { name: "David Brown", avatar: "/assets/images/avatar/5.jpg" },
-      { name: "Lisa Davis", avatar: "/assets/images/avatar/6.jpg" },
-      { name: "Lisa Davis", avatar: "/assets/images/avatar/6.jpg" },
+      { name: "John Doe", avatar: "" },
+      { name: "Jane Smith", avatar: "" },
+      { name: "Mike Johnson", avatar: "" },
+      { name: "Sarah Wilson", avatar: "" },
+      { name: "David Brown", avatar: "" },
+      { name: "Lisa Davis", avatar: "" },
+      { name: "Lisa Davis", avatar: "" },
     ];
 
     for (let i = 0; i < Math.min(8, Math.max(0, 7 - stories.length)); i++) {
