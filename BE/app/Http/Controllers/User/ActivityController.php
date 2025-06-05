@@ -46,7 +46,7 @@ class ActivityController extends Controller
             'page' => 'integer|min:1',
             'per_page' => 'integer|min:1|max:100',
         ]);
-        $perPage = $validated['per_page'] ?? 10;
+        $perPage = $validated['per_page'] ?? 5;
         $user = User::where('username', $username)->firstOrFail();
         $logs = ActivityLog::where('user_id', $user->id)
             ->latest()

@@ -144,7 +144,7 @@ export function useSocket(
     if (!token) return;
 
     if (!socket) {
-      socket = io("https://s21connect.onrender.com", {
+      socket = io("https://node-s21.codetifytech.io.vn", { 
         auth: { token },
         reconnection: true,
       });

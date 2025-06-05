@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Services\CloudinaryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+
 
 class CloudinaryController extends ImageController
 {
@@ -202,6 +204,218 @@ class CloudinaryController extends ImageController
                 'success' => false,
                 'message' => 'Error: Xóa không thành công',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    //profile
+    public function getImagesByUserId(): JsonResponse
+    {
+        try {
+            $userId = Auth::id() ?? request()->input('user_id');
+            $result = $this->cloudinaryService->getImagesByUserId($userId);
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $result['data'],
+                    'message' => 'Images retrieved successfully'
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $result['error'] ?? 'Failed to retrieve images'
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function uploadAvatar(Request $request): JsonResponse
+    {
+
+        try {
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB
+            ]);
+
+            if ($validator->fails()) {
+                \Log::error('Validation errors:', $validator->errors()->toArray());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $file = $request->file('file');
+            $userId = Auth::id() ?? $request->input('user_id');
+
+            if (!$userId) {
+                \Log::error('User ID missing');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User ID is required'
+                ], 400);
+            }
+
+            $result = $this->cloudinaryService->uploadAndSave($file, $userId);
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $result['data'],
+                    'message' => 'Avatar uploaded successfully'
+                ], 201);
+            }
+
+            \Log::error('Upload failed:', [$result['error'] ?? 'Unknown error']);
+            return response()->json([
+                'success' => false,
+                'message' => $result['error'] ?? 'Failed to upload avatar'
+            ], 400);
+        } catch (\Exception $e) {
+            \Log::error('Server error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function deleteImage(string $imageId): JsonResponse
+    {
+        try {
+            $result = $this->cloudinaryService->deleteImageCompletely($imageId);
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $result['message']
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $result['error'] ?? 'Failed to delete image'
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getImageById(string $imageId): JsonResponse
+    {
+        try {
+            $image = \App\Models\Image::find($imageId);
+
+            if (!$image) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Image not found'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $image->toArray(),
+                'message' => 'Image retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    public function getImagesByType(Request $request, string $userId, string $type): JsonResponse
+    {
+        try {
+            $result = $this->cloudinaryService->getImagesByUserId($userId, $type);
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $result['data'],
+                    'message' => 'Images retrieved successfully'
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $result['error'] ?? 'Failed to retrieve images'
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    public function bulkUpload(Request $request): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'files' => 'required|array|max:10',
+                'files.*' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+                'type' => 'sometimes|string|in:avatar,post,banner,gallery',
+                'folder' => 'sometimes|string|max:100'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $files = $request->file('files');
+            $userId = Auth::id() ?? $request->input('user_id');
+            $type = $request->input('type', 'post');
+            $folder = $request->input('folder');
+
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User ID is required'
+                ], 400);
+            }
+
+            $results = [];
+            $errors = [];
+
+            foreach ($files as $index => $file) {
+                $result = $this->cloudinaryService->uploadAndSave($file, $userId, $type, $folder);
+
+                if ($result['success']) {
+                    $results[] = $result['data'];
+                } else {
+                    $errors[] = [
+                        'file_index' => $index,
+                        'error' => $result['error']
+                    ];
+                }
+            }
+
+            return response()->json([
+                'success' => count($results) > 0,
+                'data' => $results,
+                'errors' => $errors,
+                'message' => count($results) . ' images uploaded successfully'
+            ], count($results) > 0 ? 201 : 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Server error: ' . $e->getMessage()
             ], 500);
         }
     }

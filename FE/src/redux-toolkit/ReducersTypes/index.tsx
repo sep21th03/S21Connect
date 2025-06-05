@@ -7,8 +7,8 @@ export interface FavouritePageSlice {
 }
 
 export interface LayoutSliceInterFace {
-  imageLink: string;
-  backgroundImage:string
+  imageLink?: string | null;
+  backgroundImage?: string | null;
 }
 
 export interface ShowMorePostSliceInterFace{

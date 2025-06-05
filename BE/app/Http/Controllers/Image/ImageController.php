@@ -19,7 +19,6 @@ class ImageController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate dữ liệu đầu vào
         $validator = Validator::make($request->all(), [
             'url' => 'required|url',
             'public_id' => 'required|string',
@@ -34,10 +33,8 @@ class ImageController extends Controller
         }
 
         try {
-            // Phân tích URL để lấy thông tin
             $cloudinaryData = $this->parseCloudinaryUrl($request->url);
             
-            // Tạo bản ghi mới trong database
             $image = new Image();
             $image->id = Str::uuid();
             $image->user_id = Auth::id();
@@ -73,7 +70,6 @@ class ImageController extends Controller
     {
         $data = [];
         
-        // Phân tích URL để lấy folder và type
         if (preg_match('/\/avatars\/([^\/]+)\//', $url, $matches)) {
             $data['folder'] = '/avatars';
             $data['type'] = $matches[1];
@@ -117,15 +113,6 @@ class ImageController extends Controller
             $image = Image::where('id', $id)
                 ->where('user_id', Auth::id())
                 ->firstOrFail();
-            
-            // Tạo client Cloudinary và xóa ảnh
-            // Bạn cần cài đặt cloudinary/cloudinary_php package và config
-            /* 
-            $cloudinary = new Cloudinary(config('cloudinary'));
-            $cloudinary->uploadApi()->destroy($image->public_id);
-            */
-            
-            // Xóa bản ghi từ database
             $image->delete();
             
             return response()->json([

@@ -152,7 +152,8 @@ class ProfileController extends Controller
         }
     }
 
-    public function updateProfileAbout() {
+    public function updateProfileAbout()
+    {
         try {
             $userId = Auth::id();
             $data = request()->validate([
@@ -192,15 +193,39 @@ class ProfileController extends Controller
                 'avatar' => 'required|url',
             ]);
 
-            $profile = $this->profileService->updateAvatar($userId, $data['avatar']);
+            $avatar = $this->profileService->updateAvatar($userId, $data['avatar']);
 
             return response()->json([
                 'message' => 'Cập nhật ảnh đại diện thành công',
-                'data' => $profile
+                'avatar' => $avatar,
+                'success' => true,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Lỗi cập nhật ảnh đại diện',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateBackground(Request $request): JsonResponse
+    {
+        try {
+            $userId = Auth::id();
+            $data = $request->validate([
+                'cover_photo' => 'required|url',
+            ]);
+
+            $cover_photo = $this->profileService->updateBackground($userId, $data['cover_photo']);
+
+            return response()->json([
+                'message' => 'Cập nhật ảnh bìa thành công',
+                'cover_photo' => $cover_photo,
+                'success' => true,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi cập nhật ảnh bìa',
                 'error' => $e->getMessage()
             ], 500);
         }

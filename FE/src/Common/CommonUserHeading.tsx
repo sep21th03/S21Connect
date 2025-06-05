@@ -52,6 +52,9 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
           <Media body>
             <h5>
               {postUser?.user?.first_name} {postUser?.user?.last_name}{" "}
+              {postUser?.post_format === "avatar" && (
+                <span style={{ textTransform: "none" }}>đã thay đổi ảnh đại diện</span>
+              )}
               {postUser?.feeling && feelingMap[postUser.feeling] && (
                 <>
                   <span style={{ textTransform: "none" }}>đang cảm thấy</span>{" "}

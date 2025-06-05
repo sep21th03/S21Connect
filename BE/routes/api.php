@@ -149,6 +149,7 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::post('/about/info', [ProfileController::class, 'updateProfileAbout']);
         Route::get('/user/data/{id}', [FriendController::class, 'getFriendStats']);
         Route::post('/user/avatar', [ProfileController::class, 'updateAvatar']);
+        Route::post('/user/background', [ProfileController::class, 'updateBackground']);
         Route::get('/user/about', [ProfileController::class, 'getMeProfileAbout']);
     });
 
@@ -164,7 +165,7 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::get('/search-friend', [UserController::class, 'searchFriends']);
         Route::get('/suggest_friends', [UserController::class, 'suggestFriends']);
         Route::get('/activity_logs', [ActivityController::class, 'index']);
-        Route::get('/activity_profile/{id}', [ActivityController::class, 'activityProfile']); 
+        Route::get('/activity_profile/{id}', [ActivityController::class, 'activityProfile']);
     });
 
     //story
@@ -205,10 +206,19 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
     });
     //image
     Route::prefix('images')->group(function () {
-        Route::post('/upload', [ImageController::class, 'store']);
-        Route::get('/{id}', [ImageController::class, 'show']);
-        Route::delete('/{id}', [ImageController::class, 'destroy']);
-        Route::get('/', [ImageController::class, 'index']);
+        Route::get('/user', [CloudinaryController::class, 'getImagesByUserId']);
+
+        Route::get('/user/{userId}/type/{type}', [CloudinaryController::class, 'getImagesByType']);
+
+        Route::get('/{imageId}', [CloudinaryController::class, 'getImageById']);
+
+        Route::post('/upload-avatar', [CloudinaryController::class, 'uploadAvatar']);
+
+        Route::post('/bulk-upload', [CloudinaryController::class, 'bulkUpload']);
+
+        Route::delete('/{imageId}', [CloudinaryController::class, 'deleteImage']);
+
+        Route::put('/{imageId}', [CloudinaryController::class, 'updateImage']);
     });
 
     //notifications

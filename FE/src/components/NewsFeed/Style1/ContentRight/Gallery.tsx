@@ -3,11 +3,10 @@ import GalleryTop from "./GalleryTop";
 import { Col, Container, Row } from "reactstrap";
 import CommonGalleryImage from "./common/CommonGallleryImage";
 import CommonGalleryModal from "@/Common/CommonGalleryModal";
-import axiosInstance from "@/utils/axiosInstance";
-import { API_ENDPOINTS } from "@/utils/constant/api";
+import { imageService } from "@/service/cloudinaryService";
 
 interface Gallery {
-  id: number;
+  id: string;
   created_at: string;
   updated_at: string;
   row: boolean;
@@ -23,39 +22,61 @@ const Gallery: FC = () => {
 
   useEffect(() => {
     const fetchGallery = async () => {
-      const response = await axiosInstance.get<ApiResponse<Gallery[]>>(API_ENDPOINTS.IMAGES.GET_BY_ID("112"));
-      setGallery(response.data.data);
+      const response = await imageService.getImagesByUserId();
+      setGallery(response.data.map(image => ({
+        id: image.id,
+        created_at: image.created_at,
+        updated_at: image.updated_at,
+        row: false,
+        sizeSmall: 4, // Thay đổi thành 4 để có 3 cột (12/4 = 3)
+        className: "",
+        url: image.url
+      })));
     };
     fetchGallery();
   }, []);
+
+  // Chỉ hiển thị 9 ảnh đầu tiên (3x3 grid)
+  const displayImages = gallery.slice(0, 9);
+  const remainingCount = gallery.length - 9;
+  
   return (
     <div className="gallery-section section-t-space">
       <GalleryTop galleryLength={gallery.length}/>
       <div className="portfolio-section ratio_square">
         <Container fluid className="p-0">
           <Row>
-            {gallery.map((item, index) => (
-              <Fragment key={index}>
-                {item.row ? (
-                  <Col xs="4" className="row m-0">
-                    <Col xs="12" className="pt-cls p-0">
-                      <CommonGalleryImage imageUrl={item.url} onClickHandle={toggleGalleryModal}/>
-                    </Col>
-                    <Col xs="12" className="pt-cls p-0">
-                      <CommonGalleryImage imageUrl={item.url} onClickHandle={toggleGalleryModal}/>
-                    </Col>
-                  </Col>
-                ) : (
-                  <Col xs={item.sizeSmall} className={item.className?item.className:""}>
-                    <CommonGalleryImage imageUrl={item.url} onClickHandle={toggleGalleryModal}/>
-                  </Col>
-                )}
-              </Fragment>
+            {displayImages.map((item, index) => (
+              <Col xs="4" key={index} className="p-1">
+                <div className="position-relative">
+                  <CommonGalleryImage 
+                    imageUrl={item.url} 
+                    onClickHandle={toggleGalleryModal}
+                  />
+                  {index === 8 && remainingCount > 0 && (
+                    <div 
+                      className="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
+                      style={{
+                        top: 0,
+                        left: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                        color: 'white',
+                        fontSize: '2rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
+                      }}
+                      onClick={toggleGalleryModal}
+                    >
+                      +{remainingCount}
+                    </div>
+                  )}
+                </div>
+              </Col>
             ))}
           </Row>
         </Container>
       </div>
-      <CommonGalleryModal modal={galleryModal} toggle={toggleGalleryModal} post={null as any} galleryList={[]} onReactionChange={() => {}} />
+      {/* <CommonGalleryModal modal={galleryModal} toggle={toggleGalleryModal} post={null as any} galleryList={[]} onReactionChange={() => {}} /> */}
     </div>
   );
 };

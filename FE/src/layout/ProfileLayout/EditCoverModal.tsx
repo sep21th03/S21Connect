@@ -5,22 +5,31 @@ import { EditProfile, ImagePath, Href, EditProfileImage } from "../../utils/cons
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import EditProfileDetails from "./EditProfileDetails";
 import UpdateImageModal from "./UpdateImageModal";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux-toolkit/store";
 import CustomImage from "@/Common/CustomImage";
 import { FullUserProfile } from "@/utils/interfaces/user";  
-import {API_ENDPOINTS} from "@/utils/constant/api";
-import axiosInstance from "@/utils/axiosInstance";
+import UserProfileService from "@/service/userProfileService";
+import { setImageLink } from "@/redux-toolkit/reducers/LayoutSlice";
+import { toast } from "react-toastify";
 import Image from "next/image";
 
 interface EditCoverModalProps extends ModalUserInterFace {
   userProfile: FullUserProfile;
   onUpdateProfile: (updatedUserProfile: FullUserProfile) => void;
 }
-const EditCoverModal: FC<EditCoverModalProps> = ({ isOpen, toggle, userProfile, onUpdateProfile }) => {
+
+const EditCoverModal: FC<EditCoverModalProps> = ({ 
+  isOpen, 
+  toggle, 
+  userProfile, 
+  onUpdateProfile 
+}) => {
   const [updateImage, setUpdateImage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [updatedProfile, setUpdatedProfile] = useState<FullUserProfile>(userProfile);
+  const dispatch = useDispatch();
+  
   const updateToggleImage = () => {setUpdateImage(!updateImage)};
   
   const handleEdit = () => {
@@ -31,30 +40,37 @@ const EditCoverModal: FC<EditCoverModalProps> = ({ isOpen, toggle, userProfile, 
   const handleProfileDetailsUpdate = (newProfileData: FullUserProfile) => {
     setUpdatedProfile(newProfileData);
   };
-  const prepareProfilePayload = (profile: typeof updatedProfile.profile) => ({
-    ...profile,
-    is_phone_number_visible: profile.is_phone_number_visible ? 1 : 0,
-    is_location_visible: profile.is_location_visible ? 1 : 0,
-    is_workplace_visible: profile.is_workplace_visible ? 1 : 0,
-    is_school_visible: profile.is_school_visible ? 1 : 0,
-    is_past_school_visible: profile.is_past_school_visible ? 1 : 0,
-    is_relationship_status_visible: profile.is_relationship_status_visible ? 1 : 0,
-  });
+
   const handleSaveChanges = async () => {
     setIsLoading(true);
     try {
-      const response = await axiosInstance.patch(API_ENDPOINTS.PROFILE.BASE + API_ENDPOINTS.PROFILE.MY_PROFILE.UPDATE, {
-        profile: prepareProfilePayload(updatedProfile.profile),
-      });
-      if (response.data) {
+      const response = await UserProfileService.updateProfile(updatedProfile.profile);
+      
+      if (response.success) {
         onUpdateProfile(updatedProfile);
         toggle();
+        toast.success("Cập nhật thông tin thành công!");
+      } else {
+        toast.error(response.message);
       }
     } catch (error) {
       console.error("Error updating profile:", error);
+      toast.error("Có lỗi xảy ra khi cập nhật thông tin");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAvatarUpdate = (newAvatarUrl: string) => {
+    dispatch(setImageLink(newAvatarUrl));
+    
+    setUpdatedProfile(prev => ({
+      ...prev,
+      user: {
+        ...prev.user,
+        avatar: newAvatarUrl
+      }
+    }));
   };
   
   const { imageLink } = useSelector((state: RootState) => state.LayoutSlice);
@@ -76,7 +92,7 @@ const EditCoverModal: FC<EditCoverModalProps> = ({ isOpen, toggle, userProfile, 
                 <div className="profile-pic">
                   <div className="bg-size blur-up lazyloaded">
                     <Image
-                      src={userProfile?.user?.avatar ? userProfile.user.avatar : `${ImagePath}/user-sm/1.jpg`}
+                      src={updatedProfile?.user?.avatar ? updatedProfile.user.avatar : `${ImagePath}/${imageLink}`}
                       className="img-fluid lazyload bg-img rounded-circle"
                       alt=""
                       width={100}
@@ -84,7 +100,7 @@ const EditCoverModal: FC<EditCoverModalProps> = ({ isOpen, toggle, userProfile, 
                     />
                   </div>
                   <a href={Href} onClick={handleEdit}>
-                    edit image
+                    Thay ảnh đại diện
                   </a>
                 </div>
               </div>
@@ -97,11 +113,16 @@ const EditCoverModal: FC<EditCoverModalProps> = ({ isOpen, toggle, userProfile, 
         </ModalBody>
         <ModalFooter>
           <Button color="solid" onClick={handleSaveChanges} disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Changes"}
+            {isLoading ? "Đang cập nhật..." : "Lưu thay đổi"}
           </Button>
         </ModalFooter>
       </Modal>
-      <UpdateImageModal isOpen={updateImage} toggle={updateToggleImage} />
+      <UpdateImageModal 
+        isOpen={updateImage} 
+        toggle={updateToggleImage} 
+        updateBackGround={handleAvatarUpdate}
+        isBackgroundImage={false}
+      />
     </>
   );
 };

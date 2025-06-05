@@ -74,6 +74,7 @@ export const API_ENDPOINTS = {
     USER_PROFILE: (username: string) => `/profile/${username}`,
     USER_DATA: (userId: string) => `/profile/user/data/${userId}`,
     USER_AVATAR: `/profile/user/avatar`,
+    UPDATE_BACKGROUND: "/profile/user/background",
     USER_ABOUT: "/profile/user/about",
   },
 
@@ -126,9 +127,19 @@ export const API_ENDPOINTS = {
     },
   },
   IMAGES: {
-    POST_IMAGES: `/images/upload`,
-    GET_BY_ID: (id: string) => `/images/${id}`,
-    DELETE: (id: string) => `/images/${id}`,
+    IMAGES: {
+      GET_BY_ID: "/images/user",
+      GET_BY_TYPE: (userId: string, type: string) => `/images/user/${userId}/type/${type}`,
+      GET_SINGLE: `/images`,
+      POST_IMAGES: `/images/upload-avatar`,
+      BULK_UPLOAD: `/images/bulk-upload`,
+      DELETE: `/images`,
+      UPDATE: `/images`,
+      IMAGES: {
+        GET_BY_ID: (userId: string) => `/images/user/${userId}`,
+        POST_IMAGES: `/images/upload`,
+      }
+    },
   },
   NOTIFICATIONS: {
     GET_NOTIFICATION_LIST: "/notifications",

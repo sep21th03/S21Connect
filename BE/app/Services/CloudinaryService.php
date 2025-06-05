@@ -9,6 +9,8 @@ use Cloudinary\Api\Admin\AdminApi;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Cloudinary\Configuration\Configuration;
+use App\Models\Image;
+use Illuminate\Support\Str;
 
 class CloudinaryService
 {
@@ -27,22 +29,39 @@ class CloudinaryService
                 'secure' => true
             ]
         ]);
-
+        $this->cloudinary = new Cloudinary($config);
         $this->uploadApi = new UploadApi($config);
         $this->adminApi = new AdminApi($config);
     }
 
-    public function uploadImage(string $filePath, string $folder = 'images')
+    public function uploadImage(string $filePath): array
     {
-        $uploadOptions = [
-            'folder' => $folder,
-            'resource_type' => 'image',
-        ];
+        try {
+            $uploadOptions = [
+                'resource_type' => 'image',
+            ];
 
-        $uploadResult = $this->cloudinary->uploadApi()->upload($filePath, $uploadOptions);
+            $uploadResult = $this->uploadApi->upload($filePath, $uploadOptions);
 
-        return $uploadResult;
+            return [
+                'success' => true,
+                'data' => [
+                    'url' => $uploadResult['secure_url'],
+                    'public_id' => $uploadResult['public_id'],
+                    'width' => $uploadResult['width'] ?? null,
+                    'height' => $uploadResult['height'] ?? null,
+                    'folder' => $uploadResult['folder'] ?? null,
+                ]
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Cloudinary upload error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
     }
+
 
     public function uploadVideoWithAudio(
         string $filePath,
@@ -213,6 +232,143 @@ class CloudinaryService
         } catch (\Exception $e) {
             \Log::error('Cloudinary get info error: ' . $e->getMessage());
             return null;
+        }
+    }
+
+
+    // profile
+
+
+    public function deleteImage(string $publicId): array
+    {
+        try {
+            $result = $this->uploadApi->destroy($publicId);
+
+            return [
+                'success' => $result['result'] === 'ok',
+                'result' => $result['result']
+            ];
+        } catch (\Exception $e) {
+            Log::error('Cloudinary delete error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    public function saveImageRecord(array $imageData, string $userId): Image
+    {
+        return Image::create([
+            'id' => Str::uuid(),
+            'user_id' => $userId,
+            'url' => $imageData['url'],
+            'type' => 'avatar',
+            'folder' => 'album',
+            'public_id' => $imageData['public_id'],
+            'width' => $imageData['width'] ?? null,
+            'height' => $imageData['height'] ?? null,
+        ]);
+    }
+
+
+
+    public function uploadAndSave(UploadedFile $file, string $userId): array
+    {
+        try {
+            $uploadResult = $this->uploadImage($file);
+
+            if (!$uploadResult['success']) {
+                \Log::error('Cloudinary upload failed:', [$uploadResult]);
+                return $uploadResult;
+            }
+
+            $image = $this->saveImageRecord($uploadResult['data'], $userId);
+
+            return [
+                'success' => true,
+                'data' => $image->toArray()
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Upload and save error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    public function deleteImageCompletely(string $imageId): array
+    {
+        try {
+            $image = Image::find($imageId);
+
+            if (!$image) {
+                return [
+                    'success' => false,
+                    'error' => 'Image not found'
+                ];
+            }
+
+            $cloudinaryResult = $this->deleteImage($image->public_id);
+
+            if ($cloudinaryResult['success']) {
+                $image->delete();
+
+                return [
+                    'success' => true,
+                    'message' => 'Image deleted successfully'
+                ];
+            }
+
+            return $cloudinaryResult;
+        } catch (\Exception $e) {
+            Log::error('Complete delete error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+    public function getImagesByUserId(string $userId, string $type = null): array
+    {
+        try {
+            $query = Image::where('user_id', $userId);
+
+            if ($type) {
+                $query->where('type', $type);
+            }
+
+            $images = $query->orderBy('created_at', 'desc')->get();
+
+            return [
+                'success' => true,
+                'data' => $images->toArray()
+            ];
+        } catch (\Exception $e) {
+            Log::error('Get images error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+    public function getTransformedUrl(string $publicId, array $transformations = []): string
+    {
+        try {
+            $transformation = new Transformation();
+
+            foreach ($transformations as $key => $value) {
+                $transformation->$key($value);
+            }
+
+            return cloudinary_url($publicId, [
+                'transformation' => $transformation,
+                'secure' => true
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Transformation error: ' . $e->getMessage());
+            return '';
         }
     }
 }

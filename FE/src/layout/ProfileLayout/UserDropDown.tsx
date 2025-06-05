@@ -4,10 +4,24 @@ import { Dropdown, DropdownMenu, DropdownToggle, Input } from 'reactstrap'
 import { ChoosePhoto, Href, RemovePhoto, SetPosition, UploadPhoto } from '../../utils/constant'
 import DynamicFeatherIcon from '@/Common/DynamicFeatherIcon'
 import UpdateImageModal from './UpdateImageModal'
+import { useDispatch } from 'react-redux'
+import { setBackgroundImage } from '@/redux-toolkit/reducers/LayoutSlice'
+
+
 
 const UserDropDown:FC<UserDropDownInterFace> = ({dropDownOpen,toggleDropDown,isOwnProfile}) => {
-    const [dropDown, setDropDown] = useState(false)
-    const toggle  = ()=>setDropDown(!dropDown) 
+    const dispatch = useDispatch();
+    const [avatarModal, setAvatarModal] = useState(false);
+    const [backgroundModal, setBackgroundModal] = useState(false);
+    
+    const toggleAvatarModal = () => setAvatarModal(!avatarModal);
+    const toggleBackgroundModal = () => setBackgroundModal(!backgroundModal);
+  
+    const handleBackgroundUpdate = (newBackgroundUrl: string) => {
+      dispatch(setBackgroundImage(newBackgroundUrl));
+    };
+  
+
   return (
     <>
     <Dropdown isOpen={dropDownOpen} toggle={toggleDropDown} className="setting-dropdown btn-group custom-dropdown arrow-none dropdown-sm">
@@ -18,10 +32,10 @@ const UserDropDown:FC<UserDropDownInterFace> = ({dropDownOpen,toggleDropDown,isO
         )}
         <DropdownMenu>
           <ul>
-            <li onClick={toggle}>
+            {/* <li onClick={toggleAvatarModal}>
               <a href={Href}><DynamicFeatherIcon iconName="Image" className="icon-font-light iw-16 ih-16"/>{ChoosePhoto}</a>
-            </li>
-            <li className="choose-file">
+            </li> */}
+            <li className="choose-file" onClick={toggleBackgroundModal}>
               <a href={Href}><DynamicFeatherIcon iconName="Upload" className="icon-font-light iw-16 ih-16"/>{UploadPhoto}</a>
               <Input type="file" />
             </li>
@@ -34,8 +48,8 @@ const UserDropDown:FC<UserDropDownInterFace> = ({dropDownOpen,toggleDropDown,isO
           </ul>
         </DropdownMenu>
       </Dropdown>
-      <UpdateImageModal isOpen={dropDown} toggle={toggle} updateBackGround={()=>{}} />
-
+      {/* <UpdateImageModal isOpen={backgroundModal} toggle={toggleBackgroundModal} updateBackGround={handleBackgroundUpdate} isBackgroundImage={true} /> */}
+      <UpdateImageModal isOpen={backgroundModal} toggle={toggleBackgroundModal} updateBackGround={handleBackgroundUpdate} isBackgroundImage={true} />
     </>
   )
 }

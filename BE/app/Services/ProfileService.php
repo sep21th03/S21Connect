@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\UserProfile;
 use App\Models\User;
+use App\Models\Post;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -151,10 +153,10 @@ class ProfileService
             ];
         } catch (ModelNotFoundException $e) {
             Log::warning("User with username '{$username}' not found.");
-            return null; 
+            return null;
         } catch (\Exception $e) {
             Log::error('getProfileByUsername error: ' . $e->getMessage());
-            throw $e;  
+            throw $e;
         }
     }
 
@@ -250,15 +252,40 @@ class ProfileService
 
     public function updateAvatar($userId, $avatarUrl)
     {
-        try {
             $user = User::findOrFail($userId);
             $user->avatar = $avatarUrl;
             $user->save();
 
-            return $user;
-        } catch (\Exception $e) {
-            Log::error('Avatar update failed: ' . $e->getMessage());
-            throw $e;
-        }
+            Post::create(
+                [
+                    'user_id' => $user->id,
+                    'post_id' => Str::uuid(),
+                    'type' => 'first',
+                    'images' => $user->avatar,
+                    'post_format' => 'avatar',
+                    'visibility' => 'public',
+                ]
+            );
+
+            return $user->avatar;
+    }
+    public function updateBackground($userId, $backgroundUrl)
+    {
+            $user = User::findOrFail($userId);
+            $user->cover_photo = $backgroundUrl;
+            $user->save();
+
+            Post::create(
+                [
+                    'user_id' => $user->id,
+                    'post_id' => Str::uuid(),
+                    'type' => 'first',
+                    'images' => $user->cover_photo,
+                    'post_format' => 'cover_photo',
+                    'visibility' => 'public',
+                ]
+            );
+
+            return $user->cover_photo;
     }
 }

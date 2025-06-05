@@ -44,7 +44,7 @@ class SendReactionNotification
 
 
 
-        Http::post("https://s21connect.onrender.com:3001/notification", [
+        Http::post("https://node-s21.codetifytech.io.vn/notification", [
             'id' => $notification->id,
             'userId' => $postOwner->id,
             'type' => 'reaction',

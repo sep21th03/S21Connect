@@ -15,21 +15,21 @@ import { Dropdown, DropdownMenu, DropdownToggle } from "reactstrap";
 import { FC, useState, useEffect } from "react";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import { UserProfileInterFace } from "../LayoutTypes";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux-toolkit/store";
 import UserDropDown from "./UserDropDown";
-import { API_ENDPOINTS } from "@/utils/constant/api";
-import axiosInstance from "@/utils/axiosInstance";
+import FriendService from "@/service/friendService";
+import UserProfileService from "@/service/userProfileService";
+import { setImageLink } from "@/redux-toolkit/reducers/LayoutSlice";
 
 const UserProfile: FC<UserProfileInterFace> = ({
   toggle,
   userProfile,
   isOwnProfile,
   setFriendshipStatus,
-  friendshipStatus
+  friendshipStatus,
 }) => {
   const [dropDownOpen, setDropDownOpen] = useState(false);
-  // const [friendshipStatus, setFriendshipStatus] = useState("none");
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
 
@@ -49,10 +49,8 @@ const UserProfile: FC<UserProfileInterFace> = ({
   const getUserData = async () => {
     if (!userProfile?.user.id) return;
     try {
-      const response = await axiosInstance.get(
-        API_ENDPOINTS.PROFILE.USER_DATA(userProfile?.user.id.toString() || "")
-      );
-      setUserData(response.data);
+      const data = await UserProfileService.getUserData(userProfile.user.id);
+      setUserData(data);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
@@ -63,11 +61,10 @@ const UserProfile: FC<UserProfileInterFace> = ({
 
     setIsLoading(true);
     try {
-      const response = await axiosInstance.get(
-        API_ENDPOINTS.FRIENDS.BASE +
-          API_ENDPOINTS.FRIENDS.CHECK_STATUS(userProfile?.user.id)
+      const status = await FriendService.checkFriendshipStatus(
+        userProfile.user.id
       );
-      setFriendshipStatus(response.data.status || "none");
+      setFriendshipStatus(status);
     } catch (error) {
       console.error("Error checking friendship status:", error);
       setFriendshipStatus("none");
@@ -76,69 +73,37 @@ const UserProfile: FC<UserProfileInterFace> = ({
     }
   };
 
-  const handleAddFriend = async () => {
+  const handleFriendAction = async (
+    action: "add" | "cancel" | "accept" | "unfriend"
+  ) => {
     if (isLoading || !userProfile?.user?.id) return;
 
     setIsLoading(true);
+    const userId = userProfile.user.id;
+
     try {
-      await axiosInstance.post(
-        API_ENDPOINTS.FRIENDS.BASE +
-          API_ENDPOINTS.FRIENDS.SEND(userProfile?.user.id)
-      );
-      setFriendshipStatus("pending_sent");
+      let success = false;
+
+      switch (action) {
+        case "add":
+          success = await FriendService.sendFriendRequest(userId);
+          if (success) setFriendshipStatus("pending_sent");
+          break;
+        case "cancel":
+          success = await FriendService.cancelFriendRequest(userId);
+          if (success) setFriendshipStatus("none");
+          break;
+        case "accept":
+          success = await FriendService.acceptFriendRequest(userId);
+          if (success) setFriendshipStatus("accepted");
+          break;
+        case "unfriend":
+          success = await FriendService.unfriend(userId);
+          if (success) setFriendshipStatus("none");
+          break;
+      }
     } catch (error) {
-      console.error("Error sending friend request:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCancelRequest = async () => {
-    if (isLoading || !userProfile?.user?.id) return;
-
-    setIsLoading(true);
-    try {
-      await axiosInstance.delete(
-        API_ENDPOINTS.FRIENDS.BASE +
-          API_ENDPOINTS.FRIENDS.REJECT(userProfile?.user.id)
-      );
-      setFriendshipStatus("none");
-    } catch (error) {
-      console.error("Error canceling friend request:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAcceptRequest = async () => {
-    if (isLoading || !userProfile?.user?.id) return;
-
-    setIsLoading(true);
-    try {
-      await axiosInstance.post(
-        API_ENDPOINTS.FRIENDS.BASE +
-          API_ENDPOINTS.FRIENDS.ACCEPT(userProfile?.user.id)
-      );
-      setFriendshipStatus("accepted");
-    } catch (error) {
-      console.error("Error accepting friend request:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUnfriend = async () => {
-    if (isLoading || !userProfile?.user?.id) return;
-
-    setIsLoading(true);
-    try {
-      await axiosInstance.delete(
-        API_ENDPOINTS.FRIENDS.BASE +
-          API_ENDPOINTS.FRIENDS.UNFRIEND(userProfile?.user.id)
-      );
-      setFriendshipStatus("none");
-    } catch (error) {
-      console.error("Error unfriending:", error);
+      console.error(`Error handling friend action: ${action}`, error);
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +122,7 @@ const UserProfile: FC<UserProfileInterFace> = ({
       case "none":
         return (
           <button
-            onClick={handleAddFriend}
+            onClick={() => handleFriendAction("add")}
             className="btn btn-solid"
             disabled={isLoading}
           >
@@ -167,7 +132,7 @@ const UserProfile: FC<UserProfileInterFace> = ({
       case "pending_sent":
         return (
           <button
-            onClick={handleCancelRequest}
+            onClick={() => handleFriendAction("cancel")}
             className="btn btn-outline"
             disabled={isLoading}
           >
@@ -178,14 +143,14 @@ const UserProfile: FC<UserProfileInterFace> = ({
         return (
           <div className="d-flex gap-2">
             <button
-              onClick={handleAcceptRequest}
+              onClick={() => handleFriendAction("accept")}
               className="btn btn-solid"
               disabled={isLoading}
             >
               {isLoading ? "Đang xử lý..." : "Chấp nhận"}
             </button>
             <button
-              onClick={handleCancelRequest}
+              onClick={() => handleFriendAction("cancel")}
               className="btn btn-outline"
               disabled={isLoading}
             >
@@ -196,7 +161,7 @@ const UserProfile: FC<UserProfileInterFace> = ({
       case "accepted":
         return (
           <button
-            onClick={handleUnfriend}
+            onClick={() => handleFriendAction("unfriend")}
             className="btn btn-outline"
             disabled={isLoading}
           >
@@ -204,22 +169,19 @@ const UserProfile: FC<UserProfileInterFace> = ({
           </button>
         );
       default:
-        return (
-          <button
-            onClick={handleAddFriend}
-            className="btn btn-solid"
-            disabled={isLoading}
-          >
-            {isLoading ? "Đang xử lý..." : "Thêm bạn bè"}
-          </button>
-        );
+        return null;
     }
   };
-  
+
+  const currentUser = isOwnProfile;
+
+  const avatarSrc = currentUser ? imageLink ?? userProfile?.user.avatar ?? "/images/default-avatar.jpg" : userProfile?.user.avatar;
+  const backgroundSrc = currentUser ? backgroundImage ?? userProfile?.user.cover_photo ?? "/images/default-cover.jpg" : userProfile?.user.cover_photo;
+
   return (
     <div className="profile-cover bg-size blur-up lazyloaded">
       <CustomImage
-        src={`${ImagePath}/${backgroundImage}`}
+        src={backgroundSrc || ""}
         className="img-fluid blur-up lazyload bg-img "
         alt="cover"
       />
@@ -228,23 +190,13 @@ const UserProfile: FC<UserProfileInterFace> = ({
           <div className="image-section">
             <div className="profile-img">
               <div className="bg-size blur-up lazyloaded">
-                {userProfile?.user.avatar ? (
                   <Image
-                  src={userProfile?.user.avatar || "/default-avatar.jpg"}
-                  className="img-fluid lazyload bg-img rounded-circle"
-                  alt="profile"
-                    width={120}
-                    height={120}
-                  />
-                ) : (
-                  <CustomImage
-                    src={`${ImagePath}/user-sm/1.jpg`}
+                    src={avatarSrc || ""}
                     className="img-fluid lazyload bg-img rounded-circle"
                     alt="profile"
                     width={120}
                     height={120}
                   />
-                )}
               </div>
               <span className="stats">
                 <Image
