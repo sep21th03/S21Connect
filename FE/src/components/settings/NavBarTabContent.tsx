@@ -31,7 +31,7 @@ const NavBarTabContent: React.FC<NavBarInterFace> = ({ activeTab ,setShowSideBar
           {user && <SettingHome user={user} />}
         </TabPane>
         <TabPane tabId={2}>
-          {user && <GeneralSetting />}
+          {user && <GeneralSetting user={user} />}
         </TabPane>
         <TabPane tabId={3}>
           {user && <AccountSetting />}

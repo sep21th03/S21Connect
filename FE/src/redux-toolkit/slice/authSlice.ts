@@ -77,7 +77,7 @@ export const login = createAsyncThunk<
     });
 
     if (result?.error) {
-      return rejectWithValue(result.error || "Đăng nhập thất bại");
+      return rejectWithValue("Đăng nhập thất bại, vui lòng kiểm tra lại thông tin đăng nhập");
     }
 
     if (result?.ok) {

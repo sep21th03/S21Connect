@@ -160,14 +160,14 @@ export interface UserEditInterFace {
 }
 
 export interface TabPaneInterFace {
-  handleImageUrl: (val: string) => void;
+  handleImageUrl: (val: string, public_id: string) => void;
   userid: string;
 }
 
 export interface SinglePhotosInterFace {
   showPhotos: boolean;
   setShowPhotos: (value: boolean) => void;
-  handleImageUrl: (value: string) => void;
+  handleImageUrl: (value: string, public_id: string) => void;
   userid: string;
 }
 

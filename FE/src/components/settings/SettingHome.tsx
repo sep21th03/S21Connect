@@ -20,7 +20,7 @@ const SettingHome: React.FC<{ user: UserRedux }> = ({ user }) => {
                 alt=""
               />
               <h3>{data.name}</h3>
-              {/* <p>provide all personal detail settings.</p> */}
+              <p>{data.title}</p>
             </a>
           </Col>
         ))}

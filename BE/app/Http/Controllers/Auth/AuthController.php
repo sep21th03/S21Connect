@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -100,7 +101,6 @@ class AuthController extends Controller
             : response()->json(['error' => trans($status)], 400);
     }
 
-
     public function verifyEmail(Request $request)
     {
         $request->validate([
@@ -108,6 +108,20 @@ class AuthController extends Controller
         ]);
 
         return $this->authService->verifyEmail($request->email);
+    }
+
+    public function changePassword(ChangePasswordRequest $request)
+    {
+        $user = Auth::user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['error' => 'Mật khẩu hiện tại không đúng.'], 400);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Mật khẩu đã được thay đổi thành công.']);
     }
 
 

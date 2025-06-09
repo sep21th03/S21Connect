@@ -7,9 +7,11 @@ import { Fragment } from "react";
 import { Href } from "../../utils/constant/index";
 import { navSettingData } from "@/Data/setting";
 import Link from "next/link";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux-toolkit/store";
 
 const NavbarSection: React.FC<NavBarInterFace> = ({activeTab,setActiveTab ,setShowSideBar,showSideBar}) => {
- 
+  const user = useSelector((state: RootState) => state.user.user);
   return (
     <Col xl="3" lg="4">
       <div className={`setting-sidebar ${showSideBar ?"show ":""}`}>
@@ -19,13 +21,13 @@ const NavbarSection: React.FC<NavBarInterFace> = ({activeTab,setActiveTab ,setSh
         <div className="user-details">
           <div className="user-img bg-size blur-up lazyloaded">
             <CustomImage
-              src={`${ImagePath}/user/3.jpg`}
+              src={user?.avatar || `${ImagePath}/user/3.jpg`}
               className="img-fluid blur-up lazyload bg-img"
               alt=""
             />
           </div>
-          <h5>Josephin water</h5>
-          <h6>Josephin.water@gmail.com</h6>
+          <h5>{user?.name}</h5>
+          <h6>{user?.email}</h6>
         </div>
         <div className="tab-section">
           <Nav pills className=" flex-column">

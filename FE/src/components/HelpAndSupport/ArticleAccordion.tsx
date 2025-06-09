@@ -13,36 +13,48 @@ const ArticleAccordion: React.FC = () => {
         <CardHeader>
           <h2 className="mb-0">
             <Button className="btn-link btn-block text-left" onClick={() => toggle("1")}>
-              Choose a new username
+              Chọn tên người dùng mới
             </Button>
           </h2>
         </CardHeader>
         <Collapse isOpen={isOpen === "1"}>
-          <CardBody>{AccordionDummyText}</CardBody>
+          <CardBody>
+            <p>
+              Khi bạn tạo tài khoản S21connect, chúng tôi yêu cầu một số thông tin cá nhân. Bằng cách cung cấp thông tin chính xác, bạn có thể giúp giữ an toàn tài khoản của mình và làm cho dịch vụ của chúng tôi hữu ích hơn.
+            </p>
+          </CardBody> 
         </Collapse>
       </Card>
       <Card>
         <CardHeader>
           <h2 className="mb-0">
             <Button className="btn-link btn-block text-left collapsed" onClick={() => toggle("2")}>
-              Check if you already have a Friendbook Account
+              Kiểm tra nếu bạn đã có tài khoản S21connect
             </Button>
           </h2>
         </CardHeader>
         <Collapse isOpen={isOpen === "2"}>
-          <CardBody>{AccordionDummyText}</CardBody>
+          <CardBody>
+            <p>
+              Khi bạn tạo tài khoản S21connect, chúng tôi yêu cầu một số thông tin cá nhân. Bằng cách cung cấp thông tin chính xác, bạn có thể giúp giữ an toàn tài khoản của mình và làm cho dịch vụ của chúng tôi hữu ích hơn.
+            </p>
+          </CardBody>
         </Collapse>
       </Card>
       <Card>
         <CardHeader>
           <h2 className="mb-0">
             <Button className="btn-link btn-block text-left collapsed" onClick={() => toggle("3")}>
-              Check where email notifications are sent
+              Kiểm tra nơi thông báo email được gửi
             </Button>
           </h2>
         </CardHeader>
         <Collapse isOpen={isOpen === "3"}>
-          <CardBody>{AccordionDummyText}</CardBody>
+          <CardBody>
+            <p>
+              Khi bạn tạo tài khoản S21connect, chúng tôi yêu cầu một số thông tin cá nhân. Bằng cách cung cấp thông tin chính xác, bạn có thể giúp giữ an toàn tài khoản của mình và làm cho dịch vụ của chúng tôi hữu ích hơn.
+            </p>
+          </CardBody>
         </Collapse>
       </Card>
     </Accordion>

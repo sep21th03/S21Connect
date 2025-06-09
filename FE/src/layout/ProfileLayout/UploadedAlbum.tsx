@@ -12,7 +12,7 @@ const UploadedAlbum: FC<TabPaneInterFace> = ({ handleImageUrl, userid }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const fetchImagesRef = useRef(false);
 
   useEffect(() => {
@@ -28,38 +28,38 @@ const UploadedAlbum: FC<TabPaneInterFace> = ({ handleImageUrl, userid }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await imageService.getImagesByUserId();
-      
+
       if (response.success && response.data.length > 0) {
         setImages(response.data);
         setSelectedImage(response.data[0].url);
-        handleImageUrl(response.data[0].url);
+        handleImageUrl(response.data[0].url, response.data[0].id);
       } else {
         setImages([]);
         setSelectedImage("post/10.jpg");
-        handleImageUrl("post/10.jpg");
+        handleImageUrl("post/10.jpg", "");
       }
     } catch (error) {
       console.error("Error fetching images:", error);
       setError("Failed to load images");
       setImages([]);
       setSelectedImage("post/10.jpg");
-      handleImageUrl("post/10.jpg");
+      handleImageUrl("post/10.jpg", "");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleImageSelect = (imageUrl: string) => {
+  const handleImageSelect = (imageUrl: string, id: string) => {
     setSelectedImage(imageUrl);
-    handleImageUrl(imageUrl);
+    handleImageUrl(imageUrl, id);
   };
 
   const handleDefaultImageSelect = (imageNumber: number) => {
     const imagePath = `post/${imageNumber}.jpg`;
     setSelectedImage(imagePath);
-    handleImageUrl(imagePath);
+    handleImageUrl(imagePath, "");
   };
 
   if (loading) {
@@ -86,7 +86,7 @@ const UploadedAlbum: FC<TabPaneInterFace> = ({ handleImageUrl, userid }) => {
               <Label htmlFor={`uploaded-img-${image.id}`} />
               <Input
                 className="radio_animated"
-                onChange={() => handleImageSelect(image.url)}
+                onChange={() => handleImageSelect(image.url, image.id)}
                 id={`uploaded-img-${image.id}`}
                 type="radio"
                 name="UploadedRadios"
@@ -107,7 +107,7 @@ const UploadedAlbum: FC<TabPaneInterFace> = ({ handleImageUrl, userid }) => {
                       height: "100% !important",
                       objectFit: "cover",
                     }}
-                    />
+                  />
                 </div>
               </div>
             </Col>

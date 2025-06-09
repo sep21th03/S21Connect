@@ -10,12 +10,12 @@ const SubScribeSection: React.FC = () => {
       <Container fluid className="p-0">
         <div className="app-section bg-size blur-up lazyloaded">
           <CustomImage
-            src={`${ImagePath}/breadcrumb.jpg`}
+            src={`${ImagePath}/butterfly-ocean.jpg`}
             className="img-fluid blur-up lazyload bg-img"
             alt=""
           />
           <div className="app-content">
-            <h2>Download friendbook app now</h2>
+            <h2>Tải ứng dụng S21Connect ngay</h2>
             <div className="app-buttons">
               <a href={Href}>
                 <img src={`${ImagePath}/app-btns/app-store.jpg`} className="img-fluid blur-up lazyloaded" alt=""/>

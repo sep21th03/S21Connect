@@ -213,7 +213,7 @@ const UserProfile: FC<UserProfileInterFace> = ({
             <h2>
               {userProfile?.user.first_name} {userProfile?.user.last_name}
             </h2>
-            <h5>{userProfile?.user.email}</h5>
+            <h5>@{userProfile?.user.username}</h5>
             <UserData userData={userData} />
             {renderFriendshipButton()}
           </div>

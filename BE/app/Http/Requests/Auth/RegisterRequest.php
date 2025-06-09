@@ -26,7 +26,13 @@ class RegisterRequest extends FormRequest
         return [
             'username'   => 'required|string|max:50|unique:users,username',
             'email'      => 'required|email|unique:users,email',
-            'password'   => 'required|min:8|confirmed',
+            'password'   => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/',
+            ],
             'first_name' => 'required|string|max:50',
             'last_name'  => 'required|string|max:50',
             'gender'      => 'required|in:male,female,other',
@@ -51,6 +57,7 @@ class RegisterRequest extends FormRequest
             'password.string'       => 'Mật khẩu phải là chuỗi.',
             'password.min'          => 'Mật khẩu phải có ít nhất 8 ký tự.',
             'password.confirmed'    => 'Mật khẩu xác nhận không khớp.',
+            'password.regex'        => 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt.',
 
             'first_name.required'   => 'Vui lòng nhập họ.',
             'first_name.string'     => 'Họ phải là chuỗi.',

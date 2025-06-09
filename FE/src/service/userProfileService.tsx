@@ -22,12 +22,13 @@ export interface UpdateBackgroundResponse {
 
 class UserProfileService {
   async updateAvatar(
-    avatar: string
+    avatar: string,
+    id: string
   ): Promise<UpdateAvatarResponse> {
     try {
       const response = await axiosInstance.post(
         API_ENDPOINTS.PROFILE.USER_AVATAR,
-        { avatar }
+        { avatar, id }
       );
       return {
         success: true,
@@ -88,11 +89,11 @@ class UserProfileService {
       };
     }
   }
-  async updateBackgroundImage(imageUrl: string): Promise<UpdateBackgroundResponse> {
+  async updateBackgroundImage(imageUrl: string, id: string): Promise<UpdateBackgroundResponse> {
     try {
       const response = await axiosInstance.post(
         API_ENDPOINTS.PROFILE.UPDATE_BACKGROUND,
-        { cover_photo: imageUrl }
+        { cover_photo: imageUrl, id }
       );
       return {
         success: true,

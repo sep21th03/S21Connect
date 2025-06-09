@@ -15,11 +15,12 @@ const OptionDropDown: FC<OptionDropDownProps> = ({ postDropDown, setPostDropDown
     setSelectedOption(value);
     setPostDropDown(false); 
   };
+  const selectedOptionName = createPostDropDown.find((item) => item.slug === selectedOption)?.name;
   return (
     <div className="setting-dropdown">
       <Dropdown isOpen={postDropDown} toggle={() => setPostDropDown(!postDropDown)} className="custom-dropdown arrow-none dropdown-sm btn--group">
         <DropdownToggle color="transparent">
-          <h5> {selectedOption || Public} <DynamicFeatherIcon iconName="ChevronDown" className="iw-14" /></h5>
+          <h5> {selectedOptionName || Public} <DynamicFeatherIcon iconName="ChevronDown" className="iw-14" /></h5>
         </DropdownToggle>
         <DropdownMenu>
           <ul>

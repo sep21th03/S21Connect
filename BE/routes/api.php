@@ -26,8 +26,7 @@ use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Admin\AdminStatsController;
 use App\Http\Controllers\Story\StoryController;
 use App\Http\Controllers\Image\CloudinaryController;
-
-
+use App\Http\Controllers\User\ContactController;
 
 
 /*
@@ -68,6 +67,7 @@ Route::prefix('auth')->group(function () {
 
     Route::post('/email/resend', [AuthController::class, 'verifyEmail'])->name('verification.notice');
     Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
 });
 
 Route::prefix('admin')->middleware(['auth:api', 'admin'])->group(function () {
@@ -160,6 +160,7 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::get('{userId}/hovercard', [UserController::class, 'hoverCardData']);
         Route::get('{userId}/list_friends', [UserController::class, 'getListFriend']);
         Route::get('{userId}/list_friends_limit', [UserController::class, 'getListFriendLimit']);
+        Route::get('{username}/list_friends_by_username', [UserController::class, 'getListFriendByUsername']);
         Route::post('/update-last-active', [UserController::class, 'updateLastActive']);
         Route::get('/get_stats', [UserController::class, 'getStats']);
         Route::get('/search-friend', [UserController::class, 'searchFriends']);
@@ -219,6 +220,10 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::delete('/{imageId}', [CloudinaryController::class, 'deleteImage']);
 
         Route::put('/{imageId}', [CloudinaryController::class, 'updateImage']);
+
+        Route::get('/users/{id}/photos', [ImageController::class, 'getAllPhotos']);   
+        Route::get('/users/{id}/albums', [ImageController::class, 'getAlbums']);    
+        Route::get('/users/{id}/album/{folder}', [ImageController::class, 'getAlbumImages']);
     });
 
     //notifications
@@ -250,5 +255,10 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::post('/upload', [CloudinaryController::class, 'upload']);
         Route::post('/upload-post', [CloudinaryController::class, 'uploadFiles']);
         Route::delete('/delete-post', [CloudinaryController::class, 'deleteFiles']);
+    });
+
+    Route::prefix('settings')->group(function () {
+        Route::get('/get-info', [ProfileController::class, 'getSettingsInfoUser']);
+        Route::post('/contact-us', [ContactController::class, 'send']);
     });
 });

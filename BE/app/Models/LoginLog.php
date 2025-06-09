@@ -9,6 +9,8 @@ class LoginLog extends Model
     protected $fillable = [
         'user_id',
         'ip_address',
+        'device_hash',
+        'device_info',
     ];
 
     protected $casts = [

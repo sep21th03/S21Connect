@@ -12,7 +12,6 @@ import { uploadFilesToCloudinary } from "@/service/cloudinaryService";
 import { createPost } from "@/service/postService";
 import { getListFriends } from "@/service/userSerivice";
 
-
 const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
   const colorList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
   const [writePost, setWritePost] = useState(false);
@@ -33,8 +32,6 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
   const [showMediaUpload, setShowMediaUpload] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
-
-
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -67,36 +64,34 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
     return file.type.startsWith("image/") ? "image" : "video";
   };
 
-  const creatPost = async () => {
-    let images: string[] = [];
-    let videos: string[] = [];
-
+  const createPostHandler = async () => {
+    let media: { url: string; public_id: string; type: "image" | "video" }[] = [];
     if (selectedFiles.length > 0) {
       setUploadingFiles(true);
       try {
         const uploadResult = await uploadFilesToCloudinary(selectedFiles);
-        images = uploadResult.images;
-        videos = uploadResult.videos;
+        media = uploadResult.files.map(file => ({
+          url: file.url,
+          public_id: file.public_id,
+          type: file.resource_type === "image" ? "image" : "video",
+        }));
       } catch (error) {
         toast.error("Upload file thất bại!");
-        console.error("Upload error:", error);
         setUploadingFiles(false);
         return;
       }
       setUploadingFiles(false);
     }
     try {
-      const response =  await createPost(
+      const response = await createPost(
         selectedFeeling,
         selectedPlace,
         taggedFriends,
         selectedBg,
         postContent,
         selectedOption,
-        images,
-        videos
+        media
       );
-
       if (response.status === 200) {
         setWritePost(false);
         setShowPostButton(false);
@@ -122,7 +117,7 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
   };
 
   const handleCreatePost = () => {
-    creatPost();
+    createPostHandler();
   };
 
   const { data: session } = useSession();

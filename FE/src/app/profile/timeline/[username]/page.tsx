@@ -158,7 +158,6 @@ const ProfileTimeLine = () => {
     dependencyArray: [userId, isOwnProfile],
   });
 
-  // Show loading stat
   if (loading) {
     return <LoadingLoader />;
   }

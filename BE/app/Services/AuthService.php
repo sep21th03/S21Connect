@@ -47,6 +47,8 @@ class AuthService
         LoginLog::create([
             'user_id' => $user->id,
             'ip_address' => $ip,
+            'device_hash' => $data['device_hash'] ?? request()->header('User-Agent'),
+            'device_info' => $data['device_info'] ?? null,
         ]);
 
         return response()->json(['token' => $token, 'refresh_token' => $refreshToken, 'expires_in' => JWTAuth::factory()->getTTL() * 60]);

@@ -13,7 +13,7 @@ const Notification: React.FC = () => {
           <form className="theme-form form-sm" onSubmit={(event: FormEvent<HTMLFormElement>) =>event.preventDefault()}>
             <Row>
               <Col xs="12"  className="form-group ">
-                <Label>where you receive these notifications?</Label>
+                <Label>Bạn nhận được thông báo ở đâu?</Label>
               </Col>
               <Col md="6" className="form-group toggle-sec">
                 <div className="button toggle-btn">
@@ -21,7 +21,7 @@ const Notification: React.FC = () => {
                   <div className="knobs"><span /></div>
                   <div className="layer" />
                 </div>
-                <Label>email <span>Lorem ipsum dolor sit amet</span></Label>
+                <Label>Email <span>Nhận thông báo qua email</span></Label>
               </Col>
               <Col md="6" className="form-group toggle-sec">
                 <div className="button toggle-btn">
@@ -29,10 +29,10 @@ const Notification: React.FC = () => {
                   <div className="knobs"><span /></div>
                   <div className="layer" />
                 </div>
-                <Label>SMS<span>Lorem ipsum dolor sit amet</span></Label>
+                <Label>SMS<span>Nhận thông báo qua tin nhắn điện thoại</span></Label>
               </Col>
               <Col xs="12" className="form-group">
-                <Label>other notification</Label>
+                <Label>Thông báo khác</Label>
               </Col>
               <Col md="6" className="form-group toggle-sec">
                 <div className="button toggle-btn">
@@ -40,7 +40,7 @@ const Notification: React.FC = () => {
                   <div className="knobs"><span /></div>
                   <div className="layer" />
                 </div>
-                <Label>sound<span>Lorem ipsum dolor sit amet</span></Label>
+                <Label>Âm thanh<span>Bật/tắt âm thanh thông báo</span></Label>
               </Col>
               <Col md="6" className="form-group toggle-sec">
                 <div className="button toggle-btn">
@@ -48,7 +48,7 @@ const Notification: React.FC = () => {
                   <div className="knobs"><span /></div>
                   <div className="layer" />
                 </div>
-                <Label>vibration<span>Lorem ipsum dolor sit amet</span></Label>
+                <Label>Rung <span>Bật/tắt rung khi có thông báo</span></Label>
               </Col>
               <Col md="6" className="form-group toggle-sec">
                 <div className="button toggle-btn">
@@ -56,7 +56,7 @@ const Notification: React.FC = () => {
                   <div className="knobs"><span /></div>
                   <div className="layer" />
                 </div>
-                <Label>friend request<span>Lorem ipsum dolor sit amet</span></Label>
+                <Label>Yêu cầu kết bạn<span>Nhận thông báo khi có lời mời kết bạn</span></Label>
               </Col>
               <Col md="6" className="form-group toggle-sec">
                 <div className="button toggle-btn">
@@ -64,7 +64,7 @@ const Notification: React.FC = () => {
                   <div className="knobs"><span /></div>
                   <div className="layer" />
                 </div>
-                <Label>message<span>Lorem ipsum dolor sit amet</span></Label>
+                <Label>Tin nhắn<span>Nhận thông báo khi có tin nhắn</span></Label>
               </Col>
               <Col md="6" className="form-group toggle-sec ">
                 <div className="button toggle-btn">
@@ -72,7 +72,7 @@ const Notification: React.FC = () => {
                   <div className="knobs"><span /></div>
                   <div className="layer" />
                 </div>
-                <Label>comment<span>Lorem ipsum dolor sit amet</span></Label>
+                <Label>Bình luận<span>Nhận thông báo khi có bình luận</span></Label>
               </Col>
             </Row>
           </form>

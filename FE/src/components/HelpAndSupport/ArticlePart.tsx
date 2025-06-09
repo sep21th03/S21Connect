@@ -8,43 +8,43 @@ const ArticlePart: React.FC = () => {
     <Col lg="9" className="order-lg-1">
       <div className="article-part">
         <div className="main-title">
-          <h2>how to create friendbook account</h2>
+          <h2>Cách tạo tài khoản S21connect</h2>
         </div>
         <div className="content">
-          <p> A friendbook is social media website. With a friendbook Account, you can do things like:</p>
+          <p> S21connect là một trang mạng xã hội. Với tài khoản S21connect, bạn có thể làm những việc như:</p>
           <ul>
-            <li>make a new friend</li>
-            <li>make unforgettable events</li>
-            <li>connect with people</li>
+            <li>Tạo bạn bè mới</li>
+            <li>Tạo sự kiện đáng nhớ</li>
+            <li>Kết nối với mọi người</li>
           </ul>
         </div>
         <div className="sub-title">
-          <h3>step: 1 Create Friendbook Account</h3>
+          <h3>Bước 1: Tạo tài khoản S21connect</h3>
         </div>
         <div className="content">
-          <p> When you create a Friendbook Account, we ask for some personal info. By providing accurate info, you can help keep your account secure and make our services more useful.</p>
+          <p> Khi bạn tạo tài khoản S21connect, chúng tôi yêu cầu một số thông tin cá nhân. Bằng cách cung cấp thông tin chính xác, bạn có thể giúp giữ an toàn tài khoản của mình và làm cho dịch vụ của chúng tôi hữu ích hơn.</p>
           <ArticleAccordion />
           <div className="inner-title">
-            <h4>Use an existing email address </h4>
+            <h4>Sử dụng địa chỉ email hiện có</h4>
           </div>
           <ol>
-            <li> Go to the <Link href="/auth/register">Friendbook Register page</Link></li>
-            <li>Enter your name.</li>
-            <li>Click Use my current email address instead.</li>
-            <li>Enter your current email address.</li>
-            <li>Enter your current email address.</li>
-            <li> Verify your email address with the code sent to your existing email.</li>
-            <li>Click Verify.</li>
+            <li> Đi đến trang <Link href="/auth/register">Đăng ký S21connect</Link></li>
+            <li>Nhập tên của bạn.</li>
+            <li>Nhấp vào Sử dụng địa chỉ email hiện có.</li>
+            <li>Nhập địa chỉ email hiện có của bạn.</li>
+            <li>Nhập địa chỉ email hiện có của bạn.</li>
+            <li>Xác thực địa chỉ email của bạn với mã được gửi đến địa chỉ email hiện có của bạn.</li>
+            <li>Nhấp vào Xác thực.</li>
           </ol>
         </div>
         <div className="sub-title">
-          <h3>step: 2 Protect your account with recovery info</h3>
+          <h3>Bước 2: Bảo vệ tài khoản của bạn với thông tin khôi phục</h3> 
         </div>
         <div className="content mb-0">
-          <p>If you forget your password or someone is using your account without your permission, updated recovery info makes it much more likely you’ll get your account back.</p>
+          <p>Nếu bạn quên mật khẩu hoặc ai đó đang sử dụng tài khoản của bạn mà không có sự cho phép của bạn, thông tin khôi phục sẽ giúp tăng khả năng bạn có thể lấy lại tài khoản của mình.</p>
           <ul>
-            <li><a href={Href}>Add a recovery phone number</a></li>
-            <li><a href={Href}>Add a recovery email address</a></li>
+            <li><a href={Href}>Thêm số điện thoại khôi phục</a></li>
+            <li><a href={Href}>Thêm địa chỉ email khôi phục</a></li>
           </ul>
         </div>
       </div>

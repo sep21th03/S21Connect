@@ -35,18 +35,18 @@ const SinglePhotos: FC<SinglePhotosInterFace> = ({
       if (response.success && response.data.length > 0) {
         setImages(response.data);
         setSelectedImage(response.data[0].url);
-        handleImageUrl(response.data[0].url);
+        handleImageUrl(response.data[0].url, response.data[0].id);
       } else {
         setImages([]);
         setSelectedImage(null);
-        handleImageUrl("post/1.jpg");
+        handleImageUrl("post/1.jpg", "");
       }
     } catch (error) {
       console.error("Error fetching images:", error);
       setError("Failed to load images");
       setImages([]);
       setSelectedImage(null);
-      handleImageUrl("post/1.jpg");
+      handleImageUrl("post/1.jpg", "");
     } finally {
       setLoading(false);
     }
@@ -54,13 +54,13 @@ const SinglePhotos: FC<SinglePhotosInterFace> = ({
 
   const handleSelect = (image: CloudinaryImage) => {
     setSelectedImage(image.url);
-    handleImageUrl(image.url);
+    handleImageUrl(image.url, image.id);
   };
 
   const handleDefaultImageSelect = (imageNumber: number) => {
     const imagePath = `post/${imageNumber}.jpg`;
     setSelectedImage(imagePath);
-    handleImageUrl(imagePath);
+    handleImageUrl(imagePath, "");
   };
 
   const defaultImages = [1, 2, 3, 4, 5, 6];

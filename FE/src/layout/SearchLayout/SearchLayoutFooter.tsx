@@ -23,7 +23,7 @@ const SearchLayoutFooter: React.FC<SearchLayoutFooterInterFace> = ({diffrentImag
               <div className="footer-logo">
                 <Image src={`${ImagePath}/icon/${diffrentImage ? "logo.png" : "logo-color.png"}`} alt="" height={47} width={148}/>
               </div>
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, seddoeiusmod tempor incididunt ut labore et dolore magna aliqua. Utenim ad minim veniam, et dolore magna aliqua. Ut enim ad minimveniam, enim ad minim veniam,{" "}</p>
+              <p> S21Connect là mạng xã hội hiện đại giúp bạn kết nối, chia sẻ khoảnh khắc, trò chuyện và khám phá thế giới xung quanh một cách dễ dàng. Đồng hành cùng cộng đồng trẻ trung, năng động và sáng tạo – nơi mọi kết nối đều bắt đầu từ bạn.{" "}</p>
               <div className="footer-social">
                 <ul className="d-flex">
                   <li><a href="https://www.facebook.com/"  target="_blank"><FaFacebookF /></a></li>
@@ -57,7 +57,7 @@ const SearchLayoutFooter: React.FC<SearchLayoutFooterInterFace> = ({diffrentImag
         <Row>
           <Col xs="12">
             <div className="sub-footer">
-              <p>Friendbook © 2023. All rights reserved</p>
+              <p>S21Connect © 2025. All rights reserved</p>
             </div>
           </Col>
         </Row>

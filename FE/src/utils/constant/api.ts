@@ -16,6 +16,13 @@ export const API_ENDPOINTS = {
     RESEND_VERIFICATION: "/auth/email/resend",
   },
 
+  SETTING: {
+    CHANGE_PASSWORD: "/auth/change-password",
+    UPDATE_PROFILE: "/settings/update-profile",
+    GET_PROFILE: "/settings/get-info",
+    CONTACT_US: "/settings/contact-us",
+  },
+
   POSTS: {
     CREATE_POST: "/posts",
     GET_MY_POSTS: "/posts/my_post",
@@ -96,6 +103,7 @@ export const API_ENDPOINTS = {
     PROFILE: "/user/user-profile",
     HOVER_CARD: (userId: string) => `/${userId}/hovercard`,
     LIST_FRIENDS: (userId: string) => `/${userId}/list_friends`,
+    LIST_FRIENDS_BY_USERNAME: (username: string) => `/${username}/list_friends_by_username`,
     LIST_FRIENDS_LIMIT: (userId: string) => `/${userId}/list_friends_limit`,
     LAST_ACTIVE: (otherUserId: string) => `/user/update-last-active`,
     GET_STATS: "/user/get_stats",
@@ -138,7 +146,10 @@ export const API_ENDPOINTS = {
       IMAGES: {
         GET_BY_ID: (userId: string) => `/images/user/${userId}`,
         POST_IMAGES: `/images/upload`,
-      }
+      },
+      GET_ALL_PHOTOS: (userId: string) => `/images/users/${userId}/photos`,
+      GET_ALBUM_IMAGES: (userId: string, folder: string) => `/images/users/${userId}/album/${folder}`,
+      GET_ALL_ALBUMS: (userId: string) => `/images/users/${userId}/albums`,
     },
   },
   NOTIFICATIONS: {

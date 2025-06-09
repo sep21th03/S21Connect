@@ -17,23 +17,25 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
   postUser,
   onPostUpdated,
   onPostDeleted,
-  isShared
+  isShared,
 }) => {
-  
   const [showOption, setShowOption] = useState(false);
   const matchedVisibility = createPostDropDown.find(
     (option) => option.slug === postUser?.visibility
   );
-  const { openModal } = useModalNavigation(); 
+  const { openModal } = useModalNavigation();
   const handleClick = (e: React.MouseEvent, postUser: Post) => {
     e.preventDefault();
     e.stopPropagation();
     const modalUrl = `/${postUser.user.username}/posts/${postUser.id}?modal=true`;
-    
+
     openModal(modalUrl);
   };
   return (
-    <div className="post-title" style={{padding: isShared ? "0" : "20px 40px"}}>
+    <div
+      className="post-title"
+      style={{ padding: isShared ? "0" : "20px 40px" }}
+    >
       <div className="profile">
         <Media>
           <a
@@ -53,7 +55,14 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
             <h5>
               {postUser?.user?.first_name} {postUser?.user?.last_name}{" "}
               {postUser?.post_format === "avatar" && (
-                <span style={{ textTransform: "none" }}>đã thay đổi ảnh đại diện</span>
+                <span style={{ textTransform: "none" }}>
+                  đã thay đổi ảnh đại diện
+                </span>
+              )}
+              {postUser?.post_format === "cover_photos" && (
+                <span style={{ textTransform: "none" }}>
+                  đã cập nhật ảnh bìa
+                </span>
               )}
               {postUser?.feeling && feelingMap[postUser.feeling] && (
                 <>
@@ -90,8 +99,16 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
             </h5>
 
             <h6 className="d-flex align-items-center gap-2">
-              <a href={Href} onClick={(e) => handleClick(e, postUser)} style={{cursor: "pointer", textDecoration: "none", color: "inherit"}}> 
-              {formatTimeAgo(postUser?.created_at)}
+              <a
+                href={Href}
+                onClick={(e) => handleClick(e, postUser)}
+                style={{
+                  cursor: "pointer",
+                  textDecoration: "none",
+                  color: "inherit",
+                }}
+              >
+                {formatTimeAgo(postUser?.created_at)}
               </a>
               {matchedVisibility && (
                 <span className="d-flex align-items-center gap-1">
@@ -114,7 +131,10 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
           onFriendRequestClick={() => {}}
         />
       </div>
-      <div className="setting-btn ms-auto setting-dropdown no-bg" style={{display: isShared ? "none" : "block"}}>
+      <div
+        className="setting-btn ms-auto setting-dropdown no-bg"
+        style={{ display: isShared ? "none" : "block" }}
+      >
         <Dropdown
           isOpen={showOption}
           toggle={() => setShowOption(!showOption)}
@@ -128,7 +148,11 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
               />
             </div>
           </DropdownToggle>
-          <EditModalPostHeader postUser={postUser} onPostUpdated={onPostUpdated}  onPostDeleted={onPostDeleted}/>
+          <EditModalPostHeader
+            postUser={postUser}
+            onPostUpdated={onPostUpdated}
+            onPostDeleted={onPostDeleted}
+          />
         </Dropdown>
       </div>
     </div>

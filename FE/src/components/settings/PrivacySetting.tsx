@@ -14,35 +14,35 @@ const PrivacySetting: React.FC = () => {
           <form className="theme-form form-sm" onSubmit={(event: FormEvent<HTMLFormElement>) =>event.preventDefault()}>
             <Row>
               <Col xs="12" className="form-group">
-                <label>who can see your future post?</label>
+                <label>Ai có thể xem bài viết của bạn?</label>
                 <Input type="select">
-                  <option value="">everyone</option>
-                  <option>friends</option>
-                  <option>only me</option>
+                  <option value="">Tất cả</option>
+                  <option>Bạn bè</option>
+                  <option>Chỉ mình tôi</option>
                 </Input>
               </Col>
               <div className="form-group col-12">
-                <label>who can send you friend request?</label>
+                <label>Ai có thể gửi lời mời kết bạn?</label>
                 <Input type="select">
-                  <option value="">everyone</option>
-                  <option>friends</option>
-                  <option>only me</option>
+                  <option value="">Tất cả</option>
+                  <option>Bạn bè</option>
+                  <option>Chỉ mình tôi</option>
                 </Input>
               </div>
               <div className="form-group col-12">
-                <label>who can see your email address provided?</label>
+                <label>Ai có thể xem địa chỉ email của bạn?</label>
                 <Input type="select">
-                  <option>everyone</option>
-                  <option>friends</option>
-                  <option value="">only me</option>
+                  <option>Tất cả</option>
+                  <option>Bạn bè</option>
+                  <option value="">Chỉ mình tôi</option>
                 </Input>
               </div>
               <div className="form-group col-12">
-                <label>who can see your phone number provided?</label>
+                <label>Ai có thể xem số điện thoại của bạn?</label>
                 <Input type="select">
-                  <option>everyone</option>
-                  <option value="">friends</option>
-                  <option>only me</option>
+                  <option>Tất cả</option>
+                  <option>Bạn bè</option>
+                  <option>Chỉ mình tôi</option>
                 </Input>
               </div>
             </Row>

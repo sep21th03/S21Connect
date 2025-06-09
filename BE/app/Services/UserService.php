@@ -103,6 +103,130 @@ class UserService
         return User::whereIn('id', $listFriend)->take(20)->get();
     }
 
+    public function getListFriendByUsername($username, $type = 'all', $currentUserId = null)
+    {
+        $user = User::where('username', $username)->first();
+
+        if (!$user) {
+            return [];
+        }
+
+        switch ($type) {
+            case 'all':
+                $friendIds = Friendship::where('status', 'accepted')
+                    ->where(function ($q) use ($user) {
+                        $q->where('user_id', $user->id)
+                            ->orWhere('friend_id', $user->id);
+                    })
+                    ->get()
+                    ->map(function ($f) use ($user) {
+                        return $f->user_id === $user->id ? $f->friend_id : $f->user_id;
+                    })
+                    ->unique()
+                    ->values()
+                    ->toArray();
+                break;
+
+            case 'mutual':
+                if (!$currentUserId) return [];
+
+                $userFriendIds = Friendship::where('status', 'accepted')
+                    ->where(function ($q) use ($user) {
+                        $q->where('user_id', $user->id)
+                            ->orWhere('friend_id', $user->id);
+                    })
+                    ->get()
+                    ->map(fn($f) => $f->user_id === $user->id ? $f->friend_id : $f->user_id)
+                    ->toArray();
+
+                $currentFriendIds = Friendship::where('status', 'accepted')
+                    ->where(function ($q) use ($currentUserId) {
+                        $q->where('user_id', $currentUserId)
+                            ->orWhere('friend_id', $currentUserId);
+                    })
+                    ->get()
+                    ->map(fn($f) => $f->user_id === $currentUserId ? $f->friend_id : $f->user_id)
+                    ->toArray();
+
+                $friendIds = array_values(array_intersect($userFriendIds, $currentFriendIds));
+                break;
+
+            case 'followers':
+                $friendIds = Friendship::where('status', 'pending')
+                    ->where('friend_id', $user->id)
+                    ->pluck('user_id')
+                    ->toArray();
+                break;
+
+            case 'following':
+                $friendIds = Friendship::where('status', 'pending')
+                    ->where('user_id', $user->id)
+                    ->pluck('friend_id')
+                    ->toArray();
+                break;
+
+            case 'requests':
+                $friendIds = Friendship::where('status', 'pending')
+                    ->where(function ($q) use ($user) {
+                        $q->where('user_id', $user->id)
+                            ->orWhere('friend_id', $user->id);
+                    })
+                    ->get()
+                    ->map(function ($f) use ($user) {
+                        return $f->user_id === $user->id ? $f->friend_id : $f->user_id;
+                    })
+                    ->unique()
+                    ->toArray();
+                break;
+
+            default:
+                return [];
+        }
+
+        $friends = User::with('profile')
+            ->whereIn('id', $friendIds)
+            ->get();
+
+        $result = $friends->map(function ($friend) {
+            $following = Friendship::where('user_id', $friend->id)->count();
+            $followers = Friendship::where('friend_id', $friend->id)->count();
+
+            $acceptedFriendships = Friendship::where('status', 'accepted')
+                ->where(function ($q) use ($friend) {
+                    $q->where('user_id', $friend->id)
+                        ->orWhere('friend_id', $friend->id);
+                })
+                ->get();
+
+            $uniqueFriendPairs = $acceptedFriendships->map(function ($f) {
+                $ids = [$f->user_id, $f->friend_id];
+                sort($ids);
+                return implode('-', $ids);
+            })->unique();
+
+            $friendCount = $uniqueFriendPairs->count();
+
+            return [
+                'id' => $friend->id,
+                'username' => $friend->username,
+                'email' => $friend->email,
+                'first_name' => $friend->first_name,
+                'last_name' => $friend->last_name,
+                'bio' => $friend->bio,
+                'avatar' => $friend->avatar,
+                'user_data' => [
+                    'following' => $following,
+                    'followers' => $followers,
+                    'friends' => $friendCount,
+                ]
+            ];
+        });
+
+        return $result->values();
+    }
+
+
+
     public function getListFriendLimit($userId, $limit = 20)
     {
         $friendIds = Friendship::where('status', 'accepted')

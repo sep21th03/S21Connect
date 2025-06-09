@@ -26,7 +26,7 @@ const UserProFile: FC<{ userProfile: UserAbout | null }> = ({ userProfile }) => 
           <Link href="/profile">
             <h2>{userProfile?.first_name} {userProfile?.last_name} <span>❤</span></h2>
           </Link>
-          <h5>{userProfile?.username}</h5>
+          <h5>@{userProfile?.username}</h5>
           <div className="description">
             <p>{userProfile?.bio}</p>
           </div>

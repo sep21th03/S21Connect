@@ -1,25 +1,28 @@
-// components/Album.tsx
 import React, { FC, useState, useEffect } from "react";
 import { Card, CardBody, Col, Input, Row, Spinner } from "reactstrap";
 import DynamicFeatherIcon from "../DynamicFeatherIcon";
 import { CreateAlbum, ImagePath } from "../../utils/constant";
 import { AlbumInterFace } from "../CommonInterFace";
-import { imageService, CloudinaryImage } from "@/service/cloudinaryService";
+import { imageService } from "@/service/cloudinaryService";
 import { toast } from "react-toastify";
 
 interface AlbumData {
-  tittle: string;
-  image: string;
-  id?: string;
+  folder: string;
+  count: number;
+  latest: string;
+  thumbnail: string;
 }
 
-const Album: FC<AlbumInterFace> = ({
-  showPhotos,
-  setShowPhotos,
-  lg,
-  xl,
-  userid,
-}) => {
+interface DetailGalleryProps {
+  setShowPhotos: (show: boolean) => void;
+  showPhotos: boolean;
+  selectedFolder?: string;
+  setSelectedFolder?: (folder: string) => void;
+}
+
+const Album: FC<
+  AlbumInterFace & { setSelectedFolder?: (folder: string) => void }
+> = ({ showPhotos, setShowPhotos, lg, xl, userid, setSelectedFolder }) => {
   const [albumDetail, setAlbumDetail] = useState<AlbumData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,26 +38,15 @@ const Album: FC<AlbumInterFace> = ({
       setIsLoading(true);
       setError(null);
 
-      const response = await imageService.getImagesByUserId();
-
-      if (response.success && response.data.length > 0) {
-        const albums = response.data.map((image: CloudinaryImage) => ({
-          id: image.id,
-          tittle:
-            image.public_id
-              .split("/")
-              .pop()
-              ?.replace(/\.\w+$/, "") || "Album",
-          image: image.url,
-        }));
-
-        setAlbumDetail(albums);
+      const response = await imageService.getAlbums(userid);
+      if (response && response.length > 0) {
+        setAlbumDetail(response);
       } else {
         setAlbumDetail([]);
       }
     } catch (error) {
-      console.error("Error fetching albums:", error);
-      setError("Failed to load albums");
+      console.error("Lỗi tải album:", error);
+      setError("Tải album thất bại");
       setAlbumDetail([]);
     } finally {
       setIsLoading(false);
@@ -74,6 +66,7 @@ const Album: FC<AlbumInterFace> = ({
       const res = await imageService.uploadImage(file, userid);
       if (res && res.success) {
         await fetchAlbums();
+        toast.success("Upload hình thành công!");
       } else {
         toast.error(res?.message || "Có lỗi xảy ra khi upload hình.");
       }
@@ -81,6 +74,32 @@ const Album: FC<AlbumInterFace> = ({
       toast.error("Có lỗi xảy ra khi upload hình.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAlbumClick = (folder: string) => {
+    if (setSelectedFolder) {
+      setSelectedFolder(folder);
+    }
+    setShowPhotos(true);
+  };
+
+  const getAlbumTitle = (folder: string) => {
+    switch (folder) {
+      case "avatars":
+      case "/avatars":
+        return "Ảnh đại diện";
+      case "cover_photos":
+        return "Ảnh bìa";
+      case "album":
+        return "Album cá nhân";
+      case "post":
+        return "Ảnh bài viết";
+      default:
+        return folder
+          .replace(/[_-]/g, " ")
+          .replace(/^\/+/, "")
+          .replace(/\b\w/g, (l) => l.toUpperCase());
     }
   };
 
@@ -137,35 +156,43 @@ const Album: FC<AlbumInterFace> = ({
 
       {error && (
         <Col xs="12">
-          <div className="alert alert-warning">
+          <div className="alert alert-warning text-center">
             <small>{error}</small>
           </div>
         </Col>
       )}
 
       {albumDetail.length > 0
-        ? albumDetail.map((data, index) => (
+        ? albumDetail.map((album, index) => (
             <Col
               lg={lg}
               xl={xl}
               xs="6"
-              key={data.id || index}
-              onClick={() => setShowPhotos(!showPhotos)}
+              key={album.folder || index}
+              onClick={() => handleAlbumClick(album.folder)}
               style={{ cursor: "pointer" }}
             >
               <div className="card collection bg-size blur-up lazyloaded">
+                <div className="p-2 text-center">
+                  <h5 className="card-title mb-2">{getAlbumTitle(album.folder)}</h5>
+                </div>
+
                 <img
                   className="card-img-top img-fluid blur-up lazyload bg-img"
-                  src={data.image}
-                  alt={data.tittle}
+                  src={album.thumbnail || `${ImagePath}/404/image_error.gif`}
+                  alt={album.folder}
                   loading="lazy"
                   onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                     e.currentTarget.src = `${ImagePath}/404/image_error.gif`;
                   }}
                 />
-                <CardBody>
-                  <h5 className="card-title">{data.tittle}</h5>
-                  <h6>Album</h6>
+
+                <CardBody className="text-center">
+                  <h6>{album.count} ảnh</h6>
+                  <small className="text-muted">
+                    Cập nhật:{" "}
+                    {new Date(album.latest).toLocaleDateString("vi-VN")}
+                  </small>
                 </CardBody>
               </div>
             </Col>

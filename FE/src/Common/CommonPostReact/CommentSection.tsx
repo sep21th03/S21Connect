@@ -277,6 +277,9 @@ const CommentSection: FC<CommentSectionProps> = ({
             onChange={handleInputChange}
             onKeyPress={handleSubmitComment}
             disabled={submitting}
+            style={{
+              textTransform: "none",
+            }}
           />
 
           {showEmojiPicker && (

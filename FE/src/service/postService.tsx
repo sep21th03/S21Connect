@@ -20,7 +20,11 @@ export async function getPost(
 
   return response.data;
 }
-
+type MediaItem = {
+  url: string;
+  public_id: string;
+  type: "image" | "video";
+};
 export async function createPost(
   feeling: string,
   checkin: string | null,
@@ -28,8 +32,7 @@ export async function createPost(
   bg_id: string,
   content: string,
   visibility: string,
-  images: string[],
-  videos: string[]
+  media: MediaItem[]
 ) {
   const response = await axiosInstance.post(API_ENDPOINTS.POSTS.CREATE_POST, {
     feeling,
@@ -38,8 +41,7 @@ export async function createPost(
     bg_id,
     content,
     visibility,
-    images,
-    videos
+    media
   });
 
   return response;

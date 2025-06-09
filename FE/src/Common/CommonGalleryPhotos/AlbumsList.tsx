@@ -5,12 +5,26 @@ import { useSession } from "next-auth/react";
 
 const AlbumsList: FC = () => {
   const [showPhotos, setShowPhotos] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState<string>("");
   const { data: session } = useSession();
   const userid = session?.user?.id || "defaultUser";
+
   return (
     <>
-      <Album setShowPhotos={setShowPhotos} showPhotos={showPhotos} lg={4} xl={3} userid={userid} />
-      <DetailGallery setShowPhotos={setShowPhotos} showPhotos={showPhotos} />
+      <Album 
+        setShowPhotos={setShowPhotos} 
+        showPhotos={showPhotos} 
+        lg={4} 
+        xl={3} 
+        userid={userid}
+        setSelectedFolder={setSelectedFolder}
+      />
+      <DetailGallery 
+        setShowPhotos={setShowPhotos} 
+        showPhotos={showPhotos}
+        selectedFolder={selectedFolder}
+        userid={userid}
+      />
     </>
   );
 };

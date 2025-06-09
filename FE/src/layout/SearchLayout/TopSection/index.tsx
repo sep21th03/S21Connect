@@ -8,7 +8,7 @@ const TopSection = () => {
   return (
     <section className="breadcrumb-section bg-size blur-up lazyloaded">
       <CustomImage
-        src={`${ImagePath}/breadcrumb.jpg`}
+        src={`${ImagePath}/butterfly-bg.jpg`}
         className="img-fluid blur-up lazyload bg-img"
         alt=""
       />
@@ -29,14 +29,14 @@ const TopSection = () => {
         <Container>
           <Row>
             <Col lg="6" md="8" xs="12" className="m-auto">
-              <h2>how can we help you?</h2>
+              <h2>chúng tôi có thể giúp gì cho bạn?</h2>
               <form
                 onSubmit={(event: React.FormEvent<HTMLFormElement>) =>
                   event.preventDefault()
                 }
               >
-                <Input type="search" placeholder="Search something here..." />
-                <span>popular topics: privacy, security, profile</span>
+                <Input type="search" placeholder="Tìm kiếm điều gì đó ở đây..." />
+                <span>chủ đề phổ biến: quyền riêng tư, bảo mật, hồ sơ</span>
               </form>
             </Col>
           </Row>

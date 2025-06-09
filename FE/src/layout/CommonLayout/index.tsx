@@ -6,13 +6,28 @@ import { Container } from "reactstrap";
 import { CommonLayoutProps } from "../LayoutTypes";
 import ThemeCustomizer from "./ThemeCustomizer";
 import FullSideBar from "./FullSideBar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { skeltonLoaderList } from "@/Data/Layout";
 
-const CommonLayout: React.FC<CommonLayoutProps> = ({differentLogo,loaderName="defaultLoader",showFullSideBar,children,mainClass,headerClassName,sideBarClassName,HideConversationPanel,ConversationPanelClassName}) => {const [loaderShowKey, setLoaderShowKey] = useState("defaultLoader")
+interface OptimizedCommonLayoutProps extends CommonLayoutProps {
+  loaderName?: string | undefined;
+}
+const CommonLayout: React.FC<OptimizedCommonLayoutProps> = ({differentLogo,loaderName="defaultLoader",showFullSideBar,children,mainClass,headerClassName,sideBarClassName,HideConversationPanel,ConversationPanelClassName}) => {const [loaderShowKey, setLoaderShowKey] = useState("defaultLoader")
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const shouldShowLoader = loaderName && isLoading;
+  
   return (
     <>
-      {skeltonLoaderList[loaderName]}
+      {shouldShowLoader && skeltonLoaderList[loaderName]}
       <CommonLayoutHeader headerClassName={headerClassName ? headerClassName : ""} differentLogo={differentLogo}/>
       <Container fluid className={`page-body  ${mainClass ? mainClass : ""}`}>
         {showFullSideBar ? <FullSideBar /> : <LayoutSideBar sideBarClassName={sideBarClassName ? sideBarClassName : ""}/>}

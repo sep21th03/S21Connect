@@ -23,10 +23,10 @@ class StorePostRequest extends FormRequest
     {
         return [
             'content' => 'nullable|string',
-            'images' => 'nullable|array',
-            'images.*' => 'url', 
-            'videos' => 'nullable|array',
-            'videos.*' => 'url', 
+            'media' => 'nullable|array',
+            'media.*.url' => 'required|url',
+            'media.*.public_id' => 'required|string',
+            'media.*.type' => 'required|in:image,video',
             'visibility' => 'required|in:public,friends,private',
             'tagfriends' => 'nullable|array',
             'bg_id' => 'nullable|string',
@@ -40,10 +40,6 @@ class StorePostRequest extends FormRequest
     {
         return [
             'content.string' => 'Nội dung không hợp lệ.',
-            'images.array' => 'Ảnh không hợp lệ.',
-            'images.*.url' => 'Ảnh không hợp lệ.',
-            'videos.array' => 'Video không hợp lệ.',
-            'videos.*.url' => 'Video không hợp lệ.',
             'visibility.required' => 'Vui lòng chọn quyền riêng tư.',
             'visibility.in' => 'Quyền riêng tư không hợp lệ.'
         ];

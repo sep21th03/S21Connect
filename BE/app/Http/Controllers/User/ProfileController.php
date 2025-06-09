@@ -191,9 +191,16 @@ class ProfileController extends Controller
             $userId = Auth::id();
             $data = $request->validate([
                 'avatar' => 'required|url',
+                'id' => 'required|uuid',
             ]);
 
-            $avatar = $this->profileService->updateAvatar($userId, $data['avatar']);
+            $avatar = $this->profileService->updateAvatar($userId, $data['avatar'], $data['id']);
+            if (!$avatar) {
+                return response()->json([
+                    'message' => 'Không thể cập nhật ảnh đại diện',
+                    'success' => false,
+                ], 400);
+            }
 
             return response()->json([
                 'message' => 'Cập nhật ảnh đại diện thành công',
@@ -214,10 +221,16 @@ class ProfileController extends Controller
             $userId = Auth::id();
             $data = $request->validate([
                 'cover_photo' => 'required|url',
+                'id' => 'required|uuid',
             ]);
 
-            $cover_photo = $this->profileService->updateBackground($userId, $data['cover_photo']);
-
+            $cover_photo = $this->profileService->updateBackground($userId, $data['cover_photo'], $data['id']);
+            if (!$cover_photo) {
+                return response()->json([
+                    'message' => 'Không thể cập nhật ảnh bìa',
+                    'success' => false,
+                ], 400);
+            }
             return response()->json([
                 'message' => 'Cập nhật ảnh bìa thành công',
                 'cover_photo' => $cover_photo,
@@ -226,6 +239,31 @@ class ProfileController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Lỗi cập nhật ảnh bìa',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getSettingsInfoUser(): JsonResponse
+    {
+        try {
+            $userId = Auth::id();
+            $settings = $this->profileService->getSettingsInfoUser($userId);
+
+            if (!$settings) {
+                return response()->json([
+                    'message' => 'Không tìm thấy thông tin cài đặt',
+                    'data' => null
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Lấy thông tin cài đặt thành công',
+                'data' => $settings
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi lấy thông tin cài đặt',
                 'error' => $e->getMessage()
             ], 500);
         }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Post;
+use App\Models\Image;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ActivityLog;
 use Illuminate\Support\Str;
@@ -297,23 +298,32 @@ class PostService
         $post->user_id = Auth::id();
         $post->content = $data['content'];
 
-        $post->images = isset($data['images']) ? implode('|', $data['images']) : '';
-        $post->videos = isset($data['videos']) ? implode('|', $data['videos']) : '';
+        $images = [];
+        $videos = [];
+        if (isset($data['media']) && is_array($data['media'])) {
+            foreach ($data['media'] as $mediaItem) {
+                if ($mediaItem['type'] === 'image') {
+                    $images[] = $mediaItem['url'];
+                } elseif ($mediaItem['type'] === 'video') {
+                    $videos[] = $mediaItem['url'];
+                }
+            }
+        }
 
-        $images = !empty($post->images) ? explode('|', $post->images) : [];
-        $videos = !empty($post->videos) ? explode('|', $post->videos) : [];
+        $post->images = !empty($images) ? implode('|', $images) : '';
+        $post->videos = !empty($videos) ? implode('|', $videos) : '';
 
         $imageCount = count($images);
         $videoCount = count($videos);
 
         if (($imageCount + $videoCount) > 1) {
             $post->type = 'multiple';
-        } elseif ($imageCount === 1) {
+        } elseif ($imageCount === 1 && $videoCount === 0) {
             $post->type = 'first';
-        } elseif (!empty($post->iframe_link) || $post->fourthPost) {
+        } elseif ($videoCount === 1 && $imageCount === 0) {
+            $post->type = 'first';
+        } elseif (!empty($post->iframe_link)) {
             $post->type = 'third';
-        } elseif ($imageCount === 0) {
-            $post->type = 'second';
         } else {
             $post->type = 'second';
         }
@@ -343,9 +353,20 @@ class PostService
             $post->taggedFriends()->attach($data['tagfriends']);
         }
 
-        if (!empty($data['tagfriends']) && is_array($data['tagfriends'])) {
-            $post->taggedFriends()->attach($data['tagfriends']);
+        if (isset($data['media']) && is_array($data['media'])) {
+            foreach ($data['media'] as $mediaItem) {
+                Image::create([
+                    'id' => Str::uuid(),
+                    'user_id' => Auth::id(),
+                    'url' => $mediaItem['url'],
+                    'public_id' => $mediaItem['public_id'],
+                    'type' => $mediaItem['type'],
+                    'folder' => 'post',
+                    'post_id' => $post->id,
+                ]);
+            }
         }
+
         return response()->json($post);
     }
 

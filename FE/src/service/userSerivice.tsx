@@ -46,7 +46,6 @@ export async function userProfile() {
   }
 }
 
-
 export const getListFriends = async (userId: string) => {
   const response = await axiosInstance.get(
     API_ENDPOINTS.USERS.BASE + API_ENDPOINTS.USERS.LIST_FRIENDS(userId)
@@ -54,12 +53,27 @@ export const getListFriends = async (userId: string) => {
   return response.data;
 };
 
-export async function searchFriends(searchTerm: string = ''): Promise<User[]> {
+export async function searchFriends(searchTerm: string = ""): Promise<User[]> {
   try {
-    const res = await axiosInstance.get(API_ENDPOINTS.USERS.SEARCH_FRIENDS(searchTerm));
+    const res = await axiosInstance.get(
+      API_ENDPOINTS.USERS.SEARCH_FRIENDS(searchTerm)
+    );
     return res.data as User[];
   } catch (error) {
-    console.error('Failed to fetch friends:', error);
+    console.error("Failed to fetch friends:", error);
     throw error;
   }
 }
+
+export const getListFriendsByUsername = async (username: string, type: string, currentUserId?: string) => {
+  const response = await axiosInstance.get(
+    API_ENDPOINTS.USERS.BASE + API_ENDPOINTS.USERS.LIST_FRIENDS_BY_USERNAME(username), 
+    {
+      params: {
+        type,
+        current_user_id: currentUserId,
+      },
+    }
+  );
+  return response.data;
+};

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\UserProfile;
 use App\Models\User;
 use App\Models\Post;
+use App\Models\Image;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -250,42 +251,71 @@ class ProfileService
         }
     }
 
-    public function updateAvatar($userId, $avatarUrl)
+    public function updateAvatar($userId, $avatarUrl, $id)
     {
-            $user = User::findOrFail($userId);
-            $user->avatar = $avatarUrl;
-            $user->save();
+        $user = User::findOrFail($userId);
+        $user->avatar = $avatarUrl;
+        $user->save();
 
-            Post::create(
-                [
-                    'user_id' => $user->id,
-                    'post_id' => Str::uuid(),
-                    'type' => 'first',
-                    'images' => $user->avatar,
-                    'post_format' => 'avatar',
-                    'visibility' => 'public',
-                ]
-            );
+        Post::create(
+            [
+                'user_id' => $user->id,
+                'post_id' => Str::uuid(),
+                'type' => 'first',
+                'images' => $user->avatar,
+                'post_format' => 'avatar',
+                'visibility' => 'public',
+            ]
+        );
 
-            return $user->avatar;
+        Image::where('id', $id)->update(
+            [
+                'url' => $user->avatar,
+                'type' => 'image',
+                'folder' => 'avatars',
+            ]
+        );
+
+        return $user->avatar;
     }
-    public function updateBackground($userId, $backgroundUrl)
+    public function updateBackground($userId, $backgroundUrl, $id)
     {
-            $user = User::findOrFail($userId);
-            $user->cover_photo = $backgroundUrl;
-            $user->save();
+        $user = User::findOrFail($userId);
+        $user->cover_photo = $backgroundUrl;
+        $user->save();
 
-            Post::create(
-                [
-                    'user_id' => $user->id,
-                    'post_id' => Str::uuid(),
-                    'type' => 'first',
-                    'images' => $user->cover_photo,
-                    'post_format' => 'cover_photo',
-                    'visibility' => 'public',
-                ]
-            );
+        Post::create(
+            [
+                'user_id' => $user->id,
+                'post_id' => Str::uuid(),
+                'type' => 'first',
+                'images' => $user->cover_photo,
+                'post_format' => 'cover_photo',
+                'visibility' => 'public',
+            ]
+        );
 
-            return $user->cover_photo;
+        Image::where('id', $id)->update(
+            [
+                'url' => $user->cover_photo,
+                'type' => 'image',
+                'folder' => 'cover_photos',
+            ]
+        );
+
+        return $user->cover_photo;
+    }
+
+    public function getSettingsInfoUser($userId)
+    {
+        $user = User::where('id', $userId)
+            ->select(['id', 'username', 'email', 'first_name', 'last_name', 'avatar', 'birthday', 'gender'])
+            ->first();
+        if ($user->profile) {
+            $user->phonenumber = $user->profile->phone_number;
+            unset($user->profile);
+        }
+
+        return $user;
     }
 }

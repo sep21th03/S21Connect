@@ -9,13 +9,13 @@ const CommonGalleryPhotos: FC = () => {
   return (
     <div className="gallery-page-section section-b-space">
       <div className="card-title">
-        <h3>gallery</h3>
+        <h3>Ảnh</h3>
         <div className="right-setting">
           <a href="#" className="btn btn-solid">
-            create album
+            Tạo album
           </a>
           <a href="#" className="btn btn-solid">
-            add photo/video
+            Thêm ảnh/video
           </a>
         </div>
       </div>
@@ -25,7 +25,7 @@ const CommonGalleryPhotos: FC = () => {
             <NavLink className={activeTab === 1 ?"active":""} onClick={()=>setActiveTab(1)} >Album</NavLink>
           </NavItem>
           <NavItem>
-            <NavLink  className={activeTab === 2 ?"active":""} onClick={()=>setActiveTab(2)}>Photos</NavLink>
+            <NavLink  className={activeTab === 2 ?"active":""} onClick={()=>setActiveTab(2)}>Ảnh</NavLink>
           </NavItem>
         </Nav>
         <TabContent activeTab={activeTab}>

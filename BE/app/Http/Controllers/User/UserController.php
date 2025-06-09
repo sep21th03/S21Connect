@@ -18,7 +18,7 @@ class UserController extends Controller
     }
 
     public function userProfile()
-    {   
+    {
         $user = Auth::user();
         return $this->userService->getUserProfile($user->id);
     }
@@ -55,9 +55,22 @@ class UserController extends Controller
 
     public function getListFriendLimit($userId)
     {
+
         $friendList = $this->userService->getListFriendLimit($userId);
+        if (is_null($friendList)) {
+            return response()->json(['message' => 'Không có bạn bè!'], 404);
+        }
 
         return response()->json($friendList);
+    }
+
+    public function getListFriendByUsername($username, Request $request)
+    {
+        $type = $request->query('type', 'all');
+        $currentUserId = $request->query('current_user_id');
+        $friendRequests = $this->userService->getListFriendByUsername($username, $type, $currentUserId);
+
+        return response()->json($friendRequests);
     }
 
     public function updateLastActive(Request $request)

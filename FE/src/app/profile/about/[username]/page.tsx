@@ -13,6 +13,7 @@ import { useParams, useRouter } from "next/navigation";
 import UserNotFound from "@/app/404/user/page";
 import LoadingLoader from "@/layout/LoadingLoader";
 import { useSession } from "next-auth/react";
+import { useGlobalProfile } from "@/contexts/GlobalProfileContext";
 
 const AboutProfile = () => {
   const { data: session } = useSession();

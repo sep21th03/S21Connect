@@ -115,7 +115,6 @@ const FriendsList: FC<FriendsListProps> = ({ searchTerm = "" }) => {
   };
   
   const renderFriendItem = (friend: FriendData, index: number) => {
-    // Create a unique ID for this friend item that can be safely used as target
     const friendElementId = `friend-${friend.id || index}`;
     const isOnline = isUserOnline(friend.other_user.id);
     
@@ -176,7 +175,7 @@ const FriendsList: FC<FriendsListProps> = ({ searchTerm = "" }) => {
       <CommonHeader
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        heading={`Friends (${filteredFriends.length})`}
+        heading={`Bạn bè (${filteredFriends.length})`}
       />
      
       <Collapse isOpen={isOpen} className="friend-list">

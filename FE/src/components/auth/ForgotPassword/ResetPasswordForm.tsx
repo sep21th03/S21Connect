@@ -6,6 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormGroup, Input, Label, Button } from "reactstrap";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import { toast } from "react-toastify";
+import PasswordStrengthMeter, {
+  validatePassword,
+} from "@/utils/PasswordStrengthMeter";
 
 const ResetPasswordForm = () => {
   const [formData, setFormData] = useState({
@@ -24,13 +27,13 @@ const ResetPasswordForm = () => {
   useEffect(() => {
     const tokenParam = searchParams.get("token");
     const emailParam = searchParams.get("email");
-    
+
     if (tokenParam) {
       setToken(tokenParam);
     }
-    
+
     if (emailParam) {
-      setFormData(prev => ({ ...prev, email: emailParam }));
+      setFormData((prev) => ({ ...prev, email: emailParam }));
     }
   }, [searchParams]);
 
@@ -41,11 +44,18 @@ const ResetPasswordForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      setErrorMessage(passwordError);
+      return;
+    }
+
     if (formData.password !== formData.password_confirmation) {
       setErrorMessage("Mật khẩu và xác nhận mật khẩu không khớp.");
       return;
     }
-    
+
     try {
       setLoading(true);
       const response = await axiosInstance.post(
@@ -62,11 +72,12 @@ const ResetPasswordForm = () => {
         toast.success(response.data.message || "Đặt lại mật khẩu thành công.");
         setTimeout(() => {
           router.push("/authentication/login");
-        }
-        , 2000);
+        }, 2000);
       }
     } catch (error: any) {
-      setErrorMessage(error.response?.data?.error || "Đã xảy ra lỗi khi đặt lại mật khẩu.");
+      setErrorMessage(
+        error.response?.data?.error || "Đã xảy ra lỗi khi đặt lại mật khẩu."
+      );
     } finally {
       setLoading(false);
     }
@@ -98,7 +109,14 @@ const ResetPasswordForm = () => {
               onChange={handleChange}
               required
             />
-            <div className="position-absolute" style={{ right: "10px", top: "50%", transform: "translateY(-50%)" }}>
+            <div
+              className="position-absolute"
+              style={{
+                right: "10px",
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            >
               <DynamicFeatherIcon
                 iconName={showPassword ? "EyeOff" : "Eye"}
                 className="cursor-pointer"
@@ -107,6 +125,7 @@ const ResetPasswordForm = () => {
             </div>
           </div>
         </FormGroup>
+        <PasswordStrengthMeter password={formData.password} />
         <FormGroup>
           <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
           <div className="position-relative">
@@ -118,7 +137,14 @@ const ResetPasswordForm = () => {
               onChange={handleChange}
               required
             />
-            <div className="position-absolute" style={{ right: "10px", top: "50%", transform: "translateY(-50%)" }}>
+            <div
+              className="position-absolute"
+              style={{
+                right: "10px",
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            >
               <DynamicFeatherIcon
                 iconName={showConfirmPassword ? "EyeOff" : "Eye"}
                 className="cursor-pointer"

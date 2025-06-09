@@ -30,13 +30,15 @@ interface UpdateImageModalProps extends ModalInterFace {
 const UpdateImageModal: FC<UpdateImageModalProps> = ({ isOpen, toggle, updateBackGround, isBackgroundImage }) => {
   const [activeTab, setActiveTab] = useState(1);
   const [imageUrl, setImageUrl] = useState("post/10.jpg");
+  const [idImage, setIdImage] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const { data: session } = useSession();
   const userid = session?.user?.id || "defaultUser";
   const dispatch = useDispatch();
   
-  const handleImageUrl = useCallback((url: string) => {
+  const handleImageUrl = useCallback((url: string, id: string) => {
     setImageUrl(url);
+    setIdImage(id);
   }, []);
 
   const handleSubmitValue = async () => {
@@ -47,13 +49,13 @@ const UpdateImageModal: FC<UpdateImageModalProps> = ({ isOpen, toggle, updateBac
       
       let response;
       if (isBackgroundImage) {
-        response = await UserProfileService.updateBackgroundImage(imageUrl);
+        response = await UserProfileService.updateBackgroundImage(imageUrl, idImage);
         if (response.success) {
           dispatch(setBackgroundImage(response.cover_photo || ""));
           toast.success("Cập nhật ảnh bìa thành công!");
         }
       } else {
-        response = await UserProfileService.updateAvatar(imageUrl);
+        response = await UserProfileService.updateAvatar(imageUrl, idImage);
         if (response.success) {
           dispatch(setImageLink(response.avatar || ""));
           toast.success("Cập nhật ảnh đại diện thành công!");

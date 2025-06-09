@@ -26,8 +26,7 @@ const PopularTopics: React.FC = () => {
                     <h4>{data.title}</h4>
                   </a>
                   <p>
-                    learn how to change or edit profile setting and managed post
-                    in your timeline
+                    {data.description}
                   </p>
                 </div>
               </div>

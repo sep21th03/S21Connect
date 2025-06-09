@@ -9,6 +9,7 @@ import { authoption } from "./api/auth/[...nextauth]/authOption";
 import SessionWrapper from "@/Common/SessionWrapper";
 import ErrorBoundary from "@/Common/ErrorBoundry";
 import PostModalWrapper from "@/components/Post/PostModalWrapper"; 
+import { GlobalProfileProvider } from "@/contexts/GlobalProfileContext";
 
 export const metadata: Metadata = {
   title: "Sep21Connect",
@@ -45,7 +46,9 @@ export default async function RootLayout({
         <ErrorBoundary>
           <SessionWrapper session={session}>
             <Providers>
-              {children}
+              <GlobalProfileProvider>
+                {children}
+              </GlobalProfileProvider>
               <PostModalWrapper />
             </Providers>
             <ToastContainer />

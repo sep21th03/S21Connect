@@ -78,7 +78,6 @@ const AboutUser: FC<AboutUserProps> = ({ userProfile, isOwnProfile }) => {
 
   const aboutUserItems = getAboutUserItems();
 
-  // If no items to display and not own profile, show a message
   const noInfoToDisplay = aboutUserItems.length === 0 && !isOwnProfile;
 
   return (

@@ -13,7 +13,7 @@ import { API_ENDPOINTS } from "@/utils/constant/api";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { first } from "lodash";
+import PasswordStrengthMeter, { validatePassword } from "@/utils/PasswordStrengthMeter";
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -71,6 +71,11 @@ const RegisterForm = () => {
     }
     if (!formData.birthday || !birthDay || !birthMonth || !birthYear) {
       toast.error("Vui lòng chọn đầy đủ ngày sinh!");
+      setLoading(false);
+      return;
+    }
+    if (validatePassword(formData.password) !== null) {
+      toast.error(validatePassword(formData.password));
       setLoading(false);
       return;
     }
@@ -196,6 +201,7 @@ const RegisterForm = () => {
           onClick={() => setShowPassword(!showPassword)}
         />
       </FormGroup>
+      <PasswordStrengthMeter password={formData.password} />
 
       <FormGroup>
         <Label>Xác nhận mật khẩu</Label>

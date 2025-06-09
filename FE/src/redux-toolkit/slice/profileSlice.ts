@@ -15,7 +15,6 @@ const initialState: ProfileState = {
   error: null,
 };
 
-// Fetch profile thunk
 export const fetchProfileAsync = createAsyncThunk(
   "profile/fetchProfile",
   async (username: string) => {
