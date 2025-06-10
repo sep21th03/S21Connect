@@ -1,10 +1,14 @@
 import FavoriteLayout from "@/layout/FavoriteLayout";
-import React from "react";
+import React, { FC } from "react";
 import FavoriteReviewPageContent from "./FavoriteReviewPageContent";
 
-const FavoriteReviewsPage = () => {
+interface FavoriteReviewsPageProps {
+  page: string;
+}
+
+const FavoriteReviewsPage: FC<FavoriteReviewsPageProps> = ({ page }) => {
   return (
-    <FavoriteLayout loaderName="favoriteReviews">
+    <FavoriteLayout loaderName="favoriteReviews" page={page}>
       <FavoriteReviewPageContent />
     </FavoriteLayout>
   );
