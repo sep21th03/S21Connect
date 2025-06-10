@@ -18,7 +18,7 @@ const FavouriteTabs: React.FC = () => {
   return (
     <CommonLayout mainClass="favourite-page-body  custom-padding " loaderName="favoriteHomePage">
       <div className="page-center">
-        <PageCover />
+        <PageCover page="tab" />
         <div className="profile-menu section-t-space">
           <Nav tabs>
             {favouritePageTabs.map((data, index) => (

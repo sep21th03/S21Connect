@@ -4,6 +4,6 @@ import React from 'react'
 
 export default function Page() {
     return (
-        <FavoriteAboutPage />
+        <FavoriteAboutPage page="about" />
     )
 }

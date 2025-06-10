@@ -4,9 +4,13 @@ import FavoriteLayout from "@/layout/FavoriteLayout";
 import React, { FC } from "react";
 import FanpageContent from "./FanpageContent";
 
-const FanpagePage: FC = () => {
+interface FanpagePageProps {
+  page: string;
+}
+
+const FanpagePage: FC<FanpagePageProps> = ({ page }) => {
   return (
-    <FavoriteLayout loaderName="fanpagePage">
+    <FavoriteLayout loaderName="fanpagePage" page={page}>
       <FanpageContent />
     </FavoriteLayout>
   );

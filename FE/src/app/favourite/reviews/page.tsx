@@ -7,7 +7,7 @@ export default function Page() {
         (async () => {
             if (typeof window !== "undefined") {
                 const newClient = (await import("@/components/Favorite/FavoriteReviewsPage")).default;
-                setClient(() => newClient);
+                // setClient(() => newClient);
             }
         })();
     }, []);

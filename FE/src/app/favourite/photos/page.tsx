@@ -3,6 +3,6 @@ import React from 'react'
 
 export default function Page() {
     return (
-        <FavoritePhotosPage />
+        <FavoritePhotosPage page="photos" />
     )
 }
