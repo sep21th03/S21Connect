@@ -82,12 +82,12 @@ export const userMenuData: UserMenuDataInterFace[] = [
 
 
 export const sideBarData: sideBarDataType[] = [
-  { path: "/newsfeed/style1", icon: "File", tooltipTittle: "newsfeed" },
-  { path: "/favourite/home", icon: "Star", tooltipTittle: "Favourite" },
-  { path: Href, icon: "User", tooltipTittle: "Groups" },
-  { path: "/music", icon: "Headphones", tooltipTittle: "Music" },
-  { path: "/weather", icon: "Cloud", tooltipTittle: "Weather" },
-  { path: "/event", icon: "Calendar", tooltipTittle: "Event" },
+  { path: "/newsfeed/style1", icon: "File", tooltipTittle: "bảng tin" },
+  { path: "/favourite/pages", icon: "Star", tooltipTittle: "trang" },
+  { path: Href, icon: "User", tooltipTittle: "nhóm" },
+  { path: "/music", icon: "Headphones", tooltipTittle: "âm nhạc" },
+  { path: "/weather", icon: "Cloud", tooltipTittle: "thời tiết" },
+  { path: "/event", icon: "Calendar", tooltipTittle: "sự kiện" },
 ];
 
 export const smallSideBarData: SideBarDataInterFace[] = [
@@ -229,7 +229,7 @@ export const layoutFooterData = [
       { title: "cài đặt" },
       { link: "/helpandsupport", title: "hỗ trợ và trợ giúp" },
       { link: "/messanger", title: "tin nhắn" },
-      { link: "/favourite/home", title: "trang" },
+      { link: "/favourite/pages", title: "trang" },
       { link: "/company/about", title: "công ty" },
     ],
   },

@@ -104,6 +104,7 @@ export interface User {
     username: string;
     avatar: string;
     bio: string;
+    mutual_friends_count: number;
     user_data: {
       followers: number;
       following: number;

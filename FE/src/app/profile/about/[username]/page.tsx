@@ -13,7 +13,6 @@ import { useParams, useRouter } from "next/navigation";
 import UserNotFound from "@/app/404/user/page";
 import LoadingLoader from "@/layout/LoadingLoader";
 import { useSession } from "next-auth/react";
-import { useGlobalProfile } from "@/contexts/GlobalProfileContext";
 
 const AboutProfile = () => {
   const { data: session } = useSession();
@@ -60,8 +59,8 @@ const AboutProfile = () => {
             <ProfileAbout userProfile={userProfile} isOwnProfile={isOwnProfile}/>  
           </Col>
           <Col xs="8" className="content-center res-full-width">
-            <HobbiesProfile />
-            <EducationProfile />
+            {/* <HobbiesProfile />
+            <EducationProfile /> */}
             <ProfileFriendList />
           </Col>
         </Row>

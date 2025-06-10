@@ -103,6 +103,7 @@ class UserService
         return User::whereIn('id', $listFriend)->take(20)->get();
     }
 
+
     public function getListFriendByUsername($username, $type = 'all', $currentUserId = null)
     {
         $user = User::where('username', $username)->first();
@@ -187,7 +188,7 @@ class UserService
             ->whereIn('id', $friendIds)
             ->get();
 
-        $result = $friends->map(function ($friend) {
+        $result = $friends->map(function ($friend) use ($currentUserId) {
             $following = Friendship::where('user_id', $friend->id)->count();
             $followers = Friendship::where('friend_id', $friend->id)->count();
 
@@ -206,6 +207,35 @@ class UserService
 
             $friendCount = $uniqueFriendPairs->count();
 
+            $mutualCount = 0;
+            if ($currentUserId) {
+                $friendFriendIds1 = Friendship::where('status', 'accepted')
+                    ->where('user_id', $friend->id)
+                    ->pluck('friend_id')
+                    ->toArray();
+
+                $friendFriendIds2 = Friendship::where('status', 'accepted')
+                    ->where('friend_id', $friend->id)
+                    ->pluck('user_id')
+                    ->toArray();
+
+                $friendFriendIds = array_unique(array_merge($friendFriendIds1, $friendFriendIds2));
+
+                $currentFriendIds1 = Friendship::where('status', 'accepted')
+                    ->where('user_id', $currentUserId)
+                    ->pluck('friend_id')
+                    ->toArray();
+
+                $currentFriendIds2 = Friendship::where('status', 'accepted')
+                    ->where('friend_id', $currentUserId)
+                    ->pluck('user_id')
+                    ->toArray();
+
+                $currentFriendIds = array_unique(array_merge($currentFriendIds1, $currentFriendIds2));
+                
+                $mutualCount = count(array_intersect($friendFriendIds, $currentFriendIds));
+            }
+
             return [
                 'id' => $friend->id,
                 'username' => $friend->username,
@@ -214,6 +244,7 @@ class UserService
                 'last_name' => $friend->last_name,
                 'bio' => $friend->bio,
                 'avatar' => $friend->avatar,
+                'mutual_friends_count' => $mutualCount,
                 'user_data' => [
                     'following' => $following,
                     'followers' => $followers,

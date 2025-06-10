@@ -6,11 +6,12 @@ import ProfileMenus from "@/components/Favorite/Home/ProfileMenus";
 import { Container } from "reactstrap";
 import { FavoriteLayoutProps } from "../LayoutTypes";
 
-const FavoriteLayout: FC<FavoriteLayoutProps> = ({children,FavoriteTabs,loaderName}) => {
+
+const FavoriteLayout: FC<FavoriteLayoutProps> = ({children,FavoriteTabs,loaderName,page}) => {
   return (
     <CommonLayout mainClass="favourite-page-body  custom-padding " loaderName={loaderName}>
       <div className="page-center">
-        <PageCover />
+        <PageCover page={page}/>
         {FavoriteTabs ? FavoriteTabs : <ProfileMenus />}
         <Container fluid className="section-t-space px-0">
           {children}

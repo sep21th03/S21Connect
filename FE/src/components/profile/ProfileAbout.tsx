@@ -4,7 +4,7 @@ import SvgIconCommon from "@/Common/SvgIconCommon";
 import { aboutContentData, socialMediaDetail } from "@/Data/profile";
 import PersonalInformationModal from "@/layout/ProfileLayout/PersonalInformationModal";
 import { useState } from "react";
-import { FullUserProfile } from "@/utils/interfaces/user";  
+import { FullUserProfile } from "@/utils/interfaces/user";
 import dayjs from "dayjs";
 
 interface ProfileAboutProps {
@@ -12,31 +12,90 @@ interface ProfileAboutProps {
   isOwnProfile: boolean;
 }
 
-const ProfileAbout: React.FC<ProfileAboutProps> = ({ userProfile, isOwnProfile }) => {
+const ProfileAbout: React.FC<ProfileAboutProps> = ({
+  userProfile,
+  isOwnProfile,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const toggle = () => setIsOpen(!isOpen);
   const [userInfo, setUserInfo] = useState(userProfile);
 
   const handleProfileUpdate = (updatedUserProfile: FullUserProfile) => {
-    setUserInfo(updatedUserProfile); 
+    setUserInfo(updatedUserProfile);
+  };
+  const convertGender = (gender: string | null): string => {
+    switch (gender) {
+      case "male":
+        return "Nam";
+      case "female":
+        return "Nữ";
+      case "other":
+        return "Khác";
+      default:
+        return "Chưa cập nhật";
+    }
   };
 
   const aboutUser = [
     {
       icon: "User",
       heading: "About",
-      details: userInfo?.user.bio || "Chưa cập nhật",
+      details: userInfo?.user.bio,
     },
-    { icon: "Mail", heading: "Email", details: userInfo?.user.email || "Chưa cập nhật" },
-    { iconName: "cake", heading: "Sinh nhật", details: userInfo?.user.birthday || "Chưa cập nhật" },
-    { icon: "Phone", heading: "Số điện thoại", details: userInfo?.profile.phone_number || "Chưa cập nhật" },
-    { icon: "User", heading: "Giới tính", details: userInfo?.user.gender || "Chưa cập nhật" },
-    { icon: "Heart", heading: "Mối quan hệ", details: userInfo?.profile.relationship_status || "Chưa cập nhật" },
-    { icon: "MapPin", heading: "Đang sinh sống tại", details: userInfo?.profile.location || "Chưa cập nhật" },
-    { iconName: "blood-drop", heading: "Đang làm việc tại", details: userInfo?.profile.workplace || "Chưa cập nhật" },
-    { icon: "AtSign", heading: "Đã từng học tại", details: userInfo?.profile.past_school || "Chưa cập nhật" },
-    { icon: "Link", heading: "Đang học tại", details: userInfo?.profile.current_school || "Chưa cập nhật" },
-    { icon: "Link", heading: "Đã tham gia vào", details: dayjs(userInfo?.user.created_at).format("DD/MM/YYYY") || "Chưa cập nhật" },
+    {
+      icon: "Mail",
+      heading: "Email",
+      details: userInfo?.user.email,
+    },
+    {
+      iconName: "cake",
+      heading: "Sinh nhật",
+      details: userInfo?.user.birthday,
+    },
+    {
+      icon: "Phone",
+      heading: "Số điện thoại",
+      details: userInfo?.profile.phone_number,
+    },
+    {
+      icon: "User",
+      heading: "Giới tính",
+      details: userInfo?.user.gender
+        ? convertGender(userInfo.user.gender)
+        : null,
+    },
+    {
+      icon: "Heart",
+      heading: "Mối quan hệ",
+      details: userInfo?.profile.relationship_status,
+    },
+    {
+      icon: "MapPin",
+      heading: "Đang sinh sống tại",
+      details: userInfo?.profile.location,
+    },
+    {
+      iconName: "blood-drop",
+      heading: "Đang làm việc tại",
+      details: userInfo?.profile.workplace,
+    },
+    {
+      icon: "AtSign",
+      heading: "Đã từng học tại",
+      details: userInfo?.profile.past_school,
+    },
+    {
+      icon: "Link",
+      heading: "Đang học tại",
+      details: userInfo?.profile.current_school,
+    },
+    {
+      icon: "Link",
+      heading: "Đã tham gia vào",
+      details: userInfo?.user.created_at
+        ? dayjs(userInfo.user.created_at).format("DD/MM/YYYY")
+        : null,
+    },
   ];
 
   return (
@@ -47,28 +106,39 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ userProfile, isOwnProfile }
         <div className="settings">
           <div className="setting-btn">
             <a href={Href} onClick={toggle}>
-              <DynamicFeatherIcon iconName="Edit2" className="icon icon-dark stroke-width-3 iw-11 ih-11"/>
+              <DynamicFeatherIcon
+                iconName="Edit2"
+                className="icon icon-dark stroke-width-3 iw-11 ih-11"
+              />
             </a>
           </div>
         </div>
       </div>
       <div className="about-content">
         <ul>
-          {aboutUser.map((data, index) => (
-            <li key={index}>
-              <div className="icon">
-                {data.icon ? (
-                  <DynamicFeatherIcon iconName={data.icon as any} className="iw-18 ih-18"/>
-                ) : (
-                  <SvgIconCommon iconName={data.iconName ? data.iconName : ""} className="iw-18 ih-18"/>
-                )}
-              </div>
-              <div className="details">
-                <h5>{data.heading}</h5>
-                <h6>{data.details}</h6>
-              </div>
-            </li>
-          ))}
+          {aboutUser
+            .filter((data) => data.details)
+            .map((data, index) => (
+              <li key={index}>
+                <div className="icon">
+                  {data.icon ? (
+                    <DynamicFeatherIcon
+                      iconName={data.icon as any}
+                      className="iw-18 ih-18"
+                    />
+                  ) : (
+                    <SvgIconCommon
+                      iconName={data.iconName ? data.iconName : ""}
+                      className="iw-18 ih-18"
+                    />
+                  )}
+                </div>
+                <div className="details">
+                  <h5>{data.heading}</h5>
+                  <h6>{data.details}</h6>
+                </div>
+              </li>
+            ))}
         </ul>
       </div>
       <div className="about-footer">
@@ -83,7 +153,12 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({ userProfile, isOwnProfile }
         </ul>
       </div>
       {isOwnProfile && (
-        <PersonalInformationModal isOpen={isOpen} toggle={toggle} userProfile={userProfile} onUpdateProfile={handleProfileUpdate}/>
+        <PersonalInformationModal
+          isOpen={isOpen}
+          toggle={toggle}
+          userProfile={userProfile}
+          onUpdateProfile={handleProfileUpdate}
+        />
       )}
     </div>
   );

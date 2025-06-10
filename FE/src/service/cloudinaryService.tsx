@@ -4,13 +4,12 @@ import { API_ENDPOINTS } from "@/utils/constant/api";
 type UploadedFile = {
   url: string;
   public_id: string;
-  resource_type: 'image' | 'video';
+  resource_type: "image" | "video";
   format: string;
   width: number;
   height: number;
   duration?: number | null;
 };
-
 
 type UploadResult = {
   files: UploadedFile[];
@@ -36,7 +35,6 @@ export const uploadFilesToCloudinary = async (
       }
     );
 
-   
     if (response.status === 200 && response.data.urls) {
       const files: UploadedFile[] = response.data.urls.map((item: any) => ({
         url: item.url,
@@ -160,11 +158,13 @@ class ImageService {
 
   async getAlbums(userId: string) {
     try {
-      const response = await axiosInstance.get(API_ENDPOINTS.IMAGES.IMAGES.GET_ALL_ALBUMS(userId));
+      const response = await axiosInstance.get(
+        API_ENDPOINTS.IMAGES.IMAGES.GET_ALL_ALBUMS(userId)
+      );
 
       return response.data;
     } catch (error) {
-      console.error('Error fetching albums:', error);
+      console.error("Error fetching albums:", error);
       throw error;
     }
   }
@@ -172,22 +172,49 @@ class ImageService {
   async getAlbumImages(userId: string, folder: string) {
     try {
       const encodedFolder = encodeURIComponent(folder);
-      const response = await axiosInstance.get(API_ENDPOINTS.IMAGES.IMAGES.GET_ALBUM_IMAGES(userId, encodedFolder));
+      const response = await axiosInstance.get(
+        API_ENDPOINTS.IMAGES.IMAGES.GET_ALBUM_IMAGES(userId, encodedFolder)
+      );
 
       return response.data;
     } catch (error) {
-      console.error('Error fetching album images:', error);
+      console.error("Error fetching album images:", error);
       throw error;
     }
   }
 
   async getAllPhotos(userId: string) {
     try {
-      const response = await axiosInstance.get(API_ENDPOINTS.IMAGES.IMAGES.GET_ALL_PHOTOS(userId));  
+      const response = await axiosInstance.get(
+        API_ENDPOINTS.IMAGES.IMAGES.GET_ALL_PHOTOS(userId)
+      );
 
       return response.data;
     } catch (error) {
-      console.error('Error fetching all photos:', error);
+      console.error("Error fetching all photos:", error);
+      throw error;
+    }
+  }
+
+  async uploadPageImage({ image, type }: { image: File; type: string }) {
+    try {
+      const formData = new FormData();
+      formData.append("image", image);
+      formData.append("type", type);
+
+      const response = await axiosInstance.post(
+        API_ENDPOINTS.CLOUDINARY.UPLOAD_PAGE,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Accept: "application/json",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error uploading page image:", error);
       throw error;
     }
   }

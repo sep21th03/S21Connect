@@ -7,7 +7,7 @@ interface themeTooltipData {
 }
 export const themeTooltipData: themeTooltipData[] = [
   { link: "/", iconClass: "bar-icon", icon: "File", name: "newsfeed" },
-  { link: "/favourite/home", icon: "Star", name: "Favourite" },
+  { link: "/favourite/pages", icon: "Star", name: "Favourite" },
   { icon: "Users", name: "users" },
   { link: "/music", icon: "Headphones", name: "Music" },
   { link: "/weather", icon: "Cloud", name: "Cloud" },

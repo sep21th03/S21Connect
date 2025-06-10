@@ -10,7 +10,7 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'post_id', 'content', 'images', 'videos', 'visibility', 'is_comment_disabled', 'feeling', 'checkin', 'bg_id', 'type', 'original_post_id', 'post_format'];
+    protected $fillable = ['user_id', 'post_id', 'page_id', 'content', 'images', 'videos', 'visibility', 'is_comment_disabled', 'feeling', 'checkin', 'bg_id', 'type', 'original_post_id', 'post_format'];
 
     protected $casts = [
         'images' => 'array',
@@ -22,6 +22,12 @@ class Post extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function page()
+    {
+        return $this->belongsTo(Page::class);
+    }
+
 
     public function taggedFriends()
     {
@@ -44,6 +50,14 @@ class Post extends Model
 
         return $uniqueId;
     }
+
+
+    public function isPagePost()
+    {
+        return !is_null($this->page_id);
+    }
+
+
 
     public function getRouteKeyName()
     {

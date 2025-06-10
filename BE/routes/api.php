@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\AdminStatsController;
 use App\Http\Controllers\Story\StoryController;
 use App\Http\Controllers\Image\CloudinaryController;
 use App\Http\Controllers\User\ContactController;
+use App\Http\Controllers\FanpageController\PageController;
 
 
 /*
@@ -153,8 +154,9 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::get('/user/about', [ProfileController::class, 'getMeProfileAbout']);
     });
 
-    //hovercard
 
+
+    //user
     Route::prefix('user')->group(function () {
         Route::get('/user-profile', [UserController::class, 'userProfile']);
         Route::get('{userId}/hovercard', [UserController::class, 'hoverCardData']);
@@ -255,10 +257,20 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::post('/upload', [CloudinaryController::class, 'upload']);
         Route::post('/upload-post', [CloudinaryController::class, 'uploadFiles']);
         Route::delete('/delete-post', [CloudinaryController::class, 'deleteFiles']);
+        Route::post('/upload-image-fanpage', [CloudinaryController::class, 'uploadImageFanpage']);
     });
 
     Route::prefix('settings')->group(function () {
         Route::get('/get-info', [ProfileController::class, 'getSettingsInfoUser']);
         Route::post('/contact-us', [ContactController::class, 'send']);
+    });
+
+   Route::prefix('pages')->group(function () {
+        Route::get('/', [PageController::class, 'index']);
+        Route::post('/create', [PageController::class, 'store']); 
+        Route::post('{page}/follow', [PageController::class, 'follow']); 
+        Route::post('{page}/unfollow', [PageController::class, 'unfollow']); 
+        Route::post('{page}/admins', [PageController::class, 'addAdmin']);
+        Route::get('{slug}/detail', [PageController::class, 'show']);
     });
 });

@@ -12,8 +12,8 @@ const ContentCenter: FC = () => {
   return (
     <div className="content-center">
       <div className="post-panel infinite-loader-sec">
-        <SufiyaElizaThirdPost fourthPost={null as any} post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false}/>
-        <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} />
+        {/* <SufiyaElizaThirdPost fourthPost={null as any} post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false}/>
+        <SufiyaElizaSecondPost post={null as any} shouldOpenComments={false} highlightCommentId={null} highlightReplyId={null} isShared={false} /> */}
         {styleOneMoreComponent.map((data, index) => level.includes(index) ? (
           <React.Fragment key={index}>
             {data}

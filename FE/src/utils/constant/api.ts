@@ -186,6 +186,16 @@ export const API_ENDPOINTS = {
     UPLOAD: "/cloudinary/upload",
     UPLOAD_POST: "/cloudinary/upload-post",
     DELETE_POST: "/cloudinary/delete-post",
+    UPLOAD_PAGE: "/cloudinary/upload-image-fanpage",
+  },
+
+  FANPAGE: {
+    GET_PAGES: "/pages",
+    CREATE_PAGE: "/pages/create",
+    GET_PAGE_DETAIL: (pageId: string) => `/pages/${pageId}`,
+    FOLLOW_PAGE: (pageId: string) => `/pages/${pageId}/follow`,
+    UNFOLLOW_PAGE: (pageId: string) => `/pages/${pageId}/unfollow`,
+    PAGE_ADMIN: (pageId: string) => `/pages/${pageId}/admins`,
   },
 };
 

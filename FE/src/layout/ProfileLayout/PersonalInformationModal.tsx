@@ -20,17 +20,22 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
 }) => {
   const genderOptions = ["male", "female"];
 
-  const relationshipStatuses = [
-    "single",
-    "in_a_relationship",
-    "engaged",
-    "married",
-    "complicated",
-    "separated",
-    "divorced",
-    "widowed",
-  ];
-
+  const relationshipStatusLabels: { [key: string]: string } = {
+    single: "Độc thân",
+    in_a_relationship: "Đang hẹn hò",
+    engaged: "Đã đính hôn",
+    married: "Đã kết hôn",
+    complicated: "Phức tạp",
+    separated: "Ly thân",
+    divorced: "Đã ly hôn",
+    widowed: "Goá",
+  };
+  
+  const genderLabels = {
+    male: "Nam",
+    female: "Nữ",
+  };
+  
   const [formData, setFormData] = useState({
     bio: userProfile?.user.bio || "",
     birthday: userProfile?.user.birthday || "",
@@ -111,7 +116,7 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
                   className="iw-16 ih-16"
                 />
               </div>
-              <h5>Bio</h5>
+              <h5>Giới thiệu</h5>
             </div>
             <div className="edit-content">
               <textarea
@@ -133,7 +138,7 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
                   className="iw-16 ih-16"
                 />
               </div>
-              <h5>Birthday</h5>
+              <h5>Sinh nhật</h5>
             </div>
             <div className="edit-content">
               <input
@@ -151,7 +156,7 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
               <div className="icon">
                 <DynamicFeatherIcon iconName="Phone" className="iw-16 ih-16" />
               </div>
-              <h5>Phone</h5>
+              <h5>Số điện thoại</h5>
             </div>
             <div className="edit-content">
               <input
@@ -170,11 +175,11 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
               <div className="icon">
                 <DynamicFeatherIcon iconName="User" className="iw-16 ih-16" />
               </div>
-              <h5>Gender</h5>
+              <h5>Giới tính</h5>
             </div>
             <div className="edit-content">
               <div className="row">
-                {genderOptions.map((gender, index) => (
+                {Object.keys(genderLabels).map((gender, index) => (
                   <div className="form-check col-sm-6" key={gender}>
                     <label
                       className="form-check-label"
@@ -189,7 +194,7 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
                         checked={formData.gender === gender}
                         onChange={handleInputChange}
                       />
-                      {gender.replace(/_/g, " ")}
+                      {genderLabels[gender as keyof typeof genderLabels]}
                     </label>
                   </div>
                 ))}
@@ -206,7 +211,7 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
             </div>
             <div className="edit-content">
               <div className="row">
-                {relationshipStatuses.map((status, index) => (
+                {Object.keys(relationshipStatusLabels).map((status, index) => (
                   <div className="form-check col-sm-6" key={status}>
                     <label
                       className="form-check-label"
@@ -221,9 +226,7 @@ const PersonalInformationModal: FC<PersonalInformationModalProps> = ({
                         checked={formData.relationship_status === status}
                         onChange={handleInputChange}
                       />
-                      {status === "in_a_relationship"
-                        ? "in a relationship"
-                        : status.replace(/_/g, " ")}
+                      {relationshipStatusLabels[status]}
                     </label>
                   </div>
                 ))}

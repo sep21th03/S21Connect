@@ -50,6 +50,7 @@ export interface FavoriteLayoutProps {
   children: ReactNode;
   FavoriteTabs?: ReactNode;
   loaderName: string;
+  page: string;
 }
 
 export interface NotificationListsProps {

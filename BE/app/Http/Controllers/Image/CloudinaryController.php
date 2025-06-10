@@ -418,4 +418,61 @@ class CloudinaryController extends ImageController
             ], 500);
         }
     }
+
+    //fanpage
+    public function uploadImageFanpage(Request $request)
+    {   
+
+        try {
+            $validator = Validator::make($request->all(), [
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+                'type' => 'nullable|string|in:avatar,cover_image,general'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $image = $request->file('image');
+            $type = $request->input('type', 'general');
+
+            switch ($type) {
+                case 'avatar':
+                    $uploadResult = $this->cloudinaryService->uploadAvatar($image);
+                    break;
+                case 'cover_image':
+                    $uploadResult = $this->cloudinaryService->uploadCoverImage($image);
+                    break;
+                default:
+                    $uploadResult = $this->cloudinaryService->uploadImageFanpage($image);
+                    break;
+            }
+
+            if (!$uploadResult['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $uploadResult['message'] ?? 'Upload failed'
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Image uploaded successfully',
+                'url' => $uploadResult['url'],
+                'public_id' => $uploadResult['public_id'] ?? null,
+                'type' => $type
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Image upload error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while uploading image'
+            ], 500);
+        }
+    }
 }

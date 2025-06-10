@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import CustomImage from "@/Common/CustomImage";
 import { ImagePath, Href, Follow, SendMessage } from "../../../utils/constant";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
@@ -6,7 +6,14 @@ import { socialDetails } from "@/Data/Favorite";
 import Image from "next/image";
 import SocialButtons from "./SocialButtons";
 
-const PageCover: FC = () => {
+interface PageCoverProps {
+  page: string;
+}
+
+const PageCover: FC<PageCoverProps> = ({ page }) => {
+  const [pageInfo, setPageInfo] = useState<any>(null);
+
+  
   return (
     <div className="page-cover">
       <div className="cover-img bg-size blur-up lazyloaded">

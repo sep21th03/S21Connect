@@ -102,6 +102,24 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         $this->notify(new CustomVerifyEmail());
     }
     // Relationships
+    public function createdPages()
+    {
+        return $this->hasMany(Page::class, 'created_by');
+    }
+
+    public function adminPages()
+    {
+        return $this->belongsToMany(Page::class, 'page_admins')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    public function followedPages()
+    {
+        return $this->belongsToMany(Page::class, 'page_followers')
+            ->withTimestamps();
+    }
+
     public function reportsReceived()
     {
         return $this->morphMany(Report::class, 'reportable');

@@ -371,4 +371,80 @@ class CloudinaryService
             return '';
         }
     }
+
+    //fanpage
+    public function uploadImageFanpage(UploadedFile $file, array $options = []): array
+    {
+        try {
+            $defaultOptions = [
+                'folder' => 'fanpage_images',
+                'resource_type' => 'image',
+                'quality' => 'auto',
+                'fetch_format' => 'auto',
+                'transformation' => [
+                    'quality' => 'auto:good',
+                    'fetch_format' => 'auto'
+                ]
+            ];
+
+            $uploadOptions = array_merge($defaultOptions, $options);
+
+            if (!isset($uploadOptions['public_id'])) {
+                $uploadOptions['public_id'] = 'fanpage_' . time() . '_' . uniqid();
+            }
+
+            $result = $this->uploadApi->upload($file->getRealPath(), $uploadOptions);
+
+            return [
+                'success' => true,
+                'url' => $result['secure_url'],
+                'public_id' => $result['public_id'],
+                'width' => $result['width'] ?? null,
+                'height' => $result['height'] ?? null,
+                'format' => $result['format'] ?? null,
+                'resource_type' => $result['resource_type'] ?? null,
+                'bytes' => $result['bytes'] ?? null,
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Cloudinary upload error: ' . $e->getMessage());
+
+            return [
+                'success' => false,
+                'message' => 'Failed to upload image: ' . $e->getMessage()
+            ];
+        }
+    }
+    public function uploadAvatar(UploadedFile $file): array
+    {
+        $options = [
+            'folder' => 'fanpage_images/avatars',
+            'transformation' => [
+                'width' => 400,
+                'height' => 400,
+                'crop' => 'fill',
+                'gravity' => 'face',
+                'quality' => 'auto:good',
+                'fetch_format' => 'auto'
+            ]
+        ];
+
+        return $this->uploadImageFanpage($file, $options);
+    }
+
+    public function uploadCoverImage(UploadedFile $file): array
+    {
+        $options = [
+            'folder' => 'fanpage_images/covers',
+            'transformation' => [
+                'width' => 1200,
+                'height' => 630,
+                'crop' => 'fill',
+                'gravity' => 'center',
+                'quality' => 'auto:good',
+                'fetch_format' => 'auto'
+            ]
+        ];
+
+        return $this->uploadImageFanpage($file, $options);
+    }
 }
