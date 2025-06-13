@@ -225,9 +225,9 @@ import React, {
           // conversation_id: conversationId,
         };
   
-        if (conversationId) {
-          payload.conversation_id = conversationId;
-        } else {
+        // if (conversationId) {
+        //   payload.conversation_id = conversationId;
+        // } else {
           payload.user_ids = selectedFriends.map(friend => friend.id);
           
           const defaultGroupName = selectedFriends
@@ -235,7 +235,7 @@ import React, {
             .join(", ");
           
           payload.group_name = groupName.trim() || defaultGroupName;
-        }
+        // }
   
         if (newMessage.trim()) {
           payload.content = newMessage;

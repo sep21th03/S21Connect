@@ -14,6 +14,9 @@ import styles from "@/style/stories.module.css";
 import { toast } from "react-toastify";
 import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
+import { sendMessage } from "@/service/messageService";
+import { useMutation } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 const StoriesModal: FC<StoriesModalProps> = ({
   showModal,
@@ -45,12 +48,58 @@ const StoriesModal: FC<StoriesModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState<any>(null);
   const [videoMuted, setVideoMuted] = useState(false);
+  const [replyMessage, setReplyMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const { data: session } = useSession();
+  const sendMessageMutation = useMutation({
+    mutationFn: sendMessage,
+    onSuccess: (data) => {
+      toast.success("Tin nhắn đã được gửi!");
+      setReplyMessage(""); 
+      setIsSending(false);
+    },
+    onError: (error: any) => {
+      console.error("Error sending reply:", error);
+      toast.error("Không thể gửi tin nhắn. Vui lòng thử lại.");
+      setIsSending(false);
+    },
+  });
+
+  const handleSendReply = async () => {
+    if (!replyMessage.trim()) {
+      toast.error("Vui lòng nhập nội dung tin nhắn!");
+      return;
+    }
+    if (!currentStory) {
+      toast.error("Không tìm thấy story để trả lời!");
+      return;
+    }
+
+    setIsSending(true);
+
+    const payload = {
+      content: replyMessage,
+      receiver_id: currentStory.user.id, 
+      story_id: currentStory.id, 
+      type: "text",
+    };
+
+    await sendMessageMutation.mutateAsync(payload);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendReply();
+    }
+  };
 
   const previewRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewVideoRef = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
     if (showModal) {
       getStories().then((data) => {
@@ -149,7 +198,6 @@ const StoriesModal: FC<StoriesModalProps> = ({
     let duration: number = STORY_DURATION;
 
     if (storyCreationMode === "image" || storyCreationMode === "video") {
-      
       try {
         if (!selectedFile) {
           toast.error("Vui lòng chọn ảnh hoặc video trước khi đăng.");
@@ -166,8 +214,7 @@ const StoriesModal: FC<StoriesModalProps> = ({
         let base64String;
         if (selectedFile instanceof File) {
           base64String = await fileToBase64(selectedFile);
-        } else if (selectedFile.url && selectedFile.url.startsWith('data:')) {
-          // If it's already a base64 string
+        } else if (selectedFile.url && selectedFile.url.startsWith("data:")) {
           base64String = selectedFile.url;
         } else {
           throw new Error("Invalid file format");
@@ -182,8 +229,8 @@ const StoriesModal: FC<StoriesModalProps> = ({
           },
           {
             headers: {
-              'Content-Type': 'application/json',
-            }
+              "Content-Type": "application/json",
+            },
           }
         );
 
@@ -286,24 +333,20 @@ const StoriesModal: FC<StoriesModalProps> = ({
   const nextStory = async () => {
     if (!currentStory) return;
 
-    // Mark current story as seen if not already seen
     if (currentItem && !currentItem.is_seen) {
       await handleMarkAsSeen(currentStory.id);
     }
 
-    // Check if there's a next item in current story (regardless of seen status)
     if (currentStoryIndex < currentStory.items.length - 1) {
       setCurrentStoryIndex(currentStoryIndex + 1);
       setProgress(0);
       return;
     }
 
-    // Move to next user
     if (currentUserIndex < stories.length - 1) {
       const nextUserIndex = currentUserIndex + 1;
       const nextStory = stories[nextUserIndex];
 
-      // Find first unseen item, if none exist, start from first item
       const firstUnseenIndex = findNextUnseenItem(nextStory);
       const startIndex = firstUnseenIndex >= 0 ? firstUnseenIndex : 0;
 
@@ -311,12 +354,10 @@ const StoriesModal: FC<StoriesModalProps> = ({
       setCurrentStoryIndex(startIndex);
       setProgress(0);
 
-      // Mark as seen if starting from an unseen item
       if (firstUnseenIndex >= 0) {
         await handleMarkAsSeen(nextStory.id);
       }
-    } else {
-      // At the end, loop back to first user and first story
+    } else {  
       setCurrentUserIndex(0);
       setCurrentStoryIndex(0);
       setProgress(0);
@@ -412,7 +453,6 @@ const StoriesModal: FC<StoriesModalProps> = ({
   useEffect(() => {
     if (showModal && currentStory && !showAddStoryView) {
       startStoryTimer();
-      // Mark story as seen when viewed
       if (currentItem && !currentItem.is_seen) {
         handleMarkAsSeen(currentStory.id);
       }
@@ -812,7 +852,13 @@ const StoriesModal: FC<StoriesModalProps> = ({
                 {!showAddStoryView && (
                   <div className="reply-section">
                     <div className="reply-form">
-                      <input className="form-control" placeholder="reply..." />
+                      <input
+                        className="form-control"
+                        placeholder="Trả lời..."
+                        value={replyMessage}
+                        onChange={(e) => setReplyMessage(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                      />
                     </div>
                     <ul className="emoji icon-xl">
                       <li>
