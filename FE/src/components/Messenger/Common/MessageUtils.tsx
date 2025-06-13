@@ -52,7 +52,7 @@ export const renderMessageContent = (
           target="_blank"
           rel="noopener noreferrer"
           className="message-link"
-          style={{ color: "#1e90ff", textDecoration: "underline" }}
+          style={{ color: "#ff1e1e", textDecoration: "underline" }}
           aria-label={`Open link to ${message.content}`}
         >
           {message.content}

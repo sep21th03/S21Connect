@@ -25,7 +25,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
   data,
   handleMessagesRead,
 }) => {
-  const { playNotificationSound } = useSoundNotification(); 
+  const { playNotificationSound } = useSoundNotification();
   const [showOption, setShowOption] = useState(false);
   const [smallChat, setSmallChat] = useState(false);
   const [newMessage, setNewMessage] = useState<string>("");
@@ -245,7 +245,8 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
             receiver_id:
               data.type === "private"
                 ? data.other_user?.id
-                : data.members?.find((m) => m.id === session?.user?.id)?.id || "",
+                : data.members?.find((m) => m.id === session?.user?.id)?.id ||
+                  "",
             conversation_id: data.id,
             type: "image",
             file_name: pendingImage.name,
@@ -322,6 +323,23 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
           />
         </div>
       );
+    }
+    if (message.type === "text" && message.content) {
+      const urlRegex = /^https:\/\/[^\s/$.?#].[^\s]*$/i;
+      if (urlRegex.test(message.content.trim())) {
+        return (
+          <a
+            href={message.content}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="message-link"
+            style={{ color: "#ff1e1e", textDecoration: "underline" }}
+            aria-label={`Open link to ${message.content}`}
+          >
+            {message.content}
+          </a>
+        );
+      }
     }
     return message.content;
   };
