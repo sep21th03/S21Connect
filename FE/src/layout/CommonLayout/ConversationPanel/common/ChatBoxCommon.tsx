@@ -12,6 +12,7 @@ import { formatTime } from "@/utils/index";
 import { toast } from "react-toastify";
 import { SharePostMetadata } from "@/components/Messenger/MessengerType";
 import { setupSocketListeners } from "@/service/socketService";
+import { useSoundNotification } from "@/utils/soundEffect";
 
 interface ChatBoxCommonInterFace {
   setChatBox: (value: boolean) => void;
@@ -24,6 +25,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
   data,
   handleMessagesRead,
 }) => {
+  const { playNotificationSound } = useSoundNotification(); 
   const [showOption, setShowOption] = useState(false);
   const [smallChat, setSmallChat] = useState(false);
   const [newMessage, setNewMessage] = useState<string>("");
@@ -125,7 +127,8 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
       leaveChat,
       markMessagesAsRead,
       onNewMessage,
-      onImageUploadStatus
+      onImageUploadStatus,
+      playNotificationSound
     );
 
     handleMessagesRead();
