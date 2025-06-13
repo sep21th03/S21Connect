@@ -28,7 +28,7 @@ const Gallery: FC = () => {
         created_at: image.created_at,
         updated_at: image.updated_at,
         row: false,
-        sizeSmall: 4, // Thay đổi thành 4 để có 3 cột (12/4 = 3)
+        sizeSmall: 4, 
         className: "",
         url: image.url
       })));
@@ -36,7 +36,6 @@ const Gallery: FC = () => {
     fetchGallery();
   }, []);
 
-  // Chỉ hiển thị 9 ảnh đầu tiên (3x3 grid)
   const displayImages = gallery.slice(0, 9);
   const remainingCount = gallery.length - 9;
   

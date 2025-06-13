@@ -34,6 +34,7 @@ const ChatUserItem = React.memo(
   }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isIconVisible, setIsIconVisible] = useState(false);
+    
     const renderContentPreview = (
       content?: string,
       senderId?: string,
@@ -126,12 +127,8 @@ const ChatUserItem = React.memo(
       },
     ];
 
-    const avatarSrc =
-      data.type === "group"
-        ? data.avatar || `${ImagePath}/icon/user.png`
-        : data.other_user
-        ? data.other_user.avatar || `${ImagePath}/icon/user.png`
-        : data.members[0]?.avatar ?? `${ImagePath}/icon/user.png`;
+    const isGroupChat = data.type === "group";
+
     return (
       <NavItem
         className="d-flex justify-content-between align-items-center px-2"
@@ -150,13 +147,46 @@ const ChatUserItem = React.memo(
           <Media className="list-media">
             <div className="story-img">
               <div className="user-img bg-size blur-up lazyloaded">
-                <Image
-                  src={avatarSrc}
-                  className="img-fluid blur-up bg-img lazyloaded rounded-circle"
-                  alt="user"
-                  width={120}
-                  height={120}
-                />
+                {isGroupChat ? (
+                  <div className="group-avatar-wrapper">
+                    <div className="avatar avatar-1">
+                      <Image
+                        src={
+                          data.members?.[0]?.avatar ||
+                          `${ImagePath}/icon/user.png`
+                        }
+                        alt="member1"
+                        width={40}
+                        height={40}
+                        className="rounded-circle"
+                      />
+                    </div>
+                    <div className="avatar avatar-2">
+                      <Image
+                        src={
+                          data.members?.[1]?.avatar ||
+                          `${ImagePath}/icon/user.png`
+                        }
+                        alt="member2"
+                        width={40}
+                        height={40}
+                        className="rounded-circle"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <Image
+                    src={
+                      data.other_user
+                        ? data.other_user.avatar || `${ImagePath}/icon/user.png`
+                        : data.members[0]?.avatar ?? `${ImagePath}/icon/user.png`
+                    }
+                    className="img-fluid blur-up bg-img lazyloaded rounded-circle"
+                    alt="user"
+                    width={120}
+                    height={120}
+                  />
+                )}
               </div>
             </div>
             <Media body>
@@ -262,6 +292,37 @@ const ChatUserItem = React.memo(
             </Dropdown>
           </div>
         )}
+        
+        <style jsx>{`
+          .group-avatar-wrapper {
+            position: relative;
+            width: 60px;
+            height: 60px;
+          }
+
+          .group-avatar-wrapper .avatar {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid #fff;
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+          }
+
+          .group-avatar-wrapper .avatar-1 {
+            bottom: 0;
+            left: 0;
+            z-index: 2;
+          }
+
+          .group-avatar-wrapper .avatar-2 {
+            top: 0;
+            right: 0;
+            z-index: 1;
+            transform: translate(-15%, 0%);
+          }
+        `}</style>
       </NavItem>
     );
   }

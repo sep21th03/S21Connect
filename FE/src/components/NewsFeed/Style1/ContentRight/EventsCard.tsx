@@ -19,7 +19,7 @@ const EventsCard: FC<EventsCardInterFace> = ({eventImage,diffrentPath}) => {
         <CustomImage src={"https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/07/hinh-anh-giang-sinh-cute.jpg"} className="img-fluid blur-up lazyload bg-img" alt="event"/>
         <div className="card-title">
           <h3>{Event}</h3>
-          <div className="settings">
+          {/* <div className="settings">
             <div className="setting-btn">
               <a href={Href} className="d-flex">
                 <DynamicFeatherIcon iconName="RotateCw" className="icon icon-dark stroke-width-3 iw-11 ih-11"/>
@@ -42,7 +42,7 @@ const EventsCard: FC<EventsCardInterFace> = ({eventImage,diffrentPath}) => {
                 </DropdownMenu>
               </Dropdown>
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="play-btn" onClick={toggleEventModal}>
           <img src={`${ImagePath}/icon/play.png`} className="img-fluid blur-up lazyloaded" alt="play"/>

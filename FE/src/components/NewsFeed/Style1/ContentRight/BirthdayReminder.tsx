@@ -34,7 +34,7 @@ const BirthdayReminder: FC<BirthdayReminderInterFace> = ({mainClass, userInforBi
           <h3>{Birthday} !!!!</h3>
           <h6>{BirthdayWish}</h6>
         </div>
-        <div className="setting">
+        {/* <div className="setting">
           <div className="setting-btn light-btn">
             <a href={Href} className="d-flex">
               <DynamicFeatherIcon iconName="RotateCw" className="icon icon-light stroke-width-3 iw-11 ih-11"/>
@@ -59,7 +59,7 @@ const BirthdayReminder: FC<BirthdayReminderInterFace> = ({mainClass, userInforBi
               </DropdownMenu>
             </Dropdown>
           </div>
-        </div>
+        </div> */}
       </div>
       <div className="birthday-content">
         <div className="image-section">

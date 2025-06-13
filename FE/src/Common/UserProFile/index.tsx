@@ -10,7 +10,7 @@ import { FC } from "react";
 const UserProFile: FC<{ userProfile: UserAbout | null }> = ({ userProfile }) => {
   return (
     <div className="profile-box">
-      <ProfileSetting />
+      <ProfileSetting userProfile={userProfile}/>
       <div className="profile-content">
         <Link href={`/profile/timeline/${userProfile?.username}`} className="image-section">
           <div className="profile-img">

@@ -46,7 +46,7 @@ const WeatherSection: FC = () => {
               />
             </a>
           </div>
-          <WeatherDropDown />
+          {/* <WeatherDropDown /> */}
         </div>
       </div>
 

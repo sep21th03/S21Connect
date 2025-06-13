@@ -15,6 +15,9 @@ class AuthService
 {
     public function register(array $data)
     {
+        $fullName = $data['last_name'] . ' ' . $data['first_name'];
+        $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($fullName) . '&background=random';
+
         $user = User::create([
             'id' => Str::uuid(),
             'username' => $data['username'],
@@ -24,7 +27,10 @@ class AuthService
             'last_name' => $data['last_name'],
             'gender' => $data['gender'],
             'birthday' => $data['birthday'],
+            'avatar' => $avatarUrl, 
         ]);
+
+
 
         $user->sendEmailVerificationNotification();
 

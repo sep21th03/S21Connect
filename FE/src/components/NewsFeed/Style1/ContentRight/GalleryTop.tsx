@@ -15,7 +15,7 @@ const GalleryTop: FC<GalleryTopProps> = ({ galleryLength }) => {
       <div className="card-title">
         <h3>{Gallery}</h3>
         <h5>{galleryLength} {photos}</h5>
-        <div className="settings">
+        {/* <div className="settings">
           <div className="setting-btn">
             <a href={Href}>
               <DynamicFeatherIcon iconName="RotateCw" className="icon icon-dark stroke-width-3 iw-11 ih-11"/>
@@ -40,7 +40,7 @@ const GalleryTop: FC<GalleryTopProps> = ({ galleryLength }) => {
               </DropdownMenu>
             </Dropdown>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
