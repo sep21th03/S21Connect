@@ -8,6 +8,7 @@ import Gallery from "@/components/NewsFeed/Style1/ContentRight/Gallery";
 import YourGames from "@/components/NewsFeed/Style1/ContentRight/YourGames";
 import FriendSuggestion from "@/components/NewsFeed/Style1/LeftContent/FriendSuggestion";
 import LikePage from "@/components/NewsFeed/Style1/LeftContent/LikePage";
+import LikedPages from "@/components/NewsFeed/Style1/LeftContent/LikedPages";
 import WeatherSection from "@/components/NewsFeed/Style1/LeftContent/WeatherSection";
 import SearchLocation from "@/components/Weather/WeatherCover/SearchLocation";
 import WeatherCard from "@/components/Weather/WeatherCover/WeatherCard";
@@ -38,7 +39,7 @@ const Widget = () => {
             </div>
             <div className="content-right">
               <PopularSongs />
-              <LikePage />
+              <LikedPages />
               <WeatherCard />
             </div>
           </div>

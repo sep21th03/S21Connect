@@ -1,5 +1,3 @@
-// React Components for Comments
-
 import React, {
   FC,
   useState,
@@ -37,12 +35,9 @@ const CommentSection: FC<CommentSectionProps> = ({
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<{
-    name: string;
-    commentId: number;
-  } | null>(null);
+
+  const [activeReplyId, setActiveReplyId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
-  const [isReplying, setIsReplying] = useState(false);
 
   useEffect(() => {
     if (showComment && postId) {
@@ -50,13 +45,41 @@ const CommentSection: FC<CommentSectionProps> = ({
     }
   }, [showComment, postId]);
 
+  function flattenRepliesTo2Levels(comments: any[]) {
+    return comments.map((comment) => {
+      const level1Replies: any[] = [];
+  
+      const processReplies = (replies: any[], parent: any) => {
+        replies.forEach((reply) => {
+          level1Replies.push({ ...reply, replies: [] });
+  
+          // Nếu reply có replies nữa (tức là cấp 3 trở lên), thì cũng thêm vào cấp 2 của cha ban đầu
+          if (reply.replies && reply.replies.length > 0) {
+            processReplies(reply.replies, comment); // luôn gắn vào cha gốc (comment cấp 1)
+          }
+        });
+      };
+  
+      if (comment.replies && comment.replies.length > 0) {
+        processReplies(comment.replies, comment);
+      }
+  
+      return {
+        ...comment,
+        replies: level1Replies
+      };
+    });
+  }
+  
+
   const fetchComments = async () => {
     setLoading(true);
     try {
       const fetchedComments = await axiosInstance.get(
         API_ENDPOINTS.POSTS.COMMENTS.GET_COMMENTS(postId.toString())
       );
-      setComments(fetchedComments.data);
+      const flattened = flattenRepliesTo2Levels(fetchedComments.data);
+      setComments(flattened);
     } catch (error) {
       console.error("Error fetching comments:", error);
     } finally {
@@ -86,11 +109,6 @@ const CommentSection: FC<CommentSectionProps> = ({
       }, 500);
     }
   }, [comments, highlightCommentId, highlightReplyId]);
-  const toggleReply = () => {
-    setIsReplying(!isReplying);
-    setReplyText("");
-    setReplyingTo(null);
-  };
 
   const toggleEmojiPicker = () => {
     setShowEmojiPicker(!showEmojiPicker);
@@ -153,51 +171,23 @@ const CommentSection: FC<CommentSectionProps> = ({
           return comment;
         })
       );
-      setReplyingTo(null);
-      setMessageInput("");
+
+      // Reset reply state
+      setActiveReplyId(null);
+      setReplyText("");
     } catch (error) {
       console.error("Error adding reply:", error);
     }
   };
 
-  // const handleDeleteComment = async (
-  //   commentId: number,
-  //   isReply: boolean,
-  //   parentId?: number
-  // ) => {
-  //   try {
-  //     await axiosInstance.delete(
-  //       API_ENDPOINTS.POSTS.COMMENTS.DELETE(commentId)
-  //     );
-
-  //     if (isReply && parentId) {
-  //       setComments((prevComments) =>
-  //         prevComments.map((comment) => {
-  //           if (comment.id === parentId) {
-  //             return {
-  //               ...comment,
-  //               replies: comment.replies?.filter(
-  //                 (reply: any) => reply.id !== commentId
-  //               ),
-  //             };
-  //           }
-  //           return comment;
-  //         })
-  //       );
-  //     } else {
-  //       setComments((prevComments) =>
-  //         prevComments.filter((comment) => comment.id !== commentId)
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Error deleting comment:", error);
-  //   }
-  // };
-
   const handleReplyClick = (name: string, commentId: number) => {
-    setReplyingTo({ name, commentId });
+    setActiveReplyId(commentId);
     setReplyText(`@${name} `);
-    setIsReplying(true);
+  };
+
+  const handleCancelReply = () => {
+    setActiveReplyId(null);
+    setReplyText("");
   };
 
   return (
@@ -212,50 +202,78 @@ const CommentSection: FC<CommentSectionProps> = ({
           </div>
         ) : comments.length > 0 ? (
           comments.map((comment: any) => (
-            <div key={comment.id} className="main-comment">
+            <div
+              key={comment.id}
+              className="main-comment"
+              style={{ position: "relative" }}
+            >
+              {comment?.replies && comment?.replies?.length > 0 && (
+                <div
+                  className="comment-line"
+                  style={{
+                    position: "absolute",
+                    left: "15px",
+                    top: "30px",
+                    bottom: "0",
+                    width: "2px",
+                    height: "calc(100% - 81px)",
+                    backgroundColor: "#e0e0e0",
+                  }}
+                ></div>
+              )}
               <MainComment
-                 id={
-                  highlightCommentId && highlightCommentId === comment.id.toString()
+                id={
+                  highlightCommentId &&
+                  highlightCommentId === comment.id.toString()
                     ? `comment-modal-${comment.id}`
                     : `comment-${comment.id}`
                 }
                 comment={comment}
                 onReply={handleReply}
                 onReplyClick={handleReplyClick}
+                onCancelReply={handleCancelReply}
                 like={comment?.likes}
                 replyText={replyText}
                 setReplyText={setReplyText}
-                isReplying={isReplying}
-                toggleReply={toggleReply}
-                setIsReplying={setIsReplying}
-                isHighlighted={Boolean(highlightCommentId && highlightCommentId === comment.id.toString())}
+                isReplying={activeReplyId === comment.id}
+                isHighlighted={Boolean(
+                  highlightCommentId &&
+                    highlightCommentId === comment.id.toString()
+                )}
               />
 
               {comment.replies && comment.replies.length > 0 && (
                 <div className="sub-comment">
-                  {comment.replies.map((reply: any) => (
-                    <SubComment
-                      key={reply.id}
-                      id={`reply-${reply.id}`}
-                      image={reply?.user?.avatar}
-                      comment={reply}
-                      onReplyClick={handleReplyClick}
-                      isReplying={isReplying}
-                      toggleReply={toggleReply}
-                      setIsReplying={setIsReplying}
-                      isHighlighted={Boolean(highlightReplyId && highlightReplyId === reply.id.toString())}
-                    />
-                  ))}
-
-                  {comment.replies.length >= 3 && (
-                    <a href={Href} className="loader">
-                      <DynamicFeatherIcon
-                        iconName="RotateCw"
-                        className="iw-15 ih-15"
+                  {comment.replies.map((reply: any, index: number) => (
+                    <div key={reply.id} style={{ position: "relative" }}>
+                      <div
+                        className="sub-comment-line"
+                        style={{
+                          position: "absolute",
+                          left: "15px",
+                          top: "15px",
+                          width: "15px",
+                          height: "2px",
+                          backgroundColor: "#e0e0e0",
+                        }}
                       />
-                      {LoadMoreReplies}
-                    </a>
-                  )}
+                      <SubComment
+                        id={`reply-${reply.id}`}
+                        image={reply?.user?.avatar}
+                        comment={reply}
+                        onReplyClick={handleReplyClick}
+                        onCancelReply={handleCancelReply}
+                        onReply={handleReply}
+                        replyText={replyText}
+                        setReplyText={setReplyText}
+                        isReplying={activeReplyId === reply.id}
+                        isHighlighted={Boolean(
+                          highlightReplyId &&
+                            highlightReplyId === reply.id.toString()
+                        )}
+                      />
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

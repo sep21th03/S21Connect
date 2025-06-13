@@ -11,7 +11,7 @@ interface FavoriteAboutPageProps {
 const FavoriteAboutPage: FC<FavoriteAboutPageProps> = ({ page }) => {
   return (
     <FavoriteLayout loaderName="favoriteAboutPage" page={page}>
-      <FavoriteAboutPageContent />
+      <FavoriteAboutPageContent page={page}/>
     </FavoriteLayout>
   );
 };

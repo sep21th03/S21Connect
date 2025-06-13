@@ -18,15 +18,13 @@ import {
   Modal,
   ButtonGroup,
   UncontrolledTooltip,
+  Badge,
 } from "reactstrap";
 import SpaySideBar from "@/layout/CommonLayout/FullSideBar/SpaySideBar";
 import styles from "@/style/invoiceCard.module.css";
 import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
-import {
-  formatTimeAgo,
-  formatTimeAgoCreate,
-} from "@/utils/formatTime";
+import { formatTimeAgo, formatTimeAgoCreate } from "@/utils/formatTime";
 import { renderStatusBadge } from "@/utils/formatStatus";
 import { copyLink } from "@/utils";
 import Swal from "sweetalert2";
@@ -44,10 +42,11 @@ interface Bill {
   updated_at: string;
   share: string;
   action: string;
+  shop_id: string;
 }
 const renderShareButton = (id: string, sotien: number) => {
   return (
-    <Button color="primary" size="sm" onClick={() => copyLink(id, sotien)}>
+    <Button className="btn-solid btn-sm btn" onClick={() => copyLink(id, sotien)}>
       <i className="fas fa-share"></i>
     </Button>
   );
@@ -57,8 +56,18 @@ const BillPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [billData, setBillData] = useState<Bill[]>([]);
   const [reloadCount, setReloadCount] = useState(0);
+  const [amount, setAmount] = useState(0);
+  const [note, setNote] = useState("");
+  const [return_url, setReturnUrl] = useState("");
+  const [shop, setShop] = useState("");
+  const [shopList, setShopList] = useState<
+    { id: number; name: string; token: string }[]
+  >([]);
 
-  const toggleModal = () => setModalOpen(!modalOpen);
+  const toggleModal = () => {
+    if (!modalOpen) fetchShops();
+    setModalOpen(!modalOpen);
+  };
 
   const handleReload = () => {
     setReloadCount((prev) => prev + 1);
@@ -68,6 +77,16 @@ const BillPage = () => {
     fetchBillData();
   }, [reloadCount]);
 
+  const fetchShops = async () => {
+    try {
+      const res = await axiosInstance.get(API_ENDPOINTS.PAYMENT.SHOP.GET_SHOP);
+      if (res.data.status === "success") {
+        setShopList(res.data.data);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách shop:", error);
+    }
+  };
   const fetchBillData = async () => {
     const response = await axiosInstance.get(
       API_ENDPOINTS.PAYMENT.BILL.GET_LIST
@@ -76,15 +95,19 @@ const BillPage = () => {
       setBillData(response.data.data);
     }
   };
+
   useEffect(() => {
     fetchBillData();
   }, [reloadCount]);
 
   const deleteHoadon = async (bill_id: string) => {
-    const response = await axiosInstance.delete(
-      API_ENDPOINTS.PAYMENT.BILL.DELETE(bill_id)
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.PAYMENT.BILL.DELETE,
+      {
+        id: bill_id,
+      }
     );
-    if (response.status === 200) {
+    if (response.data.status === "success") {
       Swal.fire({
         title: "Thành công",
         text: "Hóa đơn đã được xóa thành công",
@@ -95,10 +118,10 @@ const BillPage = () => {
   };
 
   const payHoadon = async (bill_id: string) => {
-    const response = await axiosInstance.post(
-      API_ENDPOINTS.PAYMENT.BILL.PAY(bill_id)
-    );
-    if (response.status === 200) {
+    const response = await axiosInstance.post(API_ENDPOINTS.PAYMENT.BILL.PAY, {
+      id: bill_id,
+    });
+    if (response.data.status === "success") {
       Swal.fire({
         title: "Thành công",
         text: "Hóa đơn đã được thanh toán thành công",
@@ -110,9 +133,12 @@ const BillPage = () => {
 
   const cancelHoadon = async (bill_id: string) => {
     const response = await axiosInstance.post(
-      API_ENDPOINTS.PAYMENT.BILL.CANCEL(bill_id)
+      API_ENDPOINTS.PAYMENT.BILL.CANCEL,
+      {
+        id: bill_id,
+      }
     );
-    if (response.status === 200) {
+    if (response.data.status === "success") {
       Swal.fire({
         title: "Thành công",
         text: "Hóa đơn đã được hủy thành công",
@@ -124,9 +150,12 @@ const BillPage = () => {
 
   const unpayHoadon = async (bill_id: string) => {
     const response = await axiosInstance.post(
-      API_ENDPOINTS.PAYMENT.BILL.UNPAY(bill_id)
+      API_ENDPOINTS.PAYMENT.BILL.UNPAY,
+      {
+        id: bill_id,
+      }
     );
-    if (response.status === 200) {
+    if (response.data.status === "success") {
       Swal.fire({
         title: "Thành công",
         text: "Hóa đơn đã được đánh dấu chưa thanh toán thành công",
@@ -136,9 +165,38 @@ const BillPage = () => {
     }
   };
 
+  const createBill = async (bill: any) => {
+    const response = await axiosInstance.post(
+      API_ENDPOINTS.PAYMENT.BILL.CREATE,
+      bill
+    );
+    if (response.data.status === "success") {
+      Swal.fire({
+        title: "Thành công",
+        text: "Hóa đơn đã được tạo thành công",
+        icon: "success",
+      });
+      setReloadCount((prev) => prev + 1);
+    }
+  };
+
+  const handleCreateBill = (
+    amount: number,
+    note: string,
+    return_url: string
+  ) => {
+    const bill = {
+      amount: amount,
+      note: note,
+      return_url: return_url,
+      shop: shop,
+    };
+    createBill(bill);
+  };
+
   const renderBillActions = (bill: Bill) => {
     const { bill_id, status } = bill;
-  
+
     return (
       <ButtonGroup size="sm" className="d-flex flex-wrap gap-2">
         <Button
@@ -146,11 +204,11 @@ const BillPage = () => {
           color="danger"
           onClick={() => {
             Swal.fire({
-              title: 'Bạn có chắc muốn xóa hóa đơn này?',
-              icon: 'warning',
+              title: "Bạn có chắc muốn xóa hóa đơn này?",
+              icon: "warning",
               showCancelButton: true,
-              confirmButtonText: 'Có, xóa',
-              cancelButtonText: 'Hủy',
+              confirmButtonText: "Có, xóa",
+              cancelButtonText: "Hủy",
             }).then((result) => {
               if (result.isConfirmed) deleteHoadon(bill_id);
             });
@@ -161,7 +219,7 @@ const BillPage = () => {
         <UncontrolledTooltip target={`btn-delete-${bill_id}`}>
           Xóa hóa đơn
         </UncontrolledTooltip>
-  
+
         {status === "1" && (
           <>
             <Button
@@ -174,17 +232,17 @@ const BillPage = () => {
             <UncontrolledTooltip target={`btn-pay-${bill_id}`}>
               Đánh dấu đã thanh toán
             </UncontrolledTooltip>
-  
+
             <Button
               id={`btn-cancel-${bill_id}`}
               color="warning"
               onClick={() => {
                 Swal.fire({
-                  title: 'Bạn có chắc muốn hủy hóa đơn này?',
-                  icon: 'warning',
+                  title: "Bạn có chắc muốn hủy hóa đơn này?",
+                  icon: "warning",
                   showCancelButton: true,
-                  confirmButtonText: 'Có, hủy',
-                  cancelButtonText: 'Hủy',
+                  confirmButtonText: "Có, hủy",
+                  cancelButtonText: "Hủy",
                 }).then((result) => {
                   if (result.isConfirmed) cancelHoadon(bill_id);
                 });
@@ -197,7 +255,7 @@ const BillPage = () => {
             </UncontrolledTooltip>
           </>
         )}
-  
+
         {status === "2" && (
           <>
             <Button
@@ -254,6 +312,7 @@ const BillPage = () => {
                         <th className={`${styles.thLight} fw-normal`}>
                           ID Hóa Đơn
                         </th>
+                        <th className={`${styles.thLight} fw-normal`}>Shop</th>
                         <th className={`${styles.thLight} fw-normal`}>
                           Số Tiền
                         </th>
@@ -286,6 +345,15 @@ const BillPage = () => {
                         <tr key={bill.id}>
                           <td>{index + 1}</td>
                           <td>{bill.bill_id}</td>
+                          <td>
+                            {bill.shop ? (
+                              <Badge color="info" pill>
+                                {bill.shop}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted">Không có</span>
+                            )}
+                          </td>
                           <td>{bill.amount}</td>
                           <td>{bill.note}</td>
                           <td>{renderStatusBadge(bill.status)}</td>
@@ -318,7 +386,26 @@ const BillPage = () => {
                 type="number"
                 placeholder="Vui lòng nhập số tiền..."
                 style={{ fontSize: "18px" }}
+                onChange={(e) => setAmount(Number(e.target.value))}
               />
+            </FormGroup>
+            <FormGroup>
+              <Label for="shop">Chọn Shop:</Label>
+              <Input
+                type="select"
+                id="shop"
+                name="shop"
+                style={{ fontSize: "18px" }}
+                value={shop}
+                onChange={(e) => setShop(e.target.value)}
+              >
+                <option value="">-- Chọn một shop --</option>
+                {shopList.map((shop) => (
+                  <option key={shop.id} value={shop.token}>
+                    {shop.name}
+                  </option>
+                ))}
+              </Input>
             </FormGroup>
             <FormGroup>
               <Label for="comment">Ghi Chú:</Label>
@@ -328,6 +415,7 @@ const BillPage = () => {
                 type="textarea"
                 placeholder="Vui lòng nhập ghi chú..."
                 style={{ fontSize: "18px" }}
+                onChange={(e) => setNote(e.target.value)}
               />
             </FormGroup>
             <FormGroup>
@@ -338,6 +426,7 @@ const BillPage = () => {
                 type="url"
                 placeholder="Nhập link return url..."
                 style={{ fontSize: "18px" }}
+                onChange={(e) => setReturnUrl(e.target.value)}
               />
             </FormGroup>
           </Form>
@@ -348,7 +437,7 @@ const BillPage = () => {
           </Button>
           <Button
             color="solid"
-            onClick={() => console.log("Gửi dữ liệu tạo hóa đơn")}
+            onClick={() => handleCreateBill(amount, note, return_url)}
           >
             Tạo Hóa Đơn
           </Button>

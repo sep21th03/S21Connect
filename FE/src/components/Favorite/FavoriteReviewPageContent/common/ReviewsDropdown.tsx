@@ -18,19 +18,19 @@ const ReviewsDropdown: FC = () => {
             <li>
               <a href={Href}>
                 <DynamicFeatherIcon iconName="Bookmark" className="icon-font-light iw-16 ih-16"/>
-                save post
+                lưu bài viết
               </a>
             </li>
             <li>
               <a href={Href}>
                 <DynamicFeatherIcon iconName="Edit" className="icon-font-light iw-16 ih-16"/>
-                edit post
+                chỉnh sửa bài viết
               </a>
             </li>
             <li>
               <a href={Href}>
                 <DynamicFeatherIcon iconName="XSquare" className="icon-font-light iw-16 ih-16"/>
-                hide post
+                ẩn bài viết
               </a>
             </li>
           </ul>

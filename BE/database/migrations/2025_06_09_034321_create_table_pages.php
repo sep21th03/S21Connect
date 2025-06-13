@@ -20,13 +20,17 @@ return new class extends Migration
             $table->string('cover_image')->nullable();
             $table->uuid('created_by');
             $table->enum('type', [
-                'community',        // Cộng đồng
-                'brand',            // Thương hiệu
-                'public_figure',    // Nhân vật công chúng
-                'business',         // Doanh nghiệp
-                'entertainment',    // Giải trí
-                'other'             // Khác
+                'community',
+                'brand',
+                'public_figure',
+                'business',
+                'entertainment',
+                'personal',
+                'other'
             ])->default('other');
+            $table->string('email')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('link')->nullable();
             $table->timestamps();
 
             $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');

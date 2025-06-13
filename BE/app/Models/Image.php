@@ -12,6 +12,7 @@ class Image extends Model
 
     protected $fillable = [
         'user_id',
+        'post_id',
         'url',
         'public_id',
         'folder',

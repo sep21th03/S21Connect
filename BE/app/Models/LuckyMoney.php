@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Lixi extends Model
+class LuckyMoney extends Model
 {
     protected $table = 'lucky_money';
     public static function getByUsername($username)

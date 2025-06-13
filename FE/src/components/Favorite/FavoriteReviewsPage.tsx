@@ -9,7 +9,7 @@ interface FavoriteReviewsPageProps {
 const FavoriteReviewsPage: FC<FavoriteReviewsPageProps> = ({ page }) => {
   return (
     <FavoriteLayout loaderName="favoriteReviews" page={page}>
-      <FavoriteReviewPageContent />
+      <FavoriteReviewPageContent page={page} />
     </FavoriteLayout>
   );
 };

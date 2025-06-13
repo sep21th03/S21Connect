@@ -1,4 +1,4 @@
-import CommonGalleryPhotos from "@/Common/CommonGalleryPhotos";
+import PageGalleryPhotos  from "@/Common/CommonGalleryPhotos/PageGalleryPhotos";
 import FavoriteLayout from "@/layout/FavoriteLayout";
 import React, { FC } from "react";
 
@@ -11,7 +11,7 @@ const FavoritePhotosPage: FC<FavoritePhotosPageProps> = ({ page }) => {
     <FavoriteLayout loaderName="favoriteGallery" page={page}>
       <div className="page-content">
         <div className="content-center w-100">
-          <CommonGalleryPhotos />
+          <PageGalleryPhotos/>
         </div>
       </div>
     </FavoriteLayout>

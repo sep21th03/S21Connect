@@ -92,4 +92,98 @@ export const adminService = {
       throw error;
     }
   },
+
+  fetchStats: async (): Promise<any> => {
+    try {
+      const response = await axiosInstance.get(API_ENDPOINTS.ADMIN.GET_STATS);
+      return response.data || null;
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      return null;
+    }
+  },
+
+  getActiveUsersByDate: async (): Promise<any> => {
+    try {
+      const response = await axiosInstance.get(
+        API_ENDPOINTS.ADMIN.GET_ACTIVE_USERS_BY_DATE
+      );
+      return response.data || null;
+    } catch (error) {
+      console.error("Error fetching active users by date:", error);
+      return null;
+    }
+  },
+
+  getUserDistribution: async (): Promise<any> => {
+    try {
+      const response = await axiosInstance.get(
+        API_ENDPOINTS.ADMIN.GET_USER_DISTRIBUTION
+      );
+      return response.data || null;
+    } catch (error) {
+      console.error("Error fetching user distribution:", error);
+      return null;
+    }
+  },
+
+  getSupportRequests: async (): Promise<any> => {
+    try {
+      const response = await axiosInstance.get(
+        API_ENDPOINTS.ADMIN.GET_SUPPORT_REQUESTS
+      );
+      return response.data || null;
+    } catch (error) {
+      console.error("Error fetching support requests:", error);
+      return null;
+    }
+  },
+
+  getReportsByCategory: async (): Promise<any> => {
+    try {
+      const response = await axiosInstance.get(
+        API_ENDPOINTS.ADMIN.GET_REPORTS_BY_CATEGORY
+      );
+      return response.data || null;
+    } catch (error) {
+      console.error("Error fetching reports by category:", error);
+      return null;
+    }
+  },
+
+  getDashboardData: async (): Promise<any> => {
+    try {
+      const response = await axiosInstance.get(
+        API_ENDPOINTS.ADMIN.GET_DASHBOARD_DATA
+      );
+      return response.data || null;
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      return null;
+    }
+  },
+
+  updateUserStatus: async (userId: string, status: string): Promise<void> => {
+    try {
+      await axiosInstance.post(
+        API_ENDPOINTS.ADMIN.USERS.UPDATE_STATUS(userId),
+        { status }
+      );
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      throw error;
+    }
+  },
+
+  fetchReports: async (): Promise<any> => {
+    try {
+      const response = await axiosInstance.get(
+        API_ENDPOINTS.ADMIN.REPORTS
+      );
+      return response.data || null;
+    } catch (error) {
+      console.error("Failed to fetch reports:", error);
+      throw error;
+    }
+  },
 };

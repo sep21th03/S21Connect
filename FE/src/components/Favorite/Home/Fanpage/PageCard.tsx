@@ -4,6 +4,9 @@ import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import CustomImage from "@/Common/CustomImage";
 import { ImagePath } from "@/utils/constant";
 import { Page } from "@/components/Favorite/Fanpagetype";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux-toolkit/store";
+import fanpageService from "@/service/fanpageService";
 
 interface PageCardProps {
   page: Page;
@@ -14,22 +17,14 @@ const PageCard: FC<PageCardProps> = ({ page, onUpdate }) => {
   const [isFollowing, setIsFollowing] = useState(page.is_followed || false);
   const [followersCount, setFollowersCount] = useState(page.followers_count);
   const [loading, setLoading] = useState(false);
-
-  console.log(page);
+  const user = useSelector((state: RootState) => state.user.user);
 
   const handleFollow = async () => {
     setLoading(true);
     try {
-      const endpoint = isFollowing ? "unfollow" : "follow";
-      const response = await fetch(`/api/pages/${page.id}/${endpoint}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = isFollowing ? await fanpageService.unfollowPage(page.id) : await fanpageService.followPage(page.id);
 
-      if (response.ok) {
+      if (response) {
         setIsFollowing(!isFollowing);
         setFollowersCount((prev) => (isFollowing ? prev - 1 : prev + 1));
       }
@@ -43,6 +38,7 @@ const PageCard: FC<PageCardProps> = ({ page, onUpdate }) => {
   const handlePageClick = () => {
     window.location.href = `/favourite/home/${page.slug}`;
   };
+
 
   return (
     <div className="page-card">
@@ -94,7 +90,7 @@ const PageCard: FC<PageCardProps> = ({ page, onUpdate }) => {
         </div>
 
         <div className="page-actions">
-          {page.admins.some((admin) => admin.role === "admin") ? (
+          {page.admins?.some((admin) => admin.role === "admin" && admin.user_id === user?.id) ? (
             <button className="btn btn-admin" onClick={handlePageClick}>
               <DynamicFeatherIcon iconName="Settings" className="btn-icon" />
               Quản lý

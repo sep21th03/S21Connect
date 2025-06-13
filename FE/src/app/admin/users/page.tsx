@@ -80,16 +80,13 @@ const UserTable: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // State modal chỉnh sửa trạng thái user
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [newStatus, setNewStatus] = useState<string>("");
 
-  // State modal cảnh cáo
   const [warnModalOpen, setWarnModalOpen] = useState(false);
   const [warnMessage, setWarnMessage] = useState("");
 
-  // Hàm gọi API
   const loadUsers = async () => {
     setLoading(true);
     try {
@@ -117,38 +114,33 @@ const UserTable: React.FC = () => {
     }
   };
 
-  // Gọi API khi filters, currentPage hoặc sortConfig thay đổi
   useEffect(() => {
     loadUsers();
   }, [filters, currentPage, sortConfig]);
 
-  // Hàm mở modal sửa trạng thái
   const openEditModal = (user: User) => {
     setSelectedUser(user);
     setNewStatus(user.status);
     setEditModalOpen(true);
   };
 
-  // Hàm lưu trạng thái mới
   const saveStatus = async () => {
     if (!selectedUser) return;
     try {
-      await adminService.updateStatus(selectedUser.id, newStatus);
-      loadUsers(); // Refetch danh sách user
+      await adminService.updateUserStatus(selectedUser.id, newStatus);
+      loadUsers();
       setEditModalOpen(false);
     } catch (error) {
       console.error("Error updating status:", error);
     }
   };
 
-  // Mở modal cảnh cáo
   const openWarnModal = (user: User) => {
     setSelectedUser(user);
     setWarnMessage("");
     setWarnModalOpen(true);
   };
 
-  // Gửi cảnh cáo
   const sendWarning = async () => {
     if (!selectedUser) return;
     try {
@@ -159,19 +151,17 @@ const UserTable: React.FC = () => {
     }
   };
 
-  // Xử lý xóa user
   const handleDeleteUser = async (user: User) => {
     if (confirm(`Bạn có chắc muốn xóa user ${user.username}?`)) {
       try {
         await adminService.deleteUser(user.id);
-        loadUsers(); // Refetch danh sách user
+        loadUsers();
       } catch (error) {
         console.error("Error deleting user:", error);
       }
     }
   };
 
-  // Xử lý sort
   const handleSort = (key: keyof User) => {
     if (sortConfig.key === key) {
       setSortConfig({
@@ -366,7 +356,6 @@ const UserTable: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-              {/* Phân trang */}
               {totalPages > 1 && (
                 <div className="mt-4 flex justify-center">
                   <Button
@@ -393,7 +382,6 @@ const UserTable: React.FC = () => {
         </CardBody>
       </Card>
 
-      {/* Modal Sửa trạng thái */}
       <Modal
         isOpen={editModalOpen}
         toggle={() => setEditModalOpen(!editModalOpen)}
@@ -423,7 +411,7 @@ const UserTable: React.FC = () => {
           </FormGroup>
         </ModalBody>
         <ModalFooter>
-          <Button color="primary" onClick={saveStatus}>
+          <Button className="btn-solid btn" onClick={saveStatus} disabled={!newStatus.trim()}>
             Lưu
           </Button>{" "}
           <Button color="secondary" onClick={() => setEditModalOpen(false)}>
@@ -432,7 +420,6 @@ const UserTable: React.FC = () => {
         </ModalFooter>
       </Modal>
 
-      {/* Modal cảnh cáo */}
       <Modal
         isOpen={warnModalOpen}
         toggle={() => setWarnModalOpen(!warnModalOpen)}

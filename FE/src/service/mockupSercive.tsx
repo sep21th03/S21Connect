@@ -60,3 +60,26 @@ export const searchTracks = async (query: string) => {
     return [];
   }
 };
+
+export interface Bank {
+  name: string;
+  code: string;
+  shortName: string;
+  bin: string;
+  logo: string;
+  isTransfer: boolean;
+  isRealtime: boolean;
+}
+
+export const fetchBanks = async (): Promise<Bank[]> => {
+  try {
+    const res = await fetch("https://api.vietqr.io/v2/banks");
+    const data = await res.json();
+
+    if (data?.data) return data.data;
+    return [];
+  } catch (error) {
+    console.error("Failed to fetch banks:", error);
+    return [];
+  }
+};

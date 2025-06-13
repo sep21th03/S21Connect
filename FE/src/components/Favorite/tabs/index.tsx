@@ -54,11 +54,11 @@ const FavouriteTabs: React.FC = () => {
               <div className="page-content">
                 <Col xl="4" className="content-left">
                   <div className="sticky-top">
-                    <AboutCard />
+                    <AboutCard pageInfo={null as any}/>
                   </div>
                 </Col>
                 <Col xl="8" className="content-center">
-                  <HobbiesAndInterest />
+                  <HobbiesAndInterest pageInfo={null as any}/>
                 </Col>
               </div>
             </Container>

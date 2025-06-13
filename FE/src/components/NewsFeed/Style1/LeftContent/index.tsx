@@ -6,6 +6,8 @@ import { UserAbout } from "@/utils/interfaces/user";
 
 const ContentLeft: FC<{ userProfile: UserAbout | null }> = ({ userProfile }) => {
   const [isFriendSection, setIsFriendSection] = useState(false);
+  
+
   return (
     <div className="content-left">
       {userProfile && <UserProFile userProfile={userProfile} />}

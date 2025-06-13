@@ -1,16 +1,51 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CommonLayout from "@/layout/CommonLayout";
-import { Container, Row, Col, Card, CardBody, Button } from "reactstrap";
+import { Container, Row, Col, Card, CardBody, Button, ModalFooter, Input, FormGroup, Form, Modal, ModalBody, Label, ModalHeader, Alert } from "reactstrap";
 import SpaySideBar from "@/layout/CommonLayout/FullSideBar/SpaySideBar";
 import styles from "@/style/invoiceCard.module.css";
+import { Bank, fetchBanks } from "@/service/mockupSercive";
+import axiosInstance from "@/utils/axiosInstance";
+import { API_ENDPOINTS } from "@/utils/constant/api";
+
+interface Disbursement {
+  id: string;
+  username: string;
+  account_bank: string;
+  account_number: string;
+  sotiens: number;
+  created_at: string;
+  updated_at: string;
+}
 
 const DisbursementPage = () => {
   const [reloadBill, setReloadBill] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [account_bank, setAccountBank] = useState("");
+  const [account_number, setAccountNumber] = useState("");
+  const [sotiens, setSotiens] = useState(0);
+  const [banks, setBanks] = useState<Bank[]>([]);
+  const [disbursement, setDisbursement] = useState<Disbursement[]>([]);
+
+  const toggleModal = () => setModalOpen(!modalOpen);
 
   const handleReload = () => {
     setReloadBill(!reloadBill);
-    // Logic gọi lại API hoặc xử lý reload ở đây
+  };
+
+  useEffect(() => {
+    fetchBanks().then(setBanks);
+  }, []);
+
+  useEffect(() => {
+    fetchDisbursement();
+  }, [reloadBill]);
+
+  const fetchDisbursement = async () => {
+    const response = await axiosInstance.get(API_ENDPOINTS.PAYMENT.BILL.GET_DISBURSEMENT);
+    if (response.status === 200) {
+      setDisbursement(response.data.data);
+    }
   };
 
   return (
@@ -38,9 +73,7 @@ const DisbursementPage = () => {
                 </h4>
                 <Button
                   className={`${styles.cartBtn_primary} btn-rounded btn-md`}
-                  onClick={() =>
-                    console.log("Open modal tạo hóa đơn mới (chưa xử lý)")
-                  }
+                  onClick={toggleModal}
                 >
                   Tạo Yêu Cầu Rút Tiền
                 </Button>
@@ -84,7 +117,13 @@ const DisbursementPage = () => {
                       </tr>
                     </thead>
 
-                    <tbody>{/* Mapping dữ liệu hóa đơn tại đây */}</tbody>
+                    <tbody>
+                      {disbursement.map((item: Disbursement, index: number) => (
+                        <tr key={index}>
+                          <td>{item.id}</td>
+                        </tr>
+                      ))}
+                    </tbody>
                   </table>
                 </div>
               </CardBody>
@@ -92,6 +131,80 @@ const DisbursementPage = () => {
           </Col>
         </Row>
       </Container>
+      <Modal isOpen={modalOpen} toggle={toggleModal} centered size="lg">
+      <ModalHeader toggle={toggleModal}>Tạo Yêu Cầu Rút Tiền Mới</ModalHeader>
+      <ModalBody>
+        <Alert color="warning" className="d-flex align-items-center">
+          <svg
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="me-2"
+          >
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <div>
+            <strong>Lưu ý!</strong> Hệ thống chỉ duyệt yêu cầu khi họ tên chủ tài khoản trùng với tên tài khoản của bạn.
+          </div>
+        </Alert>
+
+        <Form>
+          <FormGroup>
+            <Label for="account_bank">Chọn Ngân Hàng:</Label>
+            <Input
+              type="select"
+              id="account_bank"
+              value={account_bank}
+              onChange={(e) => setAccountBank(e.target.value)}
+            >
+              <option value="">Chọn Ngân Hàng</option>
+              {banks.map((bank: Bank, index: number) => (
+                <option key={index} value={bank.name}>
+                  {bank.name}
+                </option>
+              ))}
+            </Input>
+          </FormGroup>
+
+          <FormGroup>
+            <Label for="account_number">Số Tài Khoản</Label>
+            <Input
+              type="text"
+              id="account_number"
+              value={account_number}
+              onChange={(e) => setAccountNumber(e.target.value)}
+              placeholder="Nhập số tài khoản"
+            />
+          </FormGroup>
+
+          <FormGroup>
+            <Label for="sotiens">Số Tiền</Label>
+            <Input
+              type="number"
+              id="sotiens"
+              value={sotiens}
+              onChange={(e) => setSotiens(Number(e.target.value))}
+              placeholder="Nhập số tiền"
+            />
+          </FormGroup>
+        </Form>
+      </ModalBody>
+      <ModalFooter>
+        <Button color="secondary" onClick={toggleModal}>
+          Đóng
+        </Button>
+        <Button color="primary" onClick={() => console.log("Gửi dữ liệu tạo hóa đơn")}>
+          Tạo Yêu Cầu
+        </Button>
+      </ModalFooter>
+    </Modal>
     </CommonLayout>
   );
 };

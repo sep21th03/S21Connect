@@ -107,6 +107,7 @@ export const spaySideBarData = [
   { iconName: "home-1", title: "Trang chủ", link: "/spay/home" },
   { iconName: "wallet-2", title: "Ví", link: "/spay/wallet" },
   { iconName: "bill", title: "Hóa đơn", link: "/spay/bill" },
+  { iconName: "shop", title: "Shop", link: "/spay/shop" },
   { iconName: "transactions", title: "Rút tiền", link: "/spay/disbursement" },
   { iconName: "history", title: "Lịch sử", link: "/spay/history" },
   { iconName: "setting", title: "Cài đặt", link: "/spay/settings" },

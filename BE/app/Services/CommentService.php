@@ -65,13 +65,7 @@ class CommentService
     {
         $comments = Comment::where('post_id', $post_id)
             ->whereNull('parent_id')
-            ->with([
-                'user:id,username,avatar,first_name,last_name',
-                'replies' => function ($query) {
-                    $query->with('user:id,username,avatar,first_name,last_name')
-                        ->orderBy('created_at', 'desc');
-                },
-            ])
+            ->with(['user:id,username,avatar,first_name,last_name', 'replies.user'])
             ->orderBy('created_at', 'desc')
             ->get();
 

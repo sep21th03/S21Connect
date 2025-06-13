@@ -1,7 +1,6 @@
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
-import { FC, useEffect, useState } from "react";
+import { FC, useState } from "react";
 import { Dropdown, Media, DropdownToggle, DropdownMenu } from "reactstrap";
-import { Href, ImagePath } from "../utils/constant/index";
 import EditModalPostHeader from "@/Common/CreatePost/editModalPostHeader";
 import { CommonUserHeadingProps } from "./CommonInterFace";
 import HoverMessage from "./HoverMessage";
@@ -24,13 +23,26 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
     (option) => option.slug === postUser?.visibility
   );
   const { openModal } = useModalNavigation();
+
   const handleClick = (e: React.MouseEvent, postUser: Post) => {
     e.preventDefault();
     e.stopPropagation();
-    const modalUrl = `/${postUser.user.username}/posts/${postUser.id}?modal=true`;
-
+    const entityId = postUser.page ? `${postUser.page.slug}` : `${postUser.user.username}`;
+    const modalUrl = `/${entityId}/posts/${postUser.id}?modal=true`;
     openModal(modalUrl);
   };
+
+  const isPagePost = !!postUser?.page;
+  const entityName = isPagePost
+    ? postUser.page.name
+    : `${postUser?.user?.first_name} ${postUser?.user?.last_name}`;
+  const entityAvatar = isPagePost
+    ? postUser.page.avatar
+    : postUser?.user?.avatar;
+  const entityUrl = isPagePost
+    ? `/pages/${postUser.page.id}`
+    : `/${postUser?.user?.username}`;
+
   return (
     <div
       className="post-title"
@@ -40,20 +52,20 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
         <Media>
           <a
             className="popover-cls user-img bg-size blur-up lazyloaded"
-            href={Href}
+            href={entityUrl}
             id={id}
           >
             <Image
-              src={postUser?.user?.avatar}
+              src={entityAvatar}
               className="img-fluid lazyload bg-img rounded-circle"
-              alt="user"
+              alt={isPagePost ? "page" : "user"}
               width={55}
               height={55}
             />
           </a>
           <Media body>
             <h5>
-              {postUser?.user?.first_name} {postUser?.user?.last_name}{" "}
+              {entityName}{" "}
               {postUser?.post_format === "avatar" && (
                 <span style={{ textTransform: "none" }}>
                   đã thay đổi ảnh đại diện
@@ -100,7 +112,7 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
 
             <h6 className="d-flex align-items-center gap-2">
               <a
-                href={Href}
+                href={entityUrl}
                 onClick={(e) => handleClick(e, postUser)}
                 style={{
                   cursor: "pointer",
@@ -125,8 +137,8 @@ const CommonUserHeading: FC<CommonUserHeadingProps> = ({
         <HoverMessage
           placement={"right"}
           target={id}
-          data={postUser?.user}
-          imagePath={`${postUser?.user?.avatar}`}
+          data={isPagePost ? postUser.page : postUser?.user}
+          imagePath={entityAvatar}
           onMessageClick={() => {}}
           onFriendRequestClick={() => {}}
         />

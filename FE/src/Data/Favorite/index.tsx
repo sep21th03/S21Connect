@@ -9,10 +9,10 @@ export const socialDetails = [
 ];
 
 export const profileMenusDetails: ProfileMenusDetails[] = [
-  { icon: "Clock", tittle: "home" },
-  { icon: "Info", tittle: "about" },
-  { icon: "MessageCircle", tittle: "reviews" },
-  { icon: "Image", tittle: "photos" },
+  { icon: "Clock", tittle: "home", content: "Trang chủ" },
+  { icon: "Info", tittle: "about", content: "Giới thiệu" },
+  { icon: "MessageCircle", tittle: "reviews", content: "Đánh giá" },
+  { icon: "Image", tittle: "photos", content: "Ảnh" },
 ];
 
 export const aboutContentData = [

@@ -12,6 +12,7 @@ import Gallery from "@/components/NewsFeed/Style1/ContentRight/Gallery";
 import ActivityFeeds from "../ActivityFeeds";
 import EventsCard from "@/components/NewsFeed/Style1/ContentRight/EventsCard";
 import WorldWideTrend from "../WorldWideTrend";
+import LikedPages from "@/components/NewsFeed/Style1/LeftContent/LikedPages";
 
 const TimeLineTabContent: React.FC = () => {
   return (
@@ -21,7 +22,7 @@ const TimeLineTabContent: React.FC = () => {
           <AboutUser userProfile={null as any} isOwnProfile={false} />
           <FriendSuggestion mainClassName="d-xl-block d-none" />
           <div className="sticky-top d-xl-block d-none">
-            <LikePage />
+            <LikedPages />
           </div>
         </div>
         <div className="content-center">

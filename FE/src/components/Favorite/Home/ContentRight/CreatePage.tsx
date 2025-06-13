@@ -1,6 +1,6 @@
 import CustomImage from "@/Common/CustomImage";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
-import { ImagePath } from "../../../../utils/constant";
+import { Domain, ImagePath } from "../../../../utils/constant";
 import React, { FC, useState } from "react";
 import { Href } from "../../../../utils/constant/index";
 import { Dropdown, DropdownMenu, DropdownToggle } from "reactstrap";
@@ -10,7 +10,7 @@ const CreatePage: FC = () => {
   const [dropDownOpen, setDropDownOpen] = useState(false);
   return (
     <div className="birthday-section create-page bg-size blur-up lazyloaded">
-      <CustomImage src={`${ImagePath}/event-bg.jpg`} className="img-fluid blur-up lazyload bg-img" alt="birthday"/>
+      <CustomImage src={`${ImagePath}/create_page.jpg`} className="img-fluid blur-up lazyload bg-img" alt="birthday"/>
       <div className="birthday-top">
         <div className="setting">
           <div className="setting-btn light-btn">
@@ -52,11 +52,11 @@ const CreatePage: FC = () => {
           </div>
         </div>
         <div className="details">
-          <h3>create your</h3>
-          <h6>own page</h6>
-          <p>Lorem 5th Sept 2019 dummy text of the printing and typesetting industry.</p>
+          <h3>tạo trang của bạn</h3>
+          <h6>tạo trang dành riêng cho bạn ngay</h6>
+          <p></p>
           <div className="create-btn">
-            <a href={Href} className="btn">create now</a>
+            <a href={`${Domain}/favourite/pages`} className="btn" target="_blank">tạo trang</a>
           </div>
         </div>
       </div>

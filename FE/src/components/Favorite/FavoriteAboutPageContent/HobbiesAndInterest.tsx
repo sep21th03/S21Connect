@@ -2,9 +2,26 @@ import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import { HobbiesInterest } from "../../../utils/constant";
 import React, { FC } from "react";
 import { Href } from "../../../utils/constant/index";
-import { hobbiesAndInterestData } from "@/Data/Favorite";
+import { Page } from "@/service/fanpageService";
+import { formatDateFull } from "@/utils/formatTime";
+import Link from "next/link";
 
-const HobbiesAndInterest: FC = () => {
+const HobbiesAndInterest: FC<{ pageInfo: Page }> = ({ pageInfo }) => {
+  const typeMap: Record<string, string> = {
+    community: "Cộng đồng",
+    brand: "Thương hiệu",
+    public_figure: "Người của công chúng",
+    business: "Doanh nghiệp",
+    entertainment: "Giải trí",
+    personal: "Cá nhân",
+    other: "Khác",
+  };
+  const hobbiesAndInterestData = [
+    { heading: "Id trang :", detail: pageInfo?.slug },
+    { heading: "Trang :", detail: typeMap[pageInfo?.type || ""]  },
+    { heading: "Ngày tạo :", detail: formatDateFull(pageInfo?.created_at || "") },
+    { heading: "website", detail: <Link href={pageInfo?.link || ""} target="_blank">{pageInfo?.link}</Link> },
+  ];
   return (
     <div className="about-profile section-b-space">
       <div className="card-title">

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Bill;
 use App\Models\History;
 use App\Models\Cash;
+use App\Models\Shop;
 use Illuminate\Support\Facades\Auth;
 use App\Models\LuckyMoney;
 
@@ -206,7 +207,6 @@ class UserGetController extends Controller
             ];
         }
 
-        // Sort the result array in desscending order of 'money'
         usort($result, function ($a, $b) {
             return $b['money'] <=> $a['money'];
         });

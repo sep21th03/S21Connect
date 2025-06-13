@@ -150,6 +150,12 @@ export interface Post {
     first_name: string;
     last_name: string;
   };
+  page: {
+    id: number;
+    name: string;
+    avatar: string;
+    slug: string;
+  };
   images?: string;
   videos?: string;
   created_at: string;

@@ -60,6 +60,31 @@ class PostController extends Controller
         return response()->json(['message' => 'Tạo bài viết thành công']);
     }
 
+    public function storePagePost(StorePostRequest $request, $pageId)
+    {
+        $this->postService->storePagePost($request->validated(), $pageId);
+        return response()->json(['message' => 'Tạo bài viết thành công']);
+    }
+
+    public function getPagePosts(Request $request, $pageId)
+    {
+        $page = $request->query('page', 1);
+        $limit = $request->query('limit', 10);
+        $posts = $this->postService->getPagePosts($pageId, $page, $limit);
+        return response()->json($posts);
+    }
+
+    public function getMyPagesPosts(Request $request)
+    {
+        $page = $request->query('page', 1);
+        $limit = $request->query('limit', 10);
+        $post = $this->postService->getMyPagesPosts($page, $limit);
+        if (!$post) {
+            return response()->json(['error' => 'Không có bài viết nào'], 404);
+        }
+        return response()->json(['data' => $post]);
+    }
+
     /**
      * Display the specified resource.
      */
@@ -75,7 +100,8 @@ class PostController extends Controller
             'user:id,username,first_name,last_name,avatar',
             'reactions',
             'originalPost.user:id,username,first_name,last_name,avatar',
-            'originalPost.taggedFriends:id,username,first_name,last_name,avatar'
+            'originalPost.taggedFriends:id,username,first_name,last_name,avatar',
+            'page:id,name,avatar,slug',
         ])
             ->withCount(['comments', 'shares'])
             ->findOrFail($postId);
@@ -194,6 +220,18 @@ class PostController extends Controller
             );
         }
 
+        if ($post->page) {
+            unset(
+                $post->page->created_at,
+                $post->page->updated_at,
+                $post->page->description,
+                $post->page->cover_image,
+                $post->page->website,
+                $post->page->phone,
+                $post->page->email,
+            );
+        }
+
         return response()->json([
             'post' => $post,
             'highlight_comment_id' => $commentId,
@@ -256,6 +294,7 @@ class PostController extends Controller
         ])
             ->withCount(['comments', 'shares'])
             ->whereIn('user_id', $allowedUserIds)
+            ->where('is_review', false)
             ->where(function ($q) use ($user) {
                 $q->where('visibility', 'public')
                     ->orWhereIn('visibility', ['friends']);

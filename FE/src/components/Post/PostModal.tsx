@@ -60,7 +60,7 @@ export default function PostModal({ onClose }: { onClose: () => void }) {
     document.addEventListener("keydown", handleEscKey);
     return () => document.removeEventListener("keydown", handleEscKey);
   }, [onClose]);
-
+  console.log(post);
   useEffect(() => {
     document.body.style.setProperty("overflow", "hidden", "important");
     return () => {

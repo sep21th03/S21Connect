@@ -64,7 +64,7 @@ const HoverMessage: FC<HoverMessageProps> = ({
               height={60} 
               width={60} 
               className="img-fluid user-img" 
-              src={imagePath ? imagePath : `${ImagePath}/user-sm/1.jpg`}
+              src={imagePath}
               alt={fullName} 
             />
             <span className={`status-indicator ${data.status || "offline"}`} />

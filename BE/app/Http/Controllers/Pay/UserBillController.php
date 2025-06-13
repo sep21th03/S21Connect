@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pay;
 use App\Models\Bill;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Shop;
 use Illuminate\Support\Facades\Auth;
 use App\Models\History;
 
@@ -92,11 +93,19 @@ class UserBillController extends Controller
         if ($data != null) {
             $result = [];
             foreach ($data as $item) {
+                $get_name = Shop::getByID($item->shop_id);
+                if ($get_name == null) {
+                    $name = 'Không tìm thấy';
+                } else {
+                    $name = $get_name->name;
+                }
                 $result[] = [
                     'id' => $item->id,
                     'bill_id' => $item->bill_id,
                     'username' => $item->username,
                     'amount' => $item->amount,
+                    'shop_id' => $item->shop_id,
+                    'shop' => $name,
                     'note' => $item->comment,
                     'status' => $item->status,
                     'payment_method' => $item->payment_method,
@@ -116,5 +125,4 @@ class UserBillController extends Controller
             ]);
         }
     }
-
 }

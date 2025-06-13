@@ -157,17 +157,17 @@ const CommonPostReact: FC<CommonPostReactProps> = ({
               {Comment}
             </a>
           </li>
-          {post.visibility === "public" && (
-          <li onClick={toggleModal}>
-            <a href={Href}>
-              <DynamicFeatherIcon iconName="Share" className="iw-16 ih-16" />
-              {Share}
+          {post && post.visibility === "public" && (
+            <li onClick={toggleModal}>
+              <a href={Href}>
+                <DynamicFeatherIcon iconName="Share" className="iw-16 ih-16" />
+                {Share}
               </a>
             </li>
           )}
         </ul>
       </div>
-      {post.preview_comment && !post.is_comment_disabled && !showComment && (
+      {post && post.preview_comment && !post.is_comment_disabled && !showComment && (
         <div className="comment-section">
           <PreviewComment
             id={`comment-${post.preview_comment?.id}`}
@@ -176,9 +176,13 @@ const CommonPostReact: FC<CommonPostReactProps> = ({
           />
         </div>
       )}
-      {!post.is_comment_disabled ? (
-        <CommentSection showComment={showComment} postId={postId}  highlightCommentId={highlightCommentId}
-        highlightReplyId={highlightReplyId}/>
+      {post && !post.is_comment_disabled ? (
+        <CommentSection
+          showComment={showComment}
+          postId={postId}
+          highlightCommentId={highlightCommentId}
+          highlightReplyId={highlightReplyId}
+        />
       ) : (
         <div className="text-muted p-2 text-sm text-center">
           Bài viết này đã giới hạn bình luận.

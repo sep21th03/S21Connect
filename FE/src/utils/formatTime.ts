@@ -56,3 +56,23 @@ export const formatDate = (dateString: string) => {
     minute: "2-digit",
   }).format(date);
 };
+
+export const formatDateFull = (dateString: string) => {
+  const fixedDateString = dateString.replace(/\.\d{6}Z$/, '.000Z'); 
+  const date = new Date(fixedDateString);
+
+  if (isNaN(date.getTime())) {
+    return "Ngày không hợp lệ";
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Ho_Chi_Minh",
+  }).format(date);
+};

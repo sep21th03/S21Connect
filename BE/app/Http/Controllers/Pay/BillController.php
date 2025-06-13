@@ -9,6 +9,7 @@ use App\Models\Shop;
 use App\Http\Controllers\MyController\MyFunction;
 use Illuminate\Support\Facades\Auth;
 
+
 class BillController extends Controller
 {
     public function get_info(Request $request)
@@ -98,9 +99,10 @@ class BillController extends Controller
             ]);
         }
         $amount = $request->input('amount');
-        $comment = $request->input('comment');
+        $comment = $request->input('note');
         $return_url = $request->input('return_url');
-        if (!$request->filled('amount') || !$request->filled('comment')) {
+        $shop = $request->input('shop');
+        if (!$request->filled('amount') || !$request->filled('note')) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Thiếu thông tin'
@@ -122,6 +124,17 @@ class BillController extends Controller
                 'message' => 'ID Hóa đơn đã tồn tại, vui lòng kiểm tra lại'
             ]);
         } else {
+            $shop_id = null;
+            if (!empty($shop)) {
+                $check_shop = Shop::getByUserandToken(Auth::user()->username, $shop);
+                if ($check_shop == null) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Shop không tồn tại'
+                    ]);
+                }
+                $shop_id = $check_shop->id;
+            }
             $total_num_data = Bill::countallBill();
             $id = $total_num_data + 10900;
             $amount = (int)$amount;
@@ -163,6 +176,9 @@ class BillController extends Controller
                 $bill->username = Auth::user()->username;
                 $bill->return_url = $return_url;
                 $bill->payment_method = 'QRCode';
+                if ($shop_id !== null) {
+                    $bill->shop_id = $shop_id;
+                }
                 if ($bill->save()) {
                     $myFunction = new MyFunction();
                     $ip = $myFunction->getIP();
@@ -187,6 +203,7 @@ class BillController extends Controller
                             'username' => Auth::user()->username,
                             'return_url' => $return_url,
                             'payment_method' => 'QRCode',
+                            'shop_id' => $shop_id
                         ]
                     ]);
                 } else {
@@ -376,6 +393,239 @@ class BillController extends Controller
                 'status' => 'success',
                 'message' => 'Lấy dữ liệu thành công',
                 'data' => $result
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi truy vấn cơ sở dữ liệu'
+            ]);
+        }
+    }
+
+    public function delete_bill(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bạn chưa đăng nhập hoặc thiếu token xác thực'
+            ]);
+        }
+        $user = Auth::user();
+        $username = $user->username;
+        $id_hoadon = $request->input('id_hoadon');
+        if (!$request->filled('id_hoadon')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Thiếu id hóa đơn'
+            ]);
+        }
+        $data = Bill::getfirstBill($id_hoadon);
+        if ($data == null) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn không tồn tại'
+            ]);
+        }
+        if ($data->username != $username) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bạn không có quyền xóa hóa đơn này'
+            ]);
+        }
+        if ($data->trangthai == 2) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn đã được thanh toán, không thể xóa'
+            ]);
+        }
+        if ($data->trangthai == 3) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn đã bị hủy, không thể xóa'
+            ]);
+        }
+        if ($data->delete()) {
+            $myFunction = new MyFunction();
+            $ip = $myFunction->getIP();
+            $add_history = $myFunction->addHistory(Auth::user()->username, 'Xóa hóa đơn thành công từ IP: ' . $ip);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Xóa hóa đơn thành công'
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi truy vấn cơ sở dữ liệu'
+            ]);
+        }
+    }
+
+    public function pay_bill(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bạn chưa đăng nhập hoặc thiếu token xác thực'
+            ]);
+        }
+        $user = Auth::user();
+        $username = $user->username;
+        $id_hoadon = $request->input('id_hoadon');
+        if (!$request->filled('id_hoadon')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Thiếu id hóa đơn'
+            ]);
+        }
+        $data = Bill::getfirstBill($id_hoadon);
+        if ($data == null) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn không tồn tại'
+            ]);
+        }
+        if ($data->username != $username) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bạn không có quyền hoàn thành hóa đơn này'
+            ]);
+        }
+        if ($data->trangthai == 2) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn đã được thanh toán, không đánh dấu tiếp'
+            ]);
+        }
+        if ($data->trangthai == 3) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn đã bị hủy, không thể đánh dấu hoàn thành'
+            ]);
+        }
+        $data->trangthai = 2;
+        if ($data->save()) {
+            $myFunction = new MyFunction();
+            $ip = $myFunction->getIP();
+            $add_history = $myFunction->addHistory(Auth::user()->username, 'Đánh dấu hoàn thành hóa đơn thành công từ IP: ' . $ip);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Đánh dấu hoàn thành hóa đơn thành công'
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi truy vấn cơ sở dữ liệu'
+            ]);
+        }
+    }
+    public function unpay_bill(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bạn chưa đăng nhập hoặc thiếu token xác thực'
+            ]);
+        }
+        $user = Auth::user();
+        $username = $user->username;
+        $id_hoadon = $request->input('id_hoadon');
+        if (!$request->filled('id_hoadon')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Thiếu id hóa đơn'
+            ]);
+        }
+        $data = Bill::getfirstBill($id_hoadon);
+        if ($data == null) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn không tồn tại'
+            ]);
+        }
+        if ($data->username != $username) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bạn không có quyền hoàn thành hóa đơn này'
+            ]);
+        }
+        if ($data->trangthai == 1) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn chưa thanh toán, không thể đánh dấu lại'
+            ]);
+        }
+        if ($data->trangthai == 3) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn đã bị hủy, không thể đánh dấu chưa hoàn thành'
+            ]);
+        }
+        $data->trangthai = 1;
+        if ($data->save()) {
+            $myFunction = new MyFunction();
+            $ip = $myFunction->getIP();
+            $add_history = $myFunction->addHistory(Auth::user()->username, 'Đánh dấu chưa hoàn thành hóa đơn thành công từ IP: ' . $ip);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Đánh dấu chưa hoàn thành hóa đơn thành công'
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Lỗi truy vấn cơ sở dữ liệu'
+            ]);
+        }
+    }
+    public function cancel_bill(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bạn chưa đăng nhập hoặc thiếu token xác thực'
+            ]);
+        }
+        $user = Auth::user();
+        $username = $user->username;
+        $id_hoadon = $request->input('id_hoadon');
+        if (!$request->filled('id_hoadon')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Thiếu id hóa đơn'
+            ]);
+        }
+        $data = Bill::getfirstBill($id_hoadon);
+        if ($data == null) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn không tồn tại'
+            ]);
+        }
+        if ($data->username != $username) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bạn không có quyền hủy hóa đơn này'
+            ]);
+        }
+        if ($data->trangthai == 2) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn đã được thanh toán, không thể hủy'
+            ]);
+        }
+        if ($data->trangthai == 3) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hóa đơn đã bị hủy, không thể hủy'
+            ]);
+        }
+        $data->trangthai = 3;
+        if ($data->save()) {
+            $myFunction = new MyFunction();
+            $ip = $myFunction->getIP();
+            $add_history = $myFunction->addHistory(Auth::user()->username, 'Hủy hóa đơn thành công từ IP: ' . $ip);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Hủy hóa đơn thành công'
             ]);
         } else {
             return response()->json([

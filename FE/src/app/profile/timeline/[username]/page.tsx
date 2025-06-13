@@ -29,6 +29,7 @@ import { useInfiniteScrollForProfile } from "@/hooks/useInfiniteScrollForProfile
 
 import dynamic from "next/dynamic";
 import { useInView } from "react-intersection-observer";
+import LikedPages from "@/components/NewsFeed/Style1/LeftContent/LikedPages";
 
 interface ApiResponse<T> {
   data: T;
@@ -186,7 +187,7 @@ const ProfileTimeLine = () => {
             )}
 
             <div className="sticky-top d-xl-block d-none">
-              <LikePage />
+              <LikedPages />
             </div>
           </div>
 

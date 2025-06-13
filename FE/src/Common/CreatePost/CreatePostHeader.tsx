@@ -6,8 +6,25 @@ import OptionDropDown from "./OptionDropDown";
 import SettingsDropDown from "./SettingsDropDown";
 import { CreatePostHeaderInterFace } from "../CommonInterFace";
 import Image from "next/image";
+import { usePageInfo } from "@/contexts/PageInfoContext";
+import { Page } from "@/service/fanpageService";
+import { useSession } from "next-auth/react";
 
-const CreatePostHeader: FC<CreatePostHeaderInterFace> = ({writePost,setShowPostButton, postDropDown, setPostDropDown, selectedOption, setSelectedOption, postContent, setPostContent}) => {
+const CreatePostHeader: FC<CreatePostHeaderInterFace> = ({writePost,setShowPostButton, postDropDown, setPostDropDown, selectedOption, setSelectedOption, postContent, setPostContent,  isPagePost = false}) => {
+  const pageInfo = usePageInfo() as unknown as Page;
+  const { data: session } = useSession();
+  
+  const displayInfo = isPagePost ? {
+    name: pageInfo?.name,
+    avatar: pageInfo?.avatar,
+    username: pageInfo?.name
+  } : {
+    name: `${session?.user?.first_name} ${session?.user?.last_name}`,
+    avatar: session?.user?.avatar,
+    username: session?.user?.username
+  };
+
+
   return (
     <div className={`static-section ${writePost ?"d-none":""}`}>
       <div className="card-title">

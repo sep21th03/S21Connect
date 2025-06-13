@@ -80,6 +80,7 @@ export interface CreatePostHeaderInterFace {
   setSelectedOption: (val: string) => void;
   postContent: string;
   setPostContent: (val: string) => void;
+  isPagePost?: boolean;
 }
 
 export interface CommonUserHeadingProps {
@@ -164,9 +165,8 @@ export interface MainCommentProps {
   replyText: string;
   setReplyText: (text: string) => void;
   isReplying: boolean;
-  toggleReply: () => void;
-  setIsReplying: (value: boolean) => void;
   isHighlighted?: boolean;
+  onCancelReply?: () => void;
 }
 
 export interface Comment {
@@ -193,9 +193,11 @@ export interface SubCommentProps {
   onDelete?: () => void;
   onReplyClick: (name: string, commentId: number) => void;
   isReplying: boolean;
-  toggleReply: () => void;
-  setIsReplying: (value: boolean) => void;
   isHighlighted?: boolean;
+  onCancelReply?: () => void;
+  replyText: string;
+  setReplyText: (text: string) => void;
+  onReply: (parentId: number, content: string) => Promise<void>;
 }
 
 export interface GalleryModalInterFace {

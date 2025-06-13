@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { FC, useState } from "react";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import FanpageService from "@/service/fanpageService";
@@ -18,8 +18,14 @@ interface ImageUploadProps {
   error?: string;
 }
 
-const ImageUpload: FC<ImageUploadProps> = ({ label, value, onChange, placeholder, error }) => {
-  const [uploadMode, setUploadMode] = useState<'url' | 'file'>('url');
+const ImageUpload: FC<ImageUploadProps> = ({
+  label,
+  value,
+  onChange,
+  placeholder,
+  error,
+}) => {
+  const [uploadMode, setUploadMode] = useState<"url" | "file">("url");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState(value);
 
@@ -27,24 +33,25 @@ const ImageUpload: FC<ImageUploadProps> = ({ label, value, onChange, placeholder
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      alert('Vui lòng chọn file ảnh hợp lệ');
+    if (!file.type.startsWith("image/")) {
+      alert("Vui lòng chọn file ảnh hợp lệ");
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB
-      alert('Kích thước file không được vượt quá 5MB');
+    if (file.size > 5 * 1024 * 1024) {
+      // 5MB
+      alert("Kích thước file không được vượt quá 5MB");
       return;
     }
 
     setSelectedFile(file);
-    
+
     // Tạo preview URL từ file
     const reader = new FileReader();
     reader.onload = (e) => {
       const previewUrl = e.target?.result as string;
       setPreviewUrl(previewUrl);
-      onChange('', file); // Truyền file vào onChange
+      onChange("", file); // Truyền file vào onChange
     };
     reader.readAsDataURL(file);
   };
@@ -57,20 +64,20 @@ const ImageUpload: FC<ImageUploadProps> = ({ label, value, onChange, placeholder
 
   const handleRemove = () => {
     setSelectedFile(null);
-    setPreviewUrl('');
-    onChange('');
+    setPreviewUrl("");
+    onChange("");
   };
 
   return (
     <div className="image-upload-container">
       <label className="image-upload-label">{label}</label>
-      
+
       <div className="upload-mode-toggle">
         <button
           type="button"
-          className={`mode-btn ${uploadMode === 'url' ? 'active' : ''}`}
+          className={`mode-btn ${uploadMode === "url" ? "active" : ""}`}
           onClick={() => {
-            setUploadMode('url');
+            setUploadMode("url");
             if (selectedFile) {
               handleRemove();
             }
@@ -81,9 +88,9 @@ const ImageUpload: FC<ImageUploadProps> = ({ label, value, onChange, placeholder
         </button>
         <button
           type="button"
-          className={`mode-btn ${uploadMode === 'file' ? 'active' : ''}`}
+          className={`mode-btn ${uploadMode === "file" ? "active" : ""}`}
           onClick={() => {
-            setUploadMode('file');
+            setUploadMode("file");
             if (value && !selectedFile) {
               handleRemove();
             }
@@ -94,12 +101,12 @@ const ImageUpload: FC<ImageUploadProps> = ({ label, value, onChange, placeholder
         </button>
       </div>
 
-      {uploadMode === 'url' ? (
+      {uploadMode === "url" ? (
         <input
           type="url"
           value={value}
           onChange={(e) => handleUrlChange(e.target.value)}
-          className={error ? 'error' : ''}
+          className={error ? "error" : ""}
           placeholder={placeholder}
         />
       ) : (
@@ -113,7 +120,7 @@ const ImageUpload: FC<ImageUploadProps> = ({ label, value, onChange, placeholder
           />
           <label htmlFor={`file-${label}`} className="file-upload-label">
             <DynamicFeatherIcon iconName="Image" />
-            {selectedFile ? selectedFile.name : 'Chọn ảnh từ máy'}
+            {selectedFile ? selectedFile.name : "Chọn ảnh từ máy"}
           </label>
         </div>
       )}
@@ -123,17 +130,14 @@ const ImageUpload: FC<ImageUploadProps> = ({ label, value, onChange, placeholder
       {previewUrl && (
         <div className="image-preview">
           <img src={previewUrl} alt="Preview" />
-          <button
-            type="button"
-            className="remove-image"
-            onClick={handleRemove}
-          >
+          <button type="button" className="remove-image" onClick={handleRemove}>
             <DynamicFeatherIcon iconName="X" />
           </button>
           {selectedFile && (
             <div className="file-info">
               <small>
-                {selectedFile.name} ({(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
+                {selectedFile.name} (
+                {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)
               </small>
             </div>
           )}
@@ -257,11 +261,15 @@ const ImageUpload: FC<ImageUploadProps> = ({ label, value, onChange, placeholder
 
 const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    avatar: '',
-    cover_image: ''
+    name: "",
+    slug: "",
+    description: "",
+    avatar: "",
+    cover_image: "",
+    type: "",
+    email: "",
+    phone: "",
+    link: "",
   });
   const [imageFiles, setImageFiles] = useState<{
     avatar?: File;
@@ -270,34 +278,40 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
 
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
 
-  const handleImageChange = (field: 'avatar' | 'cover_image', url: string, file?: File) => {
-    setFormData(prev => ({
+  const handleImageChange = (
+    field: "avatar" | "cover_image",
+    url: string,
+    file?: File
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: url
+      [field]: url,
     }));
 
     if (file) {
-      setImageFiles(prev => ({
+      setImageFiles((prev) => ({
         ...prev,
-        [field]: file
+        [field]: file,
       }));
     } else {
-      setImageFiles(prev => {
+      setImageFiles((prev) => {
         const newFiles = { ...prev };
         delete newFiles[field];
         return newFiles;
@@ -305,9 +319,9 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
     }
 
     if (errors[field]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [field]: ''
+        [field]: "",
       }));
     }
   };
@@ -316,11 +330,22 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Tên trang là bắt buộc';
+      newErrors.name = "Tên trang là bắt buộc";
     }
 
     if (formData.slug && !/^[a-z0-9-]+$/.test(formData.slug)) {
-      newErrors.slug = 'Slug chỉ được chứa chữ thường, số và dấu gạch ngang';
+      newErrors.slug = "Slug chỉ được chứa chữ thường, số và dấu gạch ngang";
+    }
+
+    if (
+      formData.email &&
+      !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.email)
+    ) {
+      newErrors.email = "Email không hợp lệ";
+    }
+
+    if (formData.phone && !/^[0-9\-\+\s()]{7,15}$/.test(formData.phone)) {
+      newErrors.phone = "Số điện thoại không hợp lệ";
     }
 
     setErrors(newErrors);
@@ -329,24 +354,23 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     if (!validateForm()) return;
-  
+
     setLoading(true);
     try {
       let finalFormData = { ...formData };
       if (imageFiles.avatar) {
-
         try {
           const avatarUrl = await imageService.uploadPageImage({
             image: imageFiles.avatar,
-            type: 'avatar',
+            type: "avatar",
           });
-          
+
           finalFormData.avatar = avatarUrl.url;
         } catch (error) {
-          console.error('Avatar upload error:', error);
-          setErrors({ avatar: 'Không thể upload ảnh đại diện' });
+          console.error("Avatar upload error:", error);
+          setErrors({ avatar: "Không thể upload ảnh đại diện" });
           return;
         }
       }
@@ -355,31 +379,31 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
         try {
           const coverUrl = await imageService.uploadPageImage({
             image: imageFiles.cover_image,
-            type: 'cover_image',
+            type: "cover_image",
           });
           finalFormData.cover_image = coverUrl.url;
         } catch (error) {
-          console.error('Cover image upload error:', error);
-          setErrors({ cover_image: 'Không thể upload ảnh bìa' });
+          console.error("Cover image upload error:", error);
+          setErrors({ cover_image: "Không thể upload ảnh bìa" });
           return;
         }
       }
 
       const result = await FanpageService.createPage(finalFormData);
-  
+
       if (result.success) {
         onSuccess();
       } else {
         setErrors(result.errors || {});
       }
     } catch (error) {
-      console.error('Create page error:', error);
-      setErrors({ general: 'Có lỗi xảy ra khi tạo trang' });
+      console.error("Create page error:", error);
+      setErrors({ general: "Có lỗi xảy ra khi tạo trang" });
     } finally {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -392,9 +416,7 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
 
         <form onSubmit={handleSubmit} className="modal-body">
           {errors.general && (
-            <div className="error-message general-error">
-              {errors.general}
-            </div>
+            <div className="error-message general-error">{errors.general}</div>
           )}
 
           <div className="form-group">
@@ -405,10 +427,12 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              className={errors.name ? 'error' : ''}
+              className={errors.name ? "error" : ""}
               placeholder="Nhập tên trang"
             />
-            {errors.name && <span className="error-message">{errors.name}</span>}
+            {errors.name && (
+              <span className="error-message">{errors.name}</span>
+            )}
           </div>
 
           <div className="form-group">
@@ -419,11 +443,66 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
               name="slug"
               value={formData.slug}
               onChange={handleInputChange}
-              className={errors.slug ? 'error' : ''}
+              className={errors.slug ? "error" : ""}
               placeholder="ten-trang-cua-ban"
             />
-            {errors.slug && <span className="error-message">{errors.slug}</span>}
-            <small className="form-help">Để trống để tự động tạo từ tên trang</small>
+            {errors.slug && (
+              <span className="error-message">{errors.slug}</span>
+            )}
+            <small className="form-help">
+              Để trống để tự động tạo từ tên trang
+            </small>
+          </div>
+
+          <div className="form-group">
+            <label>Loại trang (type)</label>
+            <select
+              name="type"
+              value={formData.type}
+              onChange={(e) => handleInputChange(e as any)}
+              className={errors.type ? "input error" : "input"}
+            >
+              <option value="">-- Chọn loại trang --</option>
+              <option value="business">Doanh nghiệp</option>
+              <option value="community">Cộng đồng</option>
+              <option value="brand">Thương hiệu</option>
+              <option value="public_figure">Nghệ sĩ / Người nổi tiếng</option>
+              <option value="personal">Cá nhân</option>
+              <option value="other">Khác</option>
+            </select>
+            {errors.type && (
+              <span className="error-message">{errors.type}</span>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className={errors.email ? "input error" : "input"}
+              placeholder="contact@example.com"
+            />
+            {errors.email && (
+              <span className="error-message">{errors.email}</span>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label>Điện thoại</label>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              className={errors.phone ? "input error" : "input"}
+              placeholder="Số điện thoại liên hệ"
+            />
+            {errors.phone && (
+              <span className="error-message">{errors.phone}</span>
+            )}
           </div>
 
           <div className="form-group">
@@ -441,7 +520,7 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
           <ImageUpload
             label="Ảnh đại diện"
             value={formData.avatar}
-            onChange={(url, file) => handleImageChange('avatar', url, file)}
+            onChange={(url, file) => handleImageChange("avatar", url, file)}
             placeholder="https://example.com/avatar.jpg"
             error={errors.avatar}
           />
@@ -449,32 +528,36 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
           <ImageUpload
             label="Ảnh bìa"
             value={formData.cover_image}
-            onChange={(url, file) => handleImageChange('cover_image', url, file)}
+            onChange={(url, file) =>
+              handleImageChange("cover_image", url, file)
+            }
             placeholder="https://example.com/cover.jpg"
             error={errors.cover_image}
           />
 
           <div className="modal-footer">
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
+            <button
+              type="button"
+              className="btn btn-secondary"
               onClick={onClose}
               disabled={loading}
             >
               Hủy
             </button>
-            <button 
-              type="submit" 
-              className="btn btn-primary" 
+            <button
+              type="submit"
+              className="btn btn-primary"
               disabled={loading}
             >
               {loading ? (
                 <>
                   <div className="loading-spinner small"></div>
-                  {imageFiles.avatar || imageFiles.cover_image ? 'Đang upload...' : 'Đang tạo...'}
+                  {imageFiles.avatar || imageFiles.cover_image
+                    ? "Đang upload..."
+                    : "Đang tạo..."}
                 </>
               ) : (
-                'Tạo trang'
+                "Tạo trang"
               )}
             </button>
           </div>
@@ -649,24 +732,28 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
         }
 
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
 
         @media (max-width: 576px) {
           .modal-content {
             margin: 10px;
           }
-          
+
           .modal-header,
           .modal-body {
             padding: 16px;
           }
-          
+
           .modal-footer {
             flex-direction: column;
           }
-          
+
           .btn {
             width: 100%;
             justify-content: center;

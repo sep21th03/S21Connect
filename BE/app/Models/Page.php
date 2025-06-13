@@ -18,6 +18,10 @@ class Page extends Model
         'avatar',
         'cover_image',
         'created_by',
+        'link',
+        'email',
+        'phone',
+        'type',
     ];
 
     protected $keyType = 'string';

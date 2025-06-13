@@ -57,11 +57,17 @@ export const API_ENDPOINTS = {
     },
     REACTIONS: {
       TOGGLE: (id: number | string) => `/posts/${id}/reactions/toggle`,
-      GET: (id: number | string) => `/posts/${id}/reactions/get`
+      GET: (id: number | string) => `/posts/${id}/reactions/get`,
     },
     SHARES: {
-      SHARE:  "/posts/shares/post",
+      SHARE: "/posts/shares/post",
       GET_SHARE: (postId: number | string) => `/posts/shares/${postId}`,
+    },
+    PAGES: {
+      CREATE_PAGE_POST: (pageId: string) => `/posts/pages/${pageId}/create`,
+      GET_PAGE_POSTS: (pageId: string) => `/posts/pages/${pageId}/get`,
+      GET_MY_PAGES_POSTS: "/posts/pages/my-posts",
+      CHECK_PERMISSION: (pageId: string) => `/posts/pages/${pageId}/permission`,
     },
   },
 
@@ -95,7 +101,8 @@ export const API_ENDPOINTS = {
     USER_INFOR_BIRTHDAY: "/friends/birthday",
     FRIEND_REQUEST: "/friends/requests",
     FRIEND_REQUEST_COUNT: "/friends/count_new_requests",
-    SEARCH_BOX: (keyword: string) => `/friends/search-friend?searchTerm=${keyword}`,
+    SEARCH_BOX: (keyword: string) =>
+      `/friends/search-friend?searchTerm=${keyword}`,
   },
 
   USERS: {
@@ -103,41 +110,53 @@ export const API_ENDPOINTS = {
     PROFILE: "/user/user-profile",
     HOVER_CARD: (userId: string) => `/${userId}/hovercard`,
     LIST_FRIENDS: (userId: string) => `/${userId}/list_friends`,
-    LIST_FRIENDS_BY_USERNAME: (username: string) => `/${username}/list_friends_by_username`,
+    LIST_FRIENDS_BY_USERNAME: (username: string) =>
+      `/${username}/list_friends_by_username`,
     LIST_FRIENDS_LIMIT: (userId: string) => `/${userId}/list_friends_limit`,
     LAST_ACTIVE: (otherUserId: string) => `/user/update-last-active`,
     GET_STATS: "/user/get_stats",
-    SEARCH_FRIENDS: (searchTerm: string) => `/user/search-friend?searchTerm=${searchTerm}`,
+    SEARCH_FRIENDS: (searchTerm: string) =>
+      `/user/search-friend?searchTerm=${searchTerm}`,
     FRIEND_SUGGESTION: "/user/suggest_friends",
-    ACTIVITY_PROFILE: (username: string) => `/user/activity_profile/${username}`,
+    ACTIVITY_PROFILE: (username: string) =>
+      `/user/activity_profile/${username}`,
     ACTIVITY_LOGS: "/user/activity_logs",
   },
 
   MESSAGES: {
     MESSAGES: {
-      BASE: "/messages",  
+      BASE: "/messages",
       GET_MESSAGES: (Id: string) => `/conversation/${Id}`,
       SEND_MESSAGE: `/send`,
       GET_GROUP_MESSAGES: (groupId: string) => `/group/${groupId}`,
       SEND_GROUP_MESSAGE: (groupId: string) => `/group`,
       RECENT_CONVERSATIONS: "/conversations",
       UNREAD_MESSAGES: "/read",
-      GET_USER_GALLERY: (conversationId: string) => `/conversations/${conversationId}/media`,
+      GET_USER_GALLERY: (conversationId: string) =>
+        `/conversations/${conversationId}/media`,
       GET_UNREAD_MESSAGES_COUNT: "/conversations/message/count",
-      SEARCH_MESSAGES: (conversationId: string, query: string) => `/conversations/${conversationId}/messages/search?query=${query}`,
-      IS_ARCHIVED: (conversationId: string) => `/conversations/archive/${conversationId}`,
+      SEARCH_MESSAGES: (conversationId: string, query: string) =>
+        `/conversations/${conversationId}/messages/search?query=${query}`,
+      IS_ARCHIVED: (conversationId: string) =>
+        `/conversations/archive/${conversationId}`,
       ARCHIVE_CONVERSATION: "/conversations/archive-conversations",
-      GET_NICKNAME: (conversationId: string) => `/conversations/getNickname/${conversationId}`,
-      UPDATE_NICKNAME: (conversationId: string, userId: string) => `/conversations/updateNickname/${conversationId}/${userId}`,
-      UPDATE_GROUP_NAME: (conversationId: string) => `/conversations/${conversationId}/group-name`,
-      UPDATE_GROUP_AVATAR: (conversationId: string) => `/conversations/${conversationId}/group-avatar`,
-      GET_GROUP_MEMBERS: (conversationId: string) => `/conversations/getMembers/${conversationId}`,
+      GET_NICKNAME: (conversationId: string) =>
+        `/conversations/getNickname/${conversationId}`,
+      UPDATE_NICKNAME: (conversationId: string, userId: string) =>
+        `/conversations/updateNickname/${conversationId}/${userId}`,
+      UPDATE_GROUP_NAME: (conversationId: string) =>
+        `/conversations/${conversationId}/group-name`,
+      UPDATE_GROUP_AVATAR: (conversationId: string) =>
+        `/conversations/${conversationId}/group-avatar`,
+      GET_GROUP_MEMBERS: (conversationId: string) =>
+        `/conversations/getMembers/${conversationId}`,
     },
   },
   IMAGES: {
     IMAGES: {
       GET_BY_ID: "/images/user",
-      GET_BY_TYPE: (userId: string, type: string) => `/images/user/${userId}/type/${type}`,
+      GET_BY_TYPE: (userId: string, type: string) =>
+        `/images/user/${userId}/type/${type}`,
       GET_SINGLE: `/images`,
       POST_IMAGES: `/images/upload-avatar`,
       BULK_UPLOAD: `/images/bulk-upload`,
@@ -148,26 +167,35 @@ export const API_ENDPOINTS = {
         POST_IMAGES: `/images/upload`,
       },
       GET_ALL_PHOTOS: (userId: string) => `/images/users/${userId}/photos`,
-      GET_ALBUM_IMAGES: (userId: string, folder: string) => `/images/users/${userId}/album/${folder}`,
+      GET_ALBUM_IMAGES: (userId: string, folder: string) =>
+        `/images/users/${userId}/album/${folder}`,
       GET_ALL_ALBUMS: (userId: string) => `/images/users/${userId}/albums`,
     },
   },
   NOTIFICATIONS: {
     GET_NOTIFICATION_LIST: "/notifications",
-    MARK_ALL_AS_READ:  "/notifications/read-all",
+    MARK_ALL_AS_READ: "/notifications/read-all",
   },
   PAYMENT: {
     BILL: {
       CREATE: "/pay/create-bill",
       GET_LIST: "/pay/get-bill",
-      DELETE: (bill_id: string) => `/pay/delete-bill/${bill_id}`,
-      PAY: (bill_id: string) => `/pay/pay-bill/${bill_id}`,
-      CANCEL: (bill_id: string) => `/pay/cancel-bill/${bill_id}`,
-      UNPAY: (bill_id: string) => `/pay/unpay-bill/${bill_id}`,
+      DELETE: "/pay/delete-bill",
+      PAY: "/pay/pay-bill",
+      CANCEL: "/pay/cancel-bill",
+      UNPAY: "/pay/unpay-bill",
       GET_INFO_BILL: "/get-info-bill",
       CHECK_BILL: "/check-bill",
       GET_HISTORY: "/pay/get-history",
       GET_INFO: "/pay/get_info",
+      CREATE_DISBURSEMENT: "/pay/create-request-payment",
+      GET_DISBURSEMENT: "/pay/get-payment",
+    },
+    SHOP: {
+      CREATE_SHOP: "/pay/create-shop",
+      GET_SHOP: "/pay/get-shop",
+      DELETE_SHOP: "/pay/delete-shop",
+      PAY_SHOP: (shop_id: string) => `/pay/pay-shop/${shop_id}`,
     },
   },
   REPORTS: {
@@ -176,9 +204,15 @@ export const API_ENDPOINTS = {
   },
   ADMIN: {
     GET_STATS: "/admin/get-stats",
+    GET_ACTIVE_USERS_BY_DATE: "/admin/active-users-by-date",
+    GET_USER_DISTRIBUTION: "/admin/user-distribution",
+    GET_SUPPORT_REQUESTS: "/admin/support-requests-by-day",
+    GET_REPORTS_BY_CATEGORY: "/admin/reports-by-category",
+    GET_DASHBOARD_DATA: "/admin/data",
     REPORTS: "/admin/get-report-all",
     USERS: {
       GET_USERS: "/admin/users",
+      UPDATE_STATUS: (userId: string) => `/admin/user/status/${userId}`,
     },
   },
 
@@ -192,10 +226,21 @@ export const API_ENDPOINTS = {
   FANPAGE: {
     GET_PAGES: "/pages",
     CREATE_PAGE: "/pages/create",
+    GET_PAGE_FOLLOWS: "/pages/get-page/follows",
+    GET_PAGE_BY_SLUG: (slug: string) => `/pages/${slug}/detail`,
     GET_PAGE_DETAIL: (pageId: string) => `/pages/${pageId}`,
     FOLLOW_PAGE: (pageId: string) => `/pages/${pageId}/follow`,
     UNFOLLOW_PAGE: (pageId: string) => `/pages/${pageId}/unfollow`,
+    CHECK_FOLLOW_PAGE: (pageId: string) => `/pages/${pageId}/follow-status`,
     PAGE_ADMIN: (pageId: string) => `/pages/${pageId}/admins`,
+    GET_PAGE_ALBUM: (pageId: string) => `/pages/${pageId}/photos`,
+    STORE_REVIEW: (pageId: string) => `/pages/${pageId}/review`,
+    GET_PAGE_REVIEW: (pageId: string) => `/pages/${pageId}/reviews`,
+  },
+
+  SEARCH: {
+    SEARCH_ALL: (searchTerm: string) => `/search/all?searchTerm=${searchTerm}`,
+    SEARCH_HISTORY: "/search/history",
+    SAVE_SEARCH_HISTORY: "/search/save-history",
   },
 };
-

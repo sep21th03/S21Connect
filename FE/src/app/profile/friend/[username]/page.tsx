@@ -6,7 +6,7 @@ import SufiyaElizaThirdPost from "@/components/NewsFeed/Style1/ContentCenter/Suf
 import EventsCard from "@/components/NewsFeed/Style1/ContentRight/EventsCard";
 import Gallery from "@/components/NewsFeed/Style1/ContentRight/Gallery";
 import FriendSuggestion from "@/components/NewsFeed/Style1/LeftContent/FriendSuggestion";
-import LikePage from "@/components/NewsFeed/Style1/LeftContent/LikePage";
+import LikedPages from "@/components/NewsFeed/Style1/LeftContent/LikedPages";
 import SufiyaElizaMultiplePost from "@/components/NewsFeed/Style3/ContentCenter/SufiyaElizaMultiplePost";
 import AboutUser from "@/components/profile/AboutUser";
 import ActivityFeeds from "@/components/profile/ActivityFeeds";
@@ -29,7 +29,7 @@ const FriendSection: React.FC = () => {
               <AboutUser userProfile={null as any} isOwnProfile={false} />
               <FriendSuggestion mainClassName="d-xl-block d-none" />
               <div className="sticky-top d-xl-block d-none">
-                <LikePage />
+                <LikedPages />
               </div>
             </div>
             {/* <div className="content-center">

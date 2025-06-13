@@ -13,6 +13,7 @@ use App\Http\Controllers\User\BlockController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\User\ActivityController;
+use App\Http\Controllers\User\SearchController;
 use App\Http\Controllers\Messenger\MessengerController;
 use App\Http\Controllers\Messenger\ChatGroupController;
 use App\Http\Controllers\Messenger\ConversationController;
@@ -22,6 +23,9 @@ use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Pay\PaymentController;
 use App\Http\Controllers\Pay\BillController;
 use App\Http\Controllers\Pay\UserBillController;
+use App\Http\Controllers\Pay\CashController;
+use App\Http\Controllers\Pay\UserGetController;
+use App\Http\Controllers\Pay\ShopController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\Admin\AdminStatsController;
 use App\Http\Controllers\Story\StoryController;
@@ -73,10 +77,17 @@ Route::prefix('auth')->group(function () {
 
 Route::prefix('admin')->middleware(['auth:api', 'admin'])->group(function () {
     Route::get('/get-stats', [AdminStatsController::class, 'getStats']);
+    Route::get('/active-users-by-date', [AdminStatsController::class, 'getActiveUsersByDate']);
+    Route::get('/user-distribution', [AdminStatsController::class, 'getUserDistribution']);
+    Route::get('/support-requests-by-day', [AdminStatsController::class, 'getSupportRequestsByDay']);
+    Route::get('/reports-by-category', [AdminStatsController::class, 'getReportsByCategory']);
+    Route::get('/data', [AdminStatsController::class, 'getDashboardData']);
+
     Route::get('/get-report-post', [ReportController::class, 'getReportPost']);
     Route::get('/get-report-user', [ReportController::class, 'getReportUser']);
     Route::get('/get-report-all', [ReportController::class, 'getReportAll']);
     Route::get('/users', [AdminStatsController::class, 'manageUser']);
+    Route::post('/user/status/{id}', [AdminStatsController::class, 'updateUserStatus']);
 });
 
 Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
@@ -117,6 +128,12 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::prefix('/shares')->group(function () {
             Route::post('/post', [ShareController::class, 'share']);
             Route::get('/{postId}', [ShareController::class, 'getSharesByPost']);
+        });
+
+        Route::prefix('/pages')->group(function () {
+            Route::post('/{pageId}/create', [PostController::class, 'storePagePost']);
+            Route::get('/{pageId}/get', [PostController::class, 'getPagePosts']);
+            Route::get('/my-posts', [PostController::class, 'getMyPagesPosts']);
         });
     });
 
@@ -223,8 +240,8 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
 
         Route::put('/{imageId}', [CloudinaryController::class, 'updateImage']);
 
-        Route::get('/users/{id}/photos', [ImageController::class, 'getAllPhotos']);   
-        Route::get('/users/{id}/albums', [ImageController::class, 'getAlbums']);    
+        Route::get('/users/{id}/photos', [ImageController::class, 'getAllPhotos']);
+        Route::get('/users/{id}/albums', [ImageController::class, 'getAlbums']);
         Route::get('/users/{id}/album/{folder}', [ImageController::class, 'getAlbumImages']);
     });
 
@@ -241,10 +258,19 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
     //Cổng thanh toán
     Route::prefix('pay')->group(function () {
         Route::post('/create-bill', [BillController::class, 'create_bill']);
+        Route::get('/delete-bill', [BillController::class, 'delete_bill']);
+        Route::get('/pay-bill', [BillController::class, 'pay_bill']);
+        Route::get('/unpay-bill', [BillController::class, 'unpay_bill']);
+        Route::get('/cancel-bill', [BillController::class, 'cancel_bill']);
         Route::get('/get-bill', [UserBillController::class, 'get_bill']);
         Route::get('/get-history', [UserBillController::class, 'get_history']);
         Route::post('/create_api_bill', [PaymentController::class, 'create_api_bill']);
         Route::get('/get_info', [UserBillController::class, 'get_info']);
+        Route::post('/create-request-payment', [CashController::class, 'create_request_payment']);
+        Route::get('/get-payment', [UserGetController::class, 'get_payment']);
+        Route::post('/create-shop', [ShopController::class, 'create_shop']);
+        Route::post('/delete-shop', [ShopController::class, 'delete_shop']);
+        Route::get('/get-shop', [ShopController::class, 'get_shop']);
     });
 
     //report
@@ -265,12 +291,23 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
         Route::post('/contact-us', [ContactController::class, 'send']);
     });
 
-   Route::prefix('pages')->group(function () {
+    Route::prefix('pages')->group(function () {
         Route::get('/', [PageController::class, 'index']);
-        Route::post('/create', [PageController::class, 'store']); 
-        Route::post('{page}/follow', [PageController::class, 'follow']); 
-        Route::post('{page}/unfollow', [PageController::class, 'unfollow']); 
+        Route::post('/create', [PageController::class, 'store']);
+        Route::post('{page}/follow', [PageController::class, 'follow']);
+        Route::post('{page}/unfollow', [PageController::class, 'unfollow']);
+        Route::get('/{page}/follow-status', [PageController::class, 'followStatus']);
         Route::post('{page}/admins', [PageController::class, 'addAdmin']);
         Route::get('{slug}/detail', [PageController::class, 'show']);
+        Route::get('/{page}/photos', [PageController::class, 'getPagePhotos']);
+        Route::post('/{page}/review', [PageController::class, 'storePageReview']);
+        Route::get('/{page}/reviews', [PageController::class, 'getPageReviews']);
+        Route::get('/get-page/follows', [PageController::class, 'getFollowedPages']);
+    });
+
+    Route::prefix('search')->group(function () {
+        Route::get('/all', [SearchController::class, 'search']);
+        Route::get('/history', [SearchController::class, 'history']);
+        Route::post('save-history', [SearchController::class, 'saveHistory']);
     });
 });

@@ -47,7 +47,8 @@ export const REASON_CODE_MAP = {
     },
   };
   
-
+  type ReasonCodeMap = typeof REASON_CODE_MAP;
+  
   export interface Report {
     id: number;
     reportable_type: 'Post' | 'User' | 'Comment' | 'Page' | 'Group';

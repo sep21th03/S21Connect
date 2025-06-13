@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux-toolkit/store";
 import Link from "next/link";
 
-const ProfileMenus: FC = () => {
+const ProfileMenus: FC<{ page: string }> = ({ page }) => {
    const { queryValue } = useSelector((state: RootState) => state.favouritePageSlice);
 
   return (
@@ -14,12 +14,12 @@ const ProfileMenus: FC = () => {
       <ul>
         {profileMenusDetails.map((data,index) => (
           <li key={index} className={`${data.tittle === queryValue ?" active":""}`}>
-            <Link href={`/favourite/${data.tittle}`}>
+            <Link href={`/favourite/${data.tittle}/${page}`}>
               <DynamicFeatherIcon
                 iconName={data.icon}
                 className="iw-14 ih-14"
               />
-              <h6>{data.tittle}</h6>
+              <h6>{data.content}</h6>
             </Link>
           </li>
         ))}

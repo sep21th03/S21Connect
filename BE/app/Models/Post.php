@@ -28,6 +28,10 @@ class Post extends Model
         return $this->belongsTo(Page::class);
     }
 
+    public function pageReview()
+    {
+        return $this->hasOne(PageReview::class, 'post_id');
+    }
 
     public function taggedFriends()
     {

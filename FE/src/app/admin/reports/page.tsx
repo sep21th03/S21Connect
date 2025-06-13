@@ -31,7 +31,7 @@ import { STATUS_MAP } from "@/utils/formatStatus";
 import { truncateText } from "@/utils/index";
 import { formatDate } from "@/utils/formatTime";
 import { API_ENDPOINTS } from "@/utils/constant/api";
-import axiosInstance from "@/utils/axiosInstance";
+import { adminService } from "@/service/adminService";
 
 type ReportableType = keyof typeof REASON_CODE_MAP;
 type ReasonCodeMap = typeof REASON_CODE_MAP;
@@ -64,6 +64,14 @@ const SortIcon = ({
   );
 };
 
+function getReasonLabel(type: keyof ReasonCodeMap, code: string): string {
+  return (
+    REASON_CODE_MAP[type]?.[
+      code as keyof (typeof REASON_CODE_MAP)[typeof type]
+    ] ?? code
+  );
+}
+
 const ReportTable: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [filteredReports, setFilteredReports] = useState<Report[]>([]);
@@ -89,10 +97,8 @@ const ReportTable: React.FC = () => {
     const fetchReports = async () => {
       try {
         setLoading(true);
-        const response = await axiosInstance.get<Report[]>(
-          API_ENDPOINTS.ADMIN.REPORTS
-        );
-        setReports(response.data);
+        const response = await adminService.fetchReports();
+        setReports(response);
       } catch (error) {
         console.error("Failed to fetch reports:", error);
         setReports([]);
@@ -127,7 +133,6 @@ const ReportTable: React.FC = () => {
       });
     }
 
-    // Sort with fallback if fields are undefined or null
     result.sort((a, b) => {
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
@@ -135,7 +140,6 @@ const ReportTable: React.FC = () => {
       if (aValue === undefined || aValue === null) return 1;
       if (bValue === undefined || bValue === null) return -1;
 
-      // Convert to string for comparison if not number or Date string
       const aStr = typeof aValue === "string" ? aValue : String(aValue);
       const bStr = typeof bValue === "string" ? bValue : String(bValue);
 
@@ -182,7 +186,6 @@ const ReportTable: React.FC = () => {
       return report;
     });
 
-    // setReports(updatedReports);
     setAdminNote("");
     setReportAction("");
     setIsModalOpen(false);
@@ -190,7 +193,6 @@ const ReportTable: React.FC = () => {
 
   return (
     <div>
-      {/* <ReportStats reports={reports} /> */}
       <Card className={styles.card}>
         <div className={styles.cardHeader}>
           <h3 className={styles.dashboardTitle}>Danh sách báo cáo</h3>
@@ -294,26 +296,39 @@ const ReportTable: React.FC = () => {
                       <tr key={report.id}>
                         <td>{report.id}</td>
                         <td>
-                          {/* {REASON_CODE_MAP[report.reason_code]} */}
-
+                          {getReasonLabel(
+                            report.reportable_type,
+                            report.reason_code
+                          )}
                         </td>
+
                         <td>{truncateText(report.reason_text || "", 30)}</td>
                         <td>{formatDate(report.created_at)}</td>
                         <td>
-                          
-                          {/* <Badge color={STATUS_MAP[report.status].color}>
-                            
-                            {STATUS_MAP[report.status].label}
-                          </Badge> */}
+                          {report.status in STATUS_MAP ? (
+                            <Badge
+                              color={
+                                STATUS_MAP[
+                                  report.status as keyof typeof STATUS_MAP
+                                ].color
+                              }
+                            >
+                              {
+                                STATUS_MAP[
+                                  report.status as keyof typeof STATUS_MAP
+                                ].label
+                              }
+                            </Badge>
+                          ) : (
+                            <Badge color="secondary">Không xác định</Badge>
+                          )}
                         </td>
                         <td className="text-right">
-                          
                           <Button
                             size="sm"
                             color="info"
                             onClick={() => viewReportDetails(report)}
                           >
-                            
                             <Eye size={14} />
                           </Button>
                         </td>
@@ -323,7 +338,6 @@ const ReportTable: React.FC = () => {
                 </table>
                 {filteredReports.length === 0 && (
                   <div className={styles.emptyState}>
-                    
                     <AlertCircle size={40} className="text-warning mb-2" />
                     <p>Không tìm thấy báo cáo nào.</p>
                   </div>
@@ -333,7 +347,6 @@ const ReportTable: React.FC = () => {
           )}
         </CardBody>
       </Card>
-      {/* Modal: Xem chi tiết */}
       <Modal isOpen={isModalOpen} toggle={() => setIsModalOpen(!isModalOpen)}>
         <ModalHeader toggle={() => setIsModalOpen(!isModalOpen)}>
           Chi tiết báo cáo
@@ -381,7 +394,6 @@ const ReportTable: React.FC = () => {
           )}
         </ModalBody>
       </Modal>
-      {/* Modal: Ghi chú */}
       <Modal isOpen={actionModalOpen} toggle={() => setActionModalOpen(false)}>
         <ModalHeader toggle={() => setActionModalOpen(false)}>
           Thêm ghi chú cho hành động

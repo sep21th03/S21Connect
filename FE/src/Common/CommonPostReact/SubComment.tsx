@@ -1,14 +1,29 @@
 import { FC, useState } from "react";
-import { Media } from "reactstrap";
+import { Media, Input } from "reactstrap";
 import { Href, ImagePath, Like, Replay, Translate } from "../../utils/constant";
 import { SubCommentProps } from "../CommonInterFace";
 import HoverMessage from "../HoverMessage";
 import { formatTime } from "@/utils/formatTime";
 import Image from "next/image";
-const SubComment: FC<SubCommentProps> = ({ image, id, comment, onReplyClick, isReplying, toggleReply, setIsReplying }) => {
+import Picker, { EmojiClickData } from "emoji-picker-react";
+import DynamicFeatherIcon from "../DynamicFeatherIcon";
+
+const SubComment: FC<SubCommentProps> = ({
+  image,
+  id,
+  comment,
+  onReplyClick,
+  onCancelReply,
+  onReply,
+  replyText,
+  setReplyText,
+  isReplying,
+  isHighlighted = false,
+}) => {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
-  const [showOptions, setShowOptions] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [submittingReply, setSubmittingReply] = useState(false);
 
   const toggleLike = () => {
     if (liked) {
@@ -19,8 +34,33 @@ const SubComment: FC<SubCommentProps> = ({ image, id, comment, onReplyClick, isR
     setLiked(!liked);
   };
 
+  const handleSubmitReply = async (
+    event?: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event && event.key !== "Enter") return;
+    if (!replyText.trim()) return;
+
+    setSubmittingReply(true);
+    try {
+      await onReply(comment?.id, replyText);
+      setShowEmojiPicker(false);
+    } catch (error) {
+      console.error("Error submitting reply:", error);
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  const handleEmojiClick = (emojiObject: EmojiClickData) => {
+    setReplyText(replyText + emojiObject.emoji);
+  };
+
+  const toggleEmojiPicker = () => {
+    setShowEmojiPicker(!showEmojiPicker);
+  };
+
   return (
-    <Media>
+    <Media className="mb-4">
       <a
         href={Href}
         className="user-img popover-cls bg-size blur-up lazyloaded"
@@ -39,10 +79,10 @@ const SubComment: FC<SubCommentProps> = ({ image, id, comment, onReplyClick, isR
         placement={"right"}
         target={id}
         data={comment?.user}
-        imagePath={`user-sm/${image}.jpg`}
+        imagePath={`${comment?.user?.avatar}`}
       />
       <Media body>
-        <a href={Href}>
+        <a href={Href} onClick={(e) => e.preventDefault()}>
           <h5>
             {comment.user.first_name} {comment.user.last_name}
           </h5>
@@ -50,23 +90,93 @@ const SubComment: FC<SubCommentProps> = ({ image, id, comment, onReplyClick, isR
         <p>{comment.content}</p>
         <ul className="comment-option">
           <li>
-            <a href={Href}>{Like}</a>
+            <a 
+              href={Href}
+              className={liked ? "active" : ""}
+              onClick={(e) => {
+                e.preventDefault();
+                toggleLike();
+              }}
+            >
+              {Like} {likesCount > 0 ? `(${likesCount})` : ""}
+            </a>
           </li>
           <li>
             <a
               href={Href}
               onClick={(e) => {
                 e.preventDefault();
-                onReplyClick(comment?.user?.first_name + " " + comment?.user?.last_name, comment?.id);
+                if (isReplying) {
+                  onCancelReply?.();
+                } else {
+                  onReplyClick(
+                    `${comment?.user?.first_name} ${comment?.user?.last_name}`,
+                    comment?.id
+                  );
+                }
               }}
             >
-              {Replay}
+              {isReplying ? "Hủy" : Replay}
             </a>
           </li>
           <li>
-            <a href={Href}>{Translate}</a>
+            <a href={Href} onClick={(e) => e.preventDefault()}>
+              {Translate}
+            </a>
           </li>
         </ul>
+        {isReplying && (
+          <div className="reply mt-2 mb-3">
+            <div className="search-input input-style input-lg icon-right">
+              <Input
+                type="text"
+                className="emojiPicker"
+                placeholder="Viết phản hồi..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                onKeyPress={handleSubmitReply}
+                disabled={submittingReply}
+                style={{ textTransform: "none" }}
+              />
+              {showEmojiPicker && (
+                <div className="emoji-picker-container">
+                  <Picker onEmojiClick={handleEmojiClick} />
+                </div>
+              )}
+              <a
+                href={Href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleEmojiPicker();
+                }}
+              >
+                <DynamicFeatherIcon
+                  iconName="Smile"
+                  className="icon icon-2 iw-14 ih-14"
+                />
+              </a>
+              <a
+                href={Href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSubmitReply();
+                }}
+              >
+                {submittingReply ? (
+                  <DynamicFeatherIcon
+                    iconName="Loader"
+                    className="iw-14 ih-14 icon spinner"
+                  />
+                ) : (
+                  <DynamicFeatherIcon
+                    iconName="Send"
+                    className="iw-14 ih-14 icon"
+                  />
+                )}
+              </a>
+            </div>
+          </div>
+        )}
       </Media>
       <div className="comment-time">
         <h6>{formatTime(comment.created_at)}</h6>
