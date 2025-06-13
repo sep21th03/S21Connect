@@ -255,7 +255,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send_message", async (data) => {
-    console.log(data);
     try {
       if (!data.content || (!data.receiver_id && !data.conversation_id)) {
         console.error("Missing required message data");
@@ -386,7 +385,7 @@ io.on("connection", (socket) => {
       } catch (error) {
         console.error("Lỗi khi lấy thông tin conversation:", error.message);
       }
-      
+
       socket.emit("message_sent", {
         success: true,
         message: enrichedMessage,

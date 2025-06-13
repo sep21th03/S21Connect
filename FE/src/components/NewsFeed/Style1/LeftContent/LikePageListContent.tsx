@@ -4,8 +4,10 @@ import { FC, useState } from "react";
 import { Media } from "reactstrap";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import { LikePageInterFace } from "../Style1Types";
+import { useRouter } from "next/navigation";
 
 const LikePageListContent: FC<{ pageFollows: any[] }> = ({ pageFollows }) => {
+  const router = useRouter();
   const [listContent, setListContent] = useState(likePageListContentData);
   const handleActiveStar = (data: LikePageInterFace) => {
     if (data.active) {
@@ -35,7 +37,7 @@ const LikePageListContent: FC<{ pageFollows: any[] }> = ({ pageFollows }) => {
     <div className="list-content">
       <ul>
         {pageFollows?.map((data, index) => (
-          <li key={index}>
+          <li key={index} onClick={() => router.push(`/favourite/home/${data.slug}`)}>
             <Media>
               <div
                 className="img-part bg-size blur-up lazyloaded"

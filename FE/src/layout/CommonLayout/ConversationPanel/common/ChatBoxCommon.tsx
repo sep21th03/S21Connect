@@ -124,25 +124,25 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
 
     fetchMessages();
 
-    const cleanup = setupSocketListeners(
-      { ...data, id: conversationId || "" }, 
-      session,
-      conversationId || "",
-      setMessages,
-      setPendingMessages,
-      setIsUploading,
-      setPendingImage,
-      scrollToBottom,
-      joinChat,
-      leaveChat,
-      markMessagesAsRead,
-      onNewMessage,
-      onImageUploadStatus
-    );
+    // const cleanup = setupSocketListeners(
+    //   { ...data, id: conversationId || "" }, 
+    //   session,
+    //   conversationId || "",
+    //   setMessages,
+    //   setPendingMessages,
+    //   setIsUploading,
+    //   setPendingImage,
+    //   scrollToBottom,
+    //   joinChat,
+    //   leaveChat,
+    //   markMessagesAsRead,
+    //   onNewMessage,
+    //   onImageUploadStatus
+    // );
 
     handleMessagesRead();
 
-    return cleanup;
+    // return cleanup;
   }, [currentConversationId, session?.user?.id]); 
 
   const markMessagesAsUnread = async (
@@ -327,34 +327,38 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
   };
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !currentConversationId) return;
 
     const handleMessageSent = (data: any) => {
       if (data.success && data.message) {
-        processMessageSent(data.message);
-      }
-    };
-    const processMessageSent = (sentMessage: any) => {
-      if (!currentConversationId && sentMessage.conversation_id) {
-        setCurrentConversationId(sentMessage.conversation_id);
-      }
-      
-      setPendingMessages((prev) => 
-        prev.filter((msg) => msg.id !== sentMessage.client_temp_id)
-      );
-      
-      setMessages((prev) => [...prev, sentMessage]);
-    };
-    const handleNewMessage = (message: any) => {
-      if (!currentConversationId && message.conversation_id) {
-        setCurrentConversationId(message.conversation_id);
-      }
-        if (message.conversation_id === currentConversationId || 
-          (!currentConversationId && message.sender_id !== session?.user?.id)) {
-        setMessages((prev) => [...prev, message]);
+        if (!currentConversationId && data.message.conversation_id) {
+          setCurrentConversationId(data.message.conversation_id);
+        }
+        
+        setPendingMessages((prev) => 
+          prev.filter((msg) => msg.id !== data.message.client_temp_id)
+        );
+        
+        setMessages((prev) => [...prev, data.message]);
       }
     };
 
+
+    const handleNewMessage = (message: any) => {
+      if (message.sender_id !== session?.user?.id && 
+          message.conversation_id === currentConversationId) {
+        
+        
+        setMessages((prev) => {
+          const exists = prev.some(msg => msg.id === message.id);
+          if (exists) {
+            return prev; 
+          }
+          return [...prev, message];
+        });
+      }
+    };
+  
     socket.on('message_sent', handleMessageSent);
     socket.on('new_message', handleNewMessage);
 
