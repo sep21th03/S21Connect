@@ -188,7 +188,7 @@ const BillPage = () => {
     const bill = {
       amount: amount,
       note: note,
-      return_url: return_url,
+      return_url: return_url || "https://www.sep21th03.tech/spay/bill",
       shop: shop,
     };
     createBill(bill);
