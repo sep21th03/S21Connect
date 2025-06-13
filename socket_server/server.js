@@ -3,56 +3,66 @@ const http = require("http");
 const socketIo = require("socket.io");
 const axios = require("axios");
 const express = require("express");
+
+const PORT = 3001;
 const app = express();
 
 app.use(express.json());
 
-// ========== CONFIG VARIABLES ==========
-const CONFIG = {
-  // API_BASE_URL: "http://127.0.0.1:8000",
-  // FRONTEND_URLS: ["http://localhost:3000", "http://127.0.0.1:8000"],
-  API_BASE_URL: "https://s21.codetifytech.io.vn",
-  FRONTEND_URLS: [
-    "https://www.sep21th03.tech",
-    "https://s21.codetifytech.io.vn",
-  ],
-
-  // Cloudinary Config
-  CLOUDINARY: {
-    BASE_URL: "https://api.cloudinary.com/v1_1/dyksxiq0e",
-    UPLOAD_PRESET: "upload_preset",
-    FOLDER: "message/image",
-  },
-
-  // Server Config
-  SERVER_PORT: 3001,
-  SOCKET_PATH: "/socket.io",
-  MAX_HTTP_BUFFER_SIZE: 20e6,
-
-  // API Endpoints
-  API_ENDPOINTS: {
-    USER: "/api/user",
-    UPDATE_LAST_ACTIVE: "/api/user/update-last-active",
-    MESSAGES_SEND: "/api/messages/send",
-    MESSAGES_MARK_READ: "/api/messages/mark-as-read",
-    CONVERSATIONS: "/api/conversations",
-  },
-};
-
-// Helper function to build full API URL
-const buildApiUrl = (endpoint) => `${CONFIG.API_BASE_URL}${endpoint}`;
-
-// Helper function to build Cloudinary URL
-const buildCloudinaryUrl = (action = "image/upload") =>
-  `${CONFIG.CLOUDINARY.BASE_URL}/${action}`;
-
-// ========== END CONFIG ==========
-
 const onlineUsers = new Map();
 const userSocketMap = new Map();
 
+// Tạo server trước
 const server = http.createServer(app);
 
+// Tạo io instance
+const io = socketIo(server, {
+  path: "/socket.io",
+  cors: {
+    // origin: [
+    //   "http://localhost:3000",
+    //   "http://127.0.0.1:8000",
+    //   "https://www.sep21th03.tech/",
+    //   "https://s21.codetifytech.io.vn/",
+    //   "https://socket-s21.codetifytech.io.vn",
+    //   "http://socket-s21.codetifytech.io.vn"
+    // ],
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  maxHttpBufferSize: 20e6,
+  // Thêm config cho Cloudflare
+  transports: ["websocket", "polling"],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000,
+});
+
+// Middleware để log requests
+app.use((req, res, next) => {
+  console.log(
+    `${new Date().toISOString()} - ${req.method} ${req.url} - ${req.ip}`
+  );
+  next();
+});
+
+// Routes cơ bản
+app.get("/", (req, res) => {
+  res.send("Socket.io server running on port " + PORT);
+});
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
+    port: PORT,
+    timestamp: new Date().toISOString(),
+    onlineUsers: onlineUsers.size,
+  });
+});
+
+// Routes s dụng io (đã được đnh nghĩa)
 app.post("/notification", (req, res) => {
   console.log("Notification received:", req.body);
   const { userId, ...notificationData } = req.body;
@@ -81,20 +91,17 @@ app.post("/notification-message", (req, res) => {
   res.sendStatus(200);
 });
 
-const io = socketIo(server, {
-  path: CONFIG.SOCKET_PATH,
-  cors: {
-    origin: CONFIG.FRONTEND_URLS,
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-  maxHttpBufferSize: CONFIG.MAX_HTTP_BUFFER_SIZE,
+// Error handler
+app.use((err, req, res, next) => {
+  console.error("Express error:", err);
+  res.status(500).json({ error: "Internal server error" });
 });
 
+// Helper functions
 async function updateLastActive(userId, lastActive, token) {
   try {
     const res = await axios.post(
-      buildApiUrl(CONFIG.API_ENDPOINTS.UPDATE_LAST_ACTIVE),
+      "http://127.0.0.1:8000/api/user/update-last-active",
       {
         user_id: userId,
         last_active: lastActive,
@@ -128,24 +135,6 @@ function broadcastAndLogOnlineUsers() {
   console.log("=========================");
 }
 
-io.use(async (socket, next) => {
-  const token = socket.handshake.auth.token;
-  if (!token) {
-    return next(new Error("Unauthorized - No token"));
-  }
-  try {
-    console.log("Verifying token...");
-    const resp = await axios.get(buildApiUrl(CONFIG.API_ENDPOINTS.USER), {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    socket.user = resp.data;
-    return next();
-  } catch (err) {
-    console.error("Auth error:", err.message);
-    return next(new Error("Unauthorized - Invalid token"));
-  }
-});
-
 function joinConversationRoom(socket, conversationId) {
   const room = `conversation:${conversationId}`;
   socket.join(room);
@@ -153,7 +142,6 @@ function joinConversationRoom(socket, conversationId) {
   return room;
 }
 
-// Fix 1: Adding debug function to inspect which rooms a socket is in
 function logSocketRooms(socket) {
   const rooms = Array.from(socket.rooms);
   console.log(
@@ -168,13 +156,16 @@ async function uploadToCloudinary(base64Image, fileName) {
 
     const formData = new FormData();
     formData.append("file", base64Image);
-    formData.append("upload_preset", CONFIG.CLOUDINARY.UPLOAD_PRESET);
-    formData.append("folder", CONFIG.CLOUDINARY.FOLDER);
+    formData.append("upload_preset", "upload_preset");
+    formData.append("folder", "message/image");
 
-    const response = await fetch(buildCloudinaryUrl("image/upload"), {
-      method: "POST",
-      body: formData,
-    });
+    const response = await fetch(
+      "https://api.cloudinary.com/v1_1/dyksxiq0e/image/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
 
     const data = await response.json();
 
@@ -191,12 +182,33 @@ async function uploadToCloudinary(base64Image, fileName) {
   }
 }
 
+// Socket.io authentication middleware
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    return next(new Error("Unauthorized - No token"));
+  }
+  try {
+    console.log("Verifying token...");
+    const resp = await axios.get("http://127.0.0.1:8000/api/user", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    socket.user = resp.data;
+    return next();
+  } catch (err) {
+    console.error("Auth error:", err.message);
+    return next(new Error("Unauthorized - Invalid token"));
+  }
+});
+
+// Socket.io connection handling
 io.on("connection", (socket) => {
   const userId = socket.user.id;
   const username = socket.user.username || "Anonymous";
   const now = new Date();
   const token = socket.handshake.auth.token;
   userSocketMap.set(userId, socket.id);
+  console.log(token);
 
   function formatDateToMySQL(datetime) {
     const date = new Date(datetime);
@@ -243,8 +255,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send_message", async (data) => {
+    console.log(data);
     try {
-      if (!data.content || !data.conversation_id) {
+      if (!data.content || (!data.receiver_id && !data.conversation_id)) {
         console.error("Missing required message data");
         socket.emit("message_error", {
           error: "Missing required message data",
@@ -276,6 +289,7 @@ io.on("connection", (socket) => {
           return;
         }
       }
+
       console.log("Sending message:", {
         content: data.content,
         receiver_id: data.receiver_id,
@@ -284,24 +298,35 @@ io.on("connection", (socket) => {
         file_paths: data.file_paths,
         client_temp_id: data.client_temp_id || null,
       });
+
       const messagePayload = {
         content: data.content,
         type: data.type || "text",
-        file_paths: data.file_paths,
-        metadata: data.metadata,
       };
+
+      if (data.metadata) {
+        messagePayload.metadata = data.metadata;
+      }
+
       if (data.conversation_id) {
         messagePayload.conversation_id = data.conversation_id;
-      } else if (data.user_ids && Array.isArray(data.user_ids)) {
-        messagePayload.user_ids = data.user_ids;
-        messagePayload.group_name = data.group_name;
-        messagePayload.group_avatar = data.group_avatar;
-      } else if (data.receiver_id) {
+      }
+
+      if (data.receiver_id) {
         messagePayload.receiver_id = data.receiver_id;
-        messagePayload.conversation_id = data.conversation_id;
+      }
+
+      if (data.user_ids && Array.isArray(data.user_ids)) {
+        messagePayload.user_ids = data.user_ids;
+        if (data.group_name) {
+          messagePayload.group_name = data.group_name;
+        }
+        if (data.group_avatar) {
+          messagePayload.group_avatar = data.group_avatar;
+        }
       }
       const messageResponse = await axios.post(
-        buildApiUrl(CONFIG.API_ENDPOINTS.MESSAGES_SEND),
+        "http://127.0.0.1:8000/api/messages/send",
         messagePayload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -309,8 +334,8 @@ io.on("connection", (socket) => {
       );
 
       const message = messageResponse.data;
-
-      const room = `conversation:${data.conversation_id}`;
+      const conversationId = data.conversation_id || message.conversation_id;
+      const room = `conversation:${conversationId}`;
 
       const enrichedMessage = {
         ...message,
@@ -327,53 +352,41 @@ io.on("connection", (socket) => {
       // broadcast
       io.to(room).emit("new_message", enrichedMessage);
 
-      if (data.receiver_id) {
-        const receiver = onlineUsers.get(data.receiver_id);
-        if (receiver) {
-          io.to(receiver.socketId).emit("new_message", enrichedMessage);
-        }
-      } else if (conversationId) {
-        try {
-          const conversationResponse = await axios.get(
-            buildApiUrl(
-              `${CONFIG.API_ENDPOINTS.CONVERSATIONS}/${conversationId}`
-            ),
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-
-          const conversation = conversationResponse.data;
-
-          if (conversation.type === "group" && conversation.members) {
-            conversation.members.forEach((member) => {
-              if (member.id !== userId) {
-                const onlineMember = onlineUsers.get(member.id);
-                if (onlineMember) {
-                  io.to(onlineMember.socketId).emit(
-                    "unread_message_update",
-                    enrichedMessage
-                  );
-                }
-              }
-            });
-          } else if (
-            conversation.type === "private" &&
-            conversation.other_user
-          ) {
-            const otherUser = onlineUsers.get(conversation.other_user.id);
-            if (otherUser) {
-              io.to(otherUser.socketId).emit(
-                "unread_message_update",
-                enrichedMessage
-              );
-            }
+      try {
+        const conversationResponse = await axios.get(
+          `http://127.0.0.1:8000/api/conversations/${conversationId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
           }
-        } catch (error) {
-          console.error("Lỗi khi lấy thông tin conversation:", error.message);
-        }
-      }
+        );
 
+        const conversation = conversationResponse.data;
+
+        if (conversation.type === "group" && conversation.members) {
+          conversation.members.forEach((member) => {
+            if (member.id !== userId) {
+              const onlineMember = onlineUsers.get(member.id);
+              if (onlineMember) {
+                io.to(onlineMember.socketId).emit(
+                  "unread_message_update",
+                  enrichedMessage
+                );
+              }
+            }
+          });
+        } else if (conversation.type === "private" && conversation.other_user) {
+          const otherUser = onlineUsers.get(conversation.other_user.id);
+          if (otherUser) {
+            io.to(otherUser.socketId).emit(
+              "unread_message_update",
+              enrichedMessage
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy thông tin conversation:", error.message);
+      }
+      
       socket.emit("message_sent", {
         success: true,
         message: enrichedMessage,
@@ -388,7 +401,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Fix 6: Implement mark_as_read handler
   socket.on("mark_as_read", async (data) => {
     try {
       if (!data.conversation_id) {
@@ -397,7 +409,7 @@ io.on("connection", (socket) => {
       }
 
       await axios.post(
-        buildApiUrl(CONFIG.API_ENDPOINTS.MESSAGES_MARK_READ),
+        "http://127.0.0.1:8000/api/messages/mark-as-read",
         {
           conversation_id: data.conversation_id,
         },
@@ -410,7 +422,6 @@ io.on("connection", (socket) => {
         `Messages marked as read in conversation: ${data.conversation_id}`
       );
 
-      // Notify others in the conversation that messages have been read
       const room = `conversation:${data.conversation_id}`;
       socket.to(room).emit("messages_read", {
         conversation_id: data.conversation_id,
@@ -427,10 +438,8 @@ io.on("connection", (socket) => {
     if (onlineUsers.has(userId)) {
       const userData = onlineUsers.get(userId);
 
-      // Remove user from onlineUsers
       onlineUsers.delete(userId);
 
-      // Broadcast changes
       broadcastAndLogOnlineUsers();
       io.emit("user_status_changed", {
         userId,
@@ -449,12 +458,11 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Fix 7: Improved join_all_conversations
   socket.on("join_all_conversations", async () => {
     try {
       console.log(`Joining all conversations for ${username}`);
       const response = await axios.get(
-        buildApiUrl(CONFIG.API_ENDPOINTS.CONVERSATIONS),
+        "http://127.0.0.1:8000/api/conversations",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -467,7 +475,6 @@ io.on("connection", (socket) => {
         joinConversationRoom(socket, conversation.id);
       });
 
-      // Debug: Log all rooms after joining
       logSocketRooms(socket);
 
       console.log(`User ${username} joined all their conversation rooms`);
@@ -477,10 +484,22 @@ io.on("connection", (socket) => {
   });
 });
 
-// Listen on port 3001 (can be customized)
-// server.listen(CONFIG.SERVER_PORT, () => {
-//   console.log(`Socket.io server running on port ${CONFIG.SERVER_PORT}`);
-// });
-server.listen(process.env.PORT || 3001, () => {
-  console.log(`Socket.io server running on port ${process.env.PORT}`);
+// Error handler cho server
+server.on("error", (err) => {
+  console.error("Server error:", err);
+  if (err.code === "EADDRINUSE") {
+    console.error(`Port ${PORT} is already in use`);
+    process.exit(1);
+  }
+});
+
+// Listen vi debug info
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Socket.io server running on port ${PORT}`);
+  console.log(`Server accessible at:`);
+  console.log(`- http://localhost:${PORT}`);
+  console.log(`- http://127.0.0.1:${PORT}`);
+  console.log(`- http://0.0.0.0:${PORT}`);
+  console.log(`Time: ${new Date().toISOString()}`);
+  console.log(`Online users: ${onlineUsers.size}`);
 });

@@ -56,7 +56,7 @@ class SendCommentNotification
 
 
         try {
-            $response = Http::post("https://node-s21.codetifytech.io.vn/notification", [
+            $response = Http::post("https://node.codetifytech.io.vn/notification", [
                 'id' => $notification->id,
                 'userId' => $notifiedUser->id,
                 'type' => 'comment',
