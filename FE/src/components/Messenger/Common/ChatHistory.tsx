@@ -170,7 +170,7 @@ const ChatHistory: FC<ChatHistoryProps> = ({
         });
         setTimeout(() => {
           setHighlightedMessageId(null);
-        }, 3000);
+        }, 1000);
 
         const messageElement = messageRefs.current[messageId];
         if (messageElement) {
@@ -412,7 +412,7 @@ const ChatHistory: FC<ChatHistoryProps> = ({
   return (
     <div className="chat-history">
       <div className="avenue-messenger">
-        <div className="chat">
+        <div className="chat" style={{ flexDirection: "column-reverse" }}>
           <div
             className="messages-content theme-scrollbar"
             ref={messagesContainerRef}
@@ -420,6 +420,7 @@ const ChatHistory: FC<ChatHistoryProps> = ({
             style={{
               overflowY: "auto",
               scrollBehavior: "smooth",
+              padding: "20px 20px 50px 20px",
             }}
           >
             {isLoadingMore && (
