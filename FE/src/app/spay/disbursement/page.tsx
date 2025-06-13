@@ -8,6 +8,7 @@ import { Bank, fetchBanks } from "@/service/mockupSercive";
 import axiosInstance from "@/utils/axiosInstance";
 import { API_ENDPOINTS } from "@/utils/constant/api";
 
+
 interface Disbursement {
   id: string;
   username: string;
@@ -45,6 +46,19 @@ const DisbursementPage = () => {
     const response = await axiosInstance.get(API_ENDPOINTS.PAYMENT.BILL.GET_DISBURSEMENT);
     if (response.status === 200) {
       setDisbursement(response.data.data);
+    }
+  };
+
+  const handleCreateDisbursement = async () => {
+    const response = await axiosInstance.post(API_ENDPOINTS.PAYMENT.BILL.CREATE_DISBURSEMENT, {
+      account_bank,
+      account_number,
+      sotiens,
+    });
+    if (response.status === 200) {
+      setReloadBill(!reloadBill);
+      toggleModal();
+      toast.success("Tạo yêu cầu rút tiền thành công");
     }
   };
 
@@ -200,7 +214,7 @@ const DisbursementPage = () => {
         <Button color="secondary" onClick={toggleModal}>
           Đóng
         </Button>
-        <Button color="primary" onClick={() => console.log("Gửi dữ liệu tạo hóa đơn")}>
+        <Button color="primary" onClick={handleCreateDisbursement}>
           Tạo Yêu Cầu
         </Button>
       </ModalFooter>
