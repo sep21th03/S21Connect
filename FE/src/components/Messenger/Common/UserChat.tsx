@@ -32,11 +32,6 @@ const UserChat: FC<UserChatInterFace> = ({
 
   const {
     socket,
-    incomingCall,
-    answerCall,
-    rejectCall,
-    endCall,
-    onCallRejected,
   } = useSocket(
     (users) => console.log(users),
     (conversationId) => console.log(conversationId)

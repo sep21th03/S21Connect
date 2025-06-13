@@ -164,7 +164,7 @@ const OptionsInputs: FC<OptionsInputsInterFace> = ({
       <div className="search-input friend-input">
         <Input
           type="text"
-          placeholder="search your friends..."
+          placeholder="Tìm bạn bè..."
           list="Friends"
           value={tagInput}
           onChange={handleTagInputChange}
