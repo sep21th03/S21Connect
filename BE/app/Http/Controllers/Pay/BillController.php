@@ -381,7 +381,7 @@ class BillController extends Controller
                     'username' => $item->username,
                     'sotien' => $item->sotien,
                     'ghichu' => $item->comment,
-                    'trangthai' => $item->trangthai,
+                    'status' => $item->status,
                     'payment_method' => $item->payment_method,
                     'shop' => $name,
                     'shop_id' => $item->shop_id,
@@ -412,8 +412,8 @@ class BillController extends Controller
         }
         $user = Auth::user();
         $username = $user->username;
-        $id_hoadon = $request->input('id_hoadon');
-        if (!$request->filled('id_hoadon')) {
+        $id_hoadon = $request->input('id');
+        if (!$request->filled('id')) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Thiếu id hóa đơn'
@@ -432,13 +432,13 @@ class BillController extends Controller
                 'message' => 'Bạn không có quyền xóa hóa đơn này'
             ]);
         }
-        if ($data->trangthai == 2) {
+        if ($data->status == 2) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Hóa đơn đã được thanh toán, không thể xóa'
             ]);
         }
-        if ($data->trangthai == 3) {
+        if ($data->status == 3) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Hóa đơn đã bị hủy, không thể xóa'
@@ -490,19 +490,19 @@ class BillController extends Controller
                 'message' => 'Bạn không có quyền hoàn thành hóa đơn này'
             ]);
         }
-        if ($data->trangthai == 2) {
+        if ($data->status == 2) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Hóa đơn đã được thanh toán, không đánh dấu tiếp'
             ]);
         }
-        if ($data->trangthai == 3) {
+        if ($data->status == 3) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Hóa đơn đã bị hủy, không thể đánh dấu hoàn thành'
             ]);
         }
-        $data->trangthai = 2;
+        $data->status = 2;
         if ($data->save()) {
             $myFunction = new MyFunction();
             $ip = $myFunction->getIP();
@@ -548,19 +548,19 @@ class BillController extends Controller
                 'message' => 'Bạn không có quyền hoàn thành hóa đơn này'
             ]);
         }
-        if ($data->trangthai == 1) {
+        if ($data->status == 1) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Hóa đơn chưa thanh toán, không thể đánh dấu lại'
             ]);
         }
-        if ($data->trangthai == 3) {
+        if ($data->status == 3) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Hóa đơn đã bị hủy, không thể đánh dấu chưa hoàn thành'
             ]);
         }
-        $data->trangthai = 1;
+        $data->status = 1;
         if ($data->save()) {
             $myFunction = new MyFunction();
             $ip = $myFunction->getIP();
@@ -606,19 +606,19 @@ class BillController extends Controller
                 'message' => 'Bạn không có quyền hủy hóa đơn này'
             ]);
         }
-        if ($data->trangthai == 2) {
+        if ($data->status == 2) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Hóa đơn đã được thanh toán, không thể hủy'
             ]);
         }
-        if ($data->trangthai == 3) {
+        if ($data->status == 3) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Hóa đơn đã bị hủy, không thể hủy'
             ]);
         }
-        $data->trangthai = 3;
+        $data->status = 3;
         if ($data->save()) {
             $myFunction = new MyFunction();
             $ip = $myFunction->getIP();

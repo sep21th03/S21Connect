@@ -8,6 +8,7 @@ use App\Models\Lixi;
 use Illuminate\Http\Request;
 use App\Http\Controllers\MyController\MyFunction;
 use App\Http\Controllers\Controller;
+use App\Models\LuckyMoney;
 use Illuminate\Support\Facades\Http;
 
 
@@ -31,7 +32,7 @@ class PaymentController extends Controller
             return redirect()->to(env('APP_URL') . '/hoadon/' . $data->id_hoadon);
         }
         if ($cancel == '1') {
-            $data->trangthai = 3;
+            $data->status = 3;
             $data->save();
             return redirect()->to(env('APP_URL') . '/hoadon/' . $data->id_hoadon . '?success=false&message=Hóa đơn đã bị hủy, bạn đã hủy thanh toán!');
         } else {
@@ -70,6 +71,7 @@ class PaymentController extends Controller
     {
         try {
             $postData = $request->getContent();
+            \Log::info('Webhook PayOS received: ', ['data' => $postData]);
             file_put_contents(storage_path('data.txt'), $postData);
 
             if ($postData == "") {
@@ -96,9 +98,9 @@ class PaymentController extends Controller
 
             if ($desc == 'success' && $success == true) {
                 if (strpos($description, 'lixi') !== false) {
-                    $order = Lixi::where('data_orderCode', $orderCode)->where('paymentLinkId', $paymentLinkId)->first();
+                    $order = LuckyMoney::where('data_orderCode', $orderCode)->where('paymentLinkId', $paymentLinkId)->first();
                     if ($order) {
-                        $order->trangthai = 2;
+                        $order->status = 2;
                         $order->payment_method = 'QRCode';
                         $order->save();
 
@@ -116,12 +118,12 @@ class PaymentController extends Controller
                 } else {
                     $order = Bill::where('data_orderCode', $orderCode)->where('paymentLinkId', $paymentLinkId)->first();
                     if ($order) {
-                        $order->trangthai = 2;
+                        $order->status = 2;
                         $order->payment_method = 'QRCode';
                         $order->save();
 
                         $get_user = $order->username;
-                        $get_sotien = $order->sotien;
+                        $get_sotien = $order->amount;
                         $update_user = User::where('username', $get_user)->first();
                         $update_user->vnd = $update_user->vnd + $get_sotien;
                         $update_user->save();
@@ -136,6 +138,7 @@ class PaymentController extends Controller
 
             return response()->json(['status' => 'error', 'message' => 'Payment not processed'], 200);
         } catch (\Exception $e) {
+            \Log::error('Webhook PayOS error: ', ['message' => $e->getMessage()]);
             return response()->json(['status' => 'error', 'message' => 'Internal server error'], 200);
         }
     }

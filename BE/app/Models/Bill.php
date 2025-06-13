@@ -43,7 +43,7 @@ class Bill extends Model
     }
     public static function countBillbyShopidAndStatusAndUsername($shopid, $status, $username)
     {
-        return self::where('shop_id', $shopid)->where('trangthai', $status)->where('username', $username)->count();
+        return self::where('shop_id', $shopid)->where('status', $status)->where('username', $username)->count();
     }
     public static function countBillByUsernameAndStatus($username, $status)
     {

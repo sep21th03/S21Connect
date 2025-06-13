@@ -258,7 +258,7 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
     //Cổng thanh toán
     Route::prefix('pay')->group(function () {
         Route::post('/create-bill', [BillController::class, 'create_bill']);
-        Route::get('/delete-bill', [BillController::class, 'delete_bill']);
+        Route::post('/delete-bill', [BillController::class, 'delete_bill']);
         Route::get('/pay-bill', [BillController::class, 'pay_bill']);
         Route::get('/unpay-bill', [BillController::class, 'unpay_bill']);
         Route::get('/cancel-bill', [BillController::class, 'cancel_bill']);

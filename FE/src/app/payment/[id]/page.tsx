@@ -45,7 +45,6 @@ const PaymentPage = () => {
       }, 3000);
     }
 
-    // Check payment status periodically
     const intervalId = setInterval(() => {
       checkBillStatus();
       fetchPaymentInfo();
@@ -140,7 +139,6 @@ const PaymentPage = () => {
           <div className="authincation h-100">
             <div className="container-fluid h-100">
               <div className="row h-100">
-                {/* Left Column - QR Code */}
                 <div className="col-xl-6 col-lg-6">
                   <div className="pages-left h-100 card fade-in">
                     <div id="load_qr">
@@ -213,7 +211,6 @@ const PaymentPage = () => {
                   </div>
                 </div>
 
-                {/* Right Column - Payment Info */}
                 <div className="col-lg-6 col-md-12 col-sm-12 mx-auto align-self-center">
                   <div className="login-form">
                     <div className="card fade-in" id="load_info">
