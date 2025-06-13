@@ -31,8 +31,6 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(data.id);
 
   const [pendingMessages, setPendingMessages] = useState<
     {
@@ -66,12 +64,6 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  
-
-
-  useEffect(() => {
-    setCurrentConversationId(data.id);
-  }, [data.id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -79,42 +71,38 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
 
   useEffect(() => {
     if (!data) return;
-    
-    const conversationId = currentConversationId;
-    
+    const conversationId = data.id;
     const fetchMessages = async () => {
       try {
-        if (conversationId) {
-          let url = `${
-            API_ENDPOINTS.MESSAGES.MESSAGES.BASE
-          }${API_ENDPOINTS.MESSAGES.MESSAGES.GET_MESSAGES(conversationId)}`;
+        let url = `${
+          API_ENDPOINTS.MESSAGES.MESSAGES.BASE
+        }${API_ENDPOINTS.MESSAGES.MESSAGES.GET_MESSAGES(data.id ?? "")}`;
 
-          const response = await axiosInstance.get(url);
-          const fetchedMessages = response.data.data.reverse();
-          setMessages(fetchedMessages);
+        const response = await axiosInstance.get(url);
+        const fetchedMessages = response.data.data.reverse();
+        setMessages(fetchedMessages);
 
-          if (data.type === "private" && data.other_user?.id) {
-            await markMessagesAsUnread(
-              data.other_user.id,
-              fetchedMessages,
-              conversationId
+        if (data.type === "private" && data.other_user?.id) {
+          await markMessagesAsUnread(
+            data.other_user.id,
+            fetchedMessages,
+            data.id
+          );
+        }
+        if (data.type === "group") {
+          const currentUserId = session?.user?.id;
+          const hasUnread = fetchedMessages.some(
+            (message: Message) =>
+              !message.is_read && message.sender_id !== currentUserId
+          );
+
+          if (hasUnread) {
+            await axiosInstance.post(
+              `${API_ENDPOINTS.MESSAGES.MESSAGES.BASE}${API_ENDPOINTS.MESSAGES.MESSAGES.UNREAD_MESSAGES}`,
+              {
+                conversation_id: data.id,
+              }
             );
-          }
-          if (data.type === "group") {
-            const currentUserId = session?.user?.id;
-            const hasUnread = fetchedMessages.some(
-              (message: Message) =>
-                !message.is_read && message.sender_id !== currentUserId
-            );
-
-            if (hasUnread) {
-              await axiosInstance.post(
-                `${API_ENDPOINTS.MESSAGES.MESSAGES.BASE}${API_ENDPOINTS.MESSAGES.MESSAGES.UNREAD_MESSAGES}`,
-                {
-                  conversation_id: conversationId,
-                }
-              );
-            }
           }
         }
       } catch (error) {
@@ -124,26 +112,26 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
 
     fetchMessages();
 
-    // const cleanup = setupSocketListeners(
-    //   { ...data, id: conversationId || "" }, 
-    //   session,
-    //   conversationId || "",
-    //   setMessages,
-    //   setPendingMessages,
-    //   setIsUploading,
-    //   setPendingImage,
-    //   scrollToBottom,
-    //   joinChat,
-    //   leaveChat,
-    //   markMessagesAsRead,
-    //   onNewMessage,
-    //   onImageUploadStatus
-    // );
+    const cleanup = setupSocketListeners(
+      data,
+      session,
+      conversationId,
+      setMessages,
+      setPendingMessages,
+      setIsUploading,
+      setPendingImage,
+      scrollToBottom,
+      joinChat,
+      leaveChat,
+      markMessagesAsRead,
+      onNewMessage,
+      onImageUploadStatus
+    );
 
     handleMessagesRead();
 
-    // return cleanup;
-  }, [currentConversationId, session?.user?.id]); 
+    return cleanup;
+  }, [data?.id, session?.user?.id]);
 
   const markMessagesAsUnread = async (
     userId: string,
@@ -211,18 +199,6 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
     return data?.other_user?.name || "Người dùng";
   };
 
-  const handleMessageSent = (sentMessage: any) => {
-    if (!currentConversationId && sentMessage.conversation_id) {
-      setCurrentConversationId(sentMessage.conversation_id);
-    }
-    
-    setPendingMessages((prev) => 
-      prev.filter((msg) => msg.id !== sentMessage.client_temp_id)
-    );
-    
-    setMessages((prev) => [...prev, sentMessage]);
-  };
-
   const handleSendMessage = () => {
     if ((!newMessage.trim() && !pendingImage) || !data) return;
 
@@ -266,8 +242,8 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
             receiver_id:
               data.type === "private"
                 ? data.other_user?.id
-                : "",
-            conversation_id: currentConversationId || "", 
+                : data.members?.find((m) => m.id === session?.user?.id)?.id || "",
+            conversation_id: data.id,
             type: "image",
             file_name: pendingImage.name,
             file_type: pendingImage.type,
@@ -311,9 +287,9 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
         receiver_id:
           data.type === "private"
             ? data.other_user?.id
-              : "",
+            : data.members?.find((m) => m.id === session?.user?.id)?.id || "",
         type: "text" as const,
-        conversation_id: currentConversationId || "", 
+        conversation_id: data.id,
         client_temp_id: tempId,
       });
 
@@ -325,48 +301,6 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
       }
     }
   };
-
-  useEffect(() => {
-    if (!socket || !currentConversationId) return;
-
-    const handleMessageSent = (data: any) => {
-      if (data.success && data.message) {
-        if (!currentConversationId && data.message.conversation_id) {
-          setCurrentConversationId(data.message.conversation_id);
-        }
-        
-        setPendingMessages((prev) => 
-          prev.filter((msg) => msg.id !== data.message.client_temp_id)
-        );
-        
-        setMessages((prev) => [...prev, data.message]);
-      }
-    };
-
-
-    const handleNewMessage = (message: any) => {
-      if (message.sender_id !== session?.user?.id && 
-          message.conversation_id === currentConversationId) {
-        
-        
-        setMessages((prev) => {
-          const exists = prev.some(msg => msg.id === message.id);
-          if (exists) {
-            return prev; 
-          }
-          return [...prev, message];
-        });
-      }
-    };
-  
-    socket.on('message_sent', handleMessageSent);
-    socket.on('new_message', handleNewMessage);
-
-    return () => {
-      socket.off('message_sent', handleMessageSent);
-      socket.off('new_message', handleNewMessage);
-    };
-  }, [socket, currentConversationId, session?.user?.id]);
 
   const renderMessageContent = (message: Message) => {
     if (message.type === "share_post") {
@@ -670,6 +604,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
                 className={`msg-${isOwnMessage ? "right" : "left"}`}
               >
                 <span>
+                  {/* Show sender name for group chats and non-own messages */}
                   {data.type === "group" && !isOwnMessage && (
                     <div
                       className="sender-name"
