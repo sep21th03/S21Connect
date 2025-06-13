@@ -166,7 +166,28 @@ class Conversation extends Model
         return $conversation;
     }
 
+    public static function CreateGroupNew(array $userIds, array $options = []): self
+    {
+        $userIds = array_unique($userIds);
+        sort($userIds);
 
+        $conversation = self::create([
+            'type' => 'group',
+            'name' => $options['name'] ?? 'Group Chat',
+            'avatar' => $options['avatar'] ?? null,
+        ]);
+
+        foreach ($userIds as $userId) {
+            $conversation->users()->attach($userId, [
+                'id' => (string) Str::uuid(),
+                'is_archived' => false,
+                'nickname' => null,
+                'last_read_at' => now(),
+            ]);
+        }
+
+        return $conversation;
+    }
     /**
      * Get the URL for this conversation
      */

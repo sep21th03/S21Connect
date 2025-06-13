@@ -21,6 +21,8 @@ export const renderMessageContent = (
   scrollToBottom: () => void,
   shouldScrollToBottom: React.MutableRefObject<boolean>
 ) => {
+  const urlRegex = /^https:\/\/[^\s/$.?#].[^\s]*$/i;
+
   if (message.type === "share_post") {
     return renderSharedPost(message);
   }
@@ -41,6 +43,23 @@ export const renderMessageContent = (
         />
       </div>
     );
+  }
+  if (message.type === "text" && message.content) {
+    if (urlRegex.test(message.content.trim())) {
+      return (
+        <a
+          href={message.content}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="message-link"
+          style={{ color: "#1e90ff", textDecoration: "underline" }}
+          aria-label={`Open link to ${message.content}`}
+        >
+          {message.content}
+        </a>
+      );
+    }
+    return <span>{message.content}</span>;
   }
   return message.content;
 };

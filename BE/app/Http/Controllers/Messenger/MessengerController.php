@@ -121,7 +121,7 @@ class MessengerController extends Controller
             }
         } elseif ($request->filled('user_ids')) {
             $userIds = array_merge($request->user_ids, [Auth::id()]);
-            $conversation = Conversation::firstOrCreateGroup($userIds, [
+            $conversation = Conversation::CreateGroupNew($userIds, [
                 'name' => $request->input('group_name'),
                 'avatar' => $request->input('group_avatar'),
             ]);
