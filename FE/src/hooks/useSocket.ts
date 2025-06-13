@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { getAuthToken } from "@/redux-toolkit/slice/authSlice";
 import { SharePostMetadata } from "@/components/Messenger/MessengerType";
+import { SoundNotification, useSoundNotification } from "@/utils/soundEffect";
 
 let socket: Socket | null = null;
 
@@ -125,7 +126,8 @@ export interface Notification {
 export function useSocket(
   onOnlineList: (users: User[]) => void,
   onNotification: (data: Notification) => void,
-  onUnreadMessageUpdate?: (data: RecentMessage) => void
+  onUnreadMessageUpdate?: (data: RecentMessage) => void,
+  soundEnabled?: boolean
 ) {
   const socketRef = useRef<Socket | null>(null);
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
@@ -133,6 +135,16 @@ export function useSocket(
   const onOnlineListRef = useRef(onOnlineList);
   const onNotificationCallbackRef = useRef(onNotification);
   const onUnreadMessageUpdateRef = useRef(onUnreadMessageUpdate);
+
+  const { playNotificationSound } = useSoundNotification(); 
+
+  useEffect(() => {
+    onOnlineListRef.current = onOnlineList;
+    onNotificationCallbackRef.current = onNotification;
+    onUnreadMessageUpdateRef.current = onUnreadMessageUpdate;
+  }, [onOnlineList, onNotification, onUnreadMessageUpdate]);
+
+
   useEffect(() => {
     onOnlineListRef.current = onOnlineList;
     onNotificationCallbackRef.current = onNotification;
@@ -144,7 +156,8 @@ export function useSocket(
     if (!token) return;
 
     if (!socket) {
-      socket = io("https://node-s21.codetifytech.io.vn/", {  //http://localhost:3001
+      socket = io("https://node-s21.codetifytech.io.vn/", {
+        //http://localhost:3001
         auth: { token },
         reconnection: true,
       });
@@ -179,7 +192,7 @@ export function useSocket(
     }, 30000);
 
     const handleNotification = (data: Notification) => {
-      // console.log(data);
+      playNotificationSound();
       if (typeof onNotificationCallbackRef.current === "function") {
         onNotificationCallbackRef.current(data);
       } else {
@@ -191,6 +204,7 @@ export function useSocket(
     };
 
     const handleUnreadMessageUpdate = (data: RecentMessage) => {
+      playNotificationSound();
       if (onUnreadMessageUpdateRef.current) {
         onUnreadMessageUpdateRef.current(data);
       }
@@ -234,6 +248,30 @@ export function useSocket(
     if (!socket?.connected) return;
 
     const handleNewMessage = (message: Message) => {
+      playNotificationSound();
+
+      if (Notification.permission === "granted") {
+        const senderName =
+          message.sender?.first_name && message.sender?.last_name
+            ? `${message.sender.first_name} ${message.sender.last_name}`
+            : message.sender?.username || "Someone";
+
+        const notificationContent =
+          message.type === "text"
+            ? message.content
+            : `Sent ${message.type === "image" ? "an image" : "a file"}`;
+
+        SoundNotification.showDesktopNotification(
+          `New message from ${senderName}`,
+          {
+            body: notificationContent,
+            icon: "/favicon.ico",
+            badge: "/favicon.ico",
+            tag: `message-${message.conversation_id}`,
+          }
+        );
+      }
+
       callback(message);
     };
 
@@ -415,6 +453,8 @@ export function useSocket(
     };
   };
 
+
+
   return {
     socket: socketRef.current,
     isConnected,
@@ -434,6 +474,5 @@ export function useSocket(
     rejectCall,
     endCall,
     onCallRejected,
-    incomingCall,
   };
 }

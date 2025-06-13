@@ -28,6 +28,7 @@ import {
 } from "@/components/Messenger/Common/MessageUtils";
 import { useSocket } from "@/hooks/useSocket";
 import { formatTime } from "@/utils/index";
+import { useSoundNotification } from "@/utils/soundEffect";
 
 interface ChatHistoryProps extends ChatHistoryInterFace {
   enableInfiniteScroll: boolean;
@@ -41,6 +42,7 @@ const ChatHistory: FC<ChatHistoryProps> = ({
   enableInfiniteScroll,
   messagesOffset,
 }) => {
+  const { playNotificationSound, toggleSound, isEnabled, setVolume, setIsEnabled } = useSoundNotification(); 
   const [showButton, setShowButton] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -77,7 +79,9 @@ const ChatHistory: FC<ChatHistoryProps> = ({
     onImageUploadStatus,
   } = useSocket(
     (users) => console.log(users),
-    (message) => console.log(message)
+    (message) => console.log(message),
+    () => {},
+    isEnabled
   );
   const { data: session } = useSession();
 
@@ -95,6 +99,17 @@ const ChatHistory: FC<ChatHistoryProps> = ({
   const previousMessagesLength = useRef<number>(0);
 
   const perPage = 20;
+
+  useEffect(() => {
+    const savedSoundState = localStorage.getItem("soundEnabled");
+    if (savedSoundState !== null) {
+      setIsEnabled(savedSoundState === "true");
+    }
+  }, [setIsEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem("soundEnabled", isEnabled.toString());
+  }, [isEnabled]);
 
   const scrollToBottom = useCallback(() => {
     if (
@@ -355,7 +370,8 @@ const ChatHistory: FC<ChatHistoryProps> = ({
         leaveChat,
         markMessagesAsRead,
         onNewMessage,
-        onImageUploadStatus
+        onImageUploadStatus,
+        playNotificationSound
       );
 
       return cleanup;
@@ -567,7 +583,8 @@ const ChatHistory: FC<ChatHistoryProps> = ({
                     setNewMessage,
                     setPendingImage,
                     sendMessage,
-                    scrollToBottom
+                    scrollToBottom,
+                    playNotificationSound
                   );
                 }
               }}
@@ -628,7 +645,8 @@ const ChatHistory: FC<ChatHistoryProps> = ({
                   setNewMessage,
                   setPendingImage,
                   sendMessage,
-                  scrollToBottom
+                  scrollToBottom,
+                  playNotificationSound
                 )
               }
             >

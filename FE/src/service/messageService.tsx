@@ -113,7 +113,8 @@ export const handleSendMessage = async (
   setNewMessage: (message: string) => void,
   setPendingImage: (image: File | null) => void,
   sendMessage: (payload: SendMessagePayload) => boolean,
-  scrollToBottom: () => void
+  scrollToBottom: () => void,
+  playNotificationSound: () => void
 ) => {
   if ((!newMessage.trim() && !pendingImage) || !user || !session?.user?.id) return;
 

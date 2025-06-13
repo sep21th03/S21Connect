@@ -30,7 +30,8 @@ export const setupSocketListeners = (
   ) => (() => void) | undefined,
   onImageUploadStatus: (
     callback: (status: { status: string; url?: string; message?: string }) => void
-  ) => (() => void) | undefined
+  ) => (() => void) | undefined,
+  playNotificationSound: () => void
 ) => {
   if (!user) {
     return () => {};
@@ -66,6 +67,7 @@ export const setupSocketListeners = (
 
       if (message.sender_id !== session?.user?.id) {
         markMessagesAsRead(conversationId);
+        playNotificationSound();
       }
     }
   });
