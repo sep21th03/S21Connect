@@ -393,8 +393,8 @@ class UserService
             ->where('f2.status', 'accepted')
             ->whereNotIn('f2.user_id', $friendIds)
             ->whereNotIn('f2.user_id', [$userId])
-            ->select('users.id', 'users.first_name', 'users.last_name', 'users.avatar', DB::raw('COUNT(*) as mutual_count'))
-            ->groupBy('users.id', 'users.first_name', 'users.last_name', 'users.avatar')
+            ->select('users.id', 'users.first_name', 'users.last_name', 'users.avatar', 'users.username', DB::raw('COUNT(*) as mutual_count'))
+            ->groupBy('users.id', 'users.first_name', 'users.last_name', 'users.avatar', 'users.username',)
             ->get();
 
         $latestIp = DB::table('login_logs')

@@ -307,6 +307,8 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
   };
 
   const renderMessageContent = (message: Message) => {
+    const urlRegex = /^https:\/\/[^\s/$.?#].[^\s]*$/i;
+
     if (message.type === "share_post") {
       return renderSharedPost(message);
     }
@@ -325,7 +327,6 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
       );
     }
     if (message.type === "text" && message.content) {
-      const urlRegex = /^https:\/\/[^\s/$.?#].[^\s]*$/i;
       if (urlRegex.test(message.content.trim())) {
         return (
           <a
@@ -340,6 +341,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
           </a>
         );
       }
+      return <span>{message.content}</span>;
     }
     return message.content;
   };

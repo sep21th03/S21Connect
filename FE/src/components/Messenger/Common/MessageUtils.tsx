@@ -13,7 +13,10 @@ export const shouldShowTimestamp = (
   const timeDiff = currentTime - previousTime;
   const timeThreshold = 5 * 60 * 1000;
 
-  return timeDiff > timeThreshold || currentMessage.sender_id !== previousMessage.sender_id;
+  return (
+    timeDiff > timeThreshold ||
+    currentMessage.sender_id !== previousMessage.sender_id
+  );
 };
 
 export const renderMessageContent = (
@@ -35,7 +38,8 @@ export const renderMessageContent = (
           className="message-image"
           loading="lazy"
           style={{ width: "100px", height: "100px", objectFit: "cover" }}
-          onLoad={() => {     //*
+          onLoad={() => {
+            //*
             if (shouldScrollToBottom.current) {
               scrollToBottom();
             }
@@ -64,14 +68,17 @@ export const renderMessageContent = (
   return message.content;
 };
 
-export const renderPendingMessage = (message: {
-  id: string;
-  content: string;
-  type: string;
-  tempUrl?: string;
-  created_at: string;
-  sender_id: string;
-}, isUploading: boolean) => {
+export const renderPendingMessage = (
+  message: {
+    id: string;
+    content: string;
+    type: string;
+    tempUrl?: string;
+    created_at: string;
+    sender_id: string;
+  },
+  isUploading: boolean
+) => {
   if (message.type === "image") {
     return (
       <div className="message-image-container">
@@ -150,7 +157,9 @@ export const renderSharedPost = (message: Message) => {
           onClick={() => {
             if (metadata.url) {
               window.open(
-                metadata.url.startsWith("http") ? metadata.url : `/${metadata.url}`,
+                metadata.url.startsWith("http")
+                  ? metadata.url
+                  : `/${metadata.url}`,
                 "_blank"
               );
             }
@@ -164,7 +173,9 @@ export const renderSharedPost = (message: Message) => {
           }}
         >
           {metadata.image && (
-            <div style={{ position: "relative", width: "100%", height: "200px" }}>
+            <div
+              style={{ position: "relative", width: "100%", height: "200px" }}
+            >
               <img
                 src={metadata.image}
                 alt="Post preview"

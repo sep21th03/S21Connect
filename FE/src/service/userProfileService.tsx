@@ -36,10 +36,10 @@ class UserProfileService {
         avatar: response.data.avatar
       };
     } catch (error) {
-      console.error("Error updating avatar:", error);
+      console.error("Lỗi cập nhật ảnh đại diện:", error);
       return {
         success: false,
-        message: "Failed to update avatar",
+        message: "Cập nhật ảnh đại diện thất bại",
       };
     }
   }
@@ -51,7 +51,7 @@ class UserProfileService {
       );
       return response.data;
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("Lỗi lấy dữ liệu người dùng:", error);
       throw error;
     }
   }
@@ -82,7 +82,7 @@ class UserProfileService {
         data: response.data,
       };
     } catch (error: any) {
-      console.error("Error updating profile:", error);
+      console.error("Lỗi cập nhật thông tin:", error);
       return {
         success: false,
         message: error.response?.data?.message || "Cập nhật thông tin thất bại",
@@ -101,7 +101,7 @@ class UserProfileService {
         cover_photo: response.data.cover_photo
       };
     } catch (error: any) {
-      console.error("Error updating background image:", error);
+      console.error("Lỗi cập nhật ảnh bìa:", error);
       return {
         success: false,
         message:

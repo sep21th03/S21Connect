@@ -35,7 +35,6 @@ const FriendSuggestion: FC = () => {
         setFriendSuggestions(response.data); 
       } catch (error) {
         console.error("Error fetching friend suggestions:", error);
-        toast.error("Không thể tải danh sách gợi ý bạn bè.");
       } finally {
         setIsLoading(false);
       }
@@ -106,7 +105,7 @@ const FriendSuggestion: FC = () => {
             {isLoading ? (
               <div className="text-center">Đang tải gợi ý bạn bè...</div>
             ) : friendSuggestions.length === 0 ? (
-              <div className="text-center">Không có gợi ý bạn bè.</div>
+              <div className="text-center"></div>
             ) : (
               <Slider
                 className="friend-slide ratio_landscape default-space no-arrow"
