@@ -19,6 +19,7 @@ interface FriendSuggestionData {
   avatar: string;
   is_verified: boolean;
   friendship_status?: "none" | "pending" | "accepted" | "rejected"; 
+  mutual_count: number;
 }
 
 const FriendSuggestion: FC = () => {
@@ -142,6 +143,11 @@ const FriendSuggestion: FC = () => {
                                 )}
                               </div>
                             </Link>
+                          </div>
+                          <div className="mutual-count">
+                            <span>
+                              {data.mutual_count} bạn chung
+                            </span>
                           </div>
                           <div className="profile-detail">
                             <Link href={`/profile/timeline/${data.username}`}>
