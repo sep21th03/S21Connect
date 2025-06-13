@@ -144,7 +144,7 @@ export function useSocket(
     if (!token) return;
 
     if (!socket) {
-      socket = io("http://localhost:3001", { 
+      socket = io("https://node-s21.codetifytech.io.vn/", {  //http://localhost:3001
         auth: { token },
         reconnection: true,
       });
