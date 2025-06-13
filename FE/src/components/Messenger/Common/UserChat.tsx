@@ -103,17 +103,50 @@ const UserChat: FC<UserChatInterFace> = ({
         <Media className="list-media">
           <div className="story-img">
             <div className="user-img bg-size blur-up lazyloaded">
-              <Image
-                src={user?.type === "group" ? groupMembers.conversation_avatar : chatAvatar}
-                className="img-fluid lazyload bg-img rounded-circle"
-                alt={user?.type === "group" ? "group" : "user"}
-                width={120}
-                height={120}
-              />
+              {user?.type === "group" ? (
+                <div className="group-avatar-wrapper">
+                  <div className="avatar avatar-1">
+                    <Image
+                      src={
+                        groupMembers?.members?.[0]?.avatar ||
+                        `${ImagePath}/icon/user.png`
+                      }
+                      alt="member1"
+                      width={40}
+                      height={40}
+                      className="rounded-circle"
+                    />
+                  </div>
+                  <div className="avatar avatar-2">
+                    <Image
+                      src={
+                        groupMembers?.members?.[1]?.avatar ||
+                        `${ImagePath}/icon/user.png`
+                      }
+                      alt="member2"
+                      width={40}
+                      height={40}
+                      className="rounded-circle"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <Image
+                  src={chatAvatar}
+                  className="img-fluid lazyload bg-img rounded-circle"
+                  alt="user"
+                  width={120}
+                  height={120}
+                />
+              )}
             </div>
           </div>
           <Media body>
-            <h5>{user?.type === "group" ? groupMembers.conversation_name : chatName}</h5>
+            <h5>
+              {user?.type === "group"
+                ? groupMembers.conversation_name
+                : chatName}
+            </h5>
             <h6>
               {user?.type === "group" ? (
                 <span>{`${groupMembers.member_count || 0} thành viên`}</span>
@@ -267,6 +300,40 @@ const UserChat: FC<UserChatInterFace> = ({
         enableInfiniteScroll={enableInfiniteScroll}
         messagesOffset={messagesOffset}
       />
+
+      <style jsx>{`
+        .group-avatar-wrapper {
+          position: relative;
+          width: 40px;
+          height: 40px;
+
+          .avatar {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            overflow: hidden;
+
+            &.avatar-1 {
+              top: 0;
+              left: 0;
+              z-index: 2;
+            }
+
+            &.avatar-2 {
+              bottom: 0;
+              right: 0;
+              z-index: 1;
+            }
+
+            img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+            }
+          }
+        }
+      `}</style>
     </div>
   );
 };

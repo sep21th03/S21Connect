@@ -87,7 +87,6 @@ import React, {
     const sendMessageMutation = useMutation({
       mutationFn: sendMessage,
       onSuccess: (data) => {
-        console.log("Message sent successfully:", data);
         setConversationId(data.conversation_id);
         
         const serverMessage: Message = {
@@ -223,7 +222,7 @@ import React, {
         const payload: SendMessagePayload = {
           type: pendingImages.length > 0 ? "image" : "text",
           metadata: {},
-          conversation_id: conversationId,
+          // conversation_id: conversationId,
         };
   
         if (conversationId) {
@@ -478,7 +477,7 @@ import React, {
                         )}
                       </div>
                     ) : (
-                      <div className="text-message">
+                      <div className="text-message" style={{display: "flex", flexDirection: "column-reverse"}}>
                         <span>{message.content}</span>
                         {message.id.startsWith('temp_') && (
                           <DynamicFeatherIcon iconName="Clock" className="sending-icon" />
