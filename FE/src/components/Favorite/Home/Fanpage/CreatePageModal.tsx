@@ -9,7 +9,6 @@ interface CreatePageModalProps {
   onSuccess: () => void;
 }
 
-// Component cho việc upload ảnh
 interface ImageUploadProps {
   label: string;
   value: string;
@@ -39,19 +38,17 @@ const ImageUpload: FC<ImageUploadProps> = ({
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      // 5MB
       alert("Kích thước file không được vượt quá 5MB");
       return;
     }
 
     setSelectedFile(file);
 
-    // Tạo preview URL từ file
     const reader = new FileReader();
     reader.onload = (e) => {
       const previewUrl = e.target?.result as string;
       setPreviewUrl(previewUrl);
-      onChange("", file); // Truyền file vào onChange
+      onChange("", file); 
     };
     reader.readAsDataURL(file);
   };
@@ -59,7 +56,7 @@ const ImageUpload: FC<ImageUploadProps> = ({
   const handleUrlChange = (url: string) => {
     setSelectedFile(null);
     setPreviewUrl(url);
-    onChange(url); // Chỉ truyền URL
+    onChange(url);
   };
 
   const handleRemove = () => {
@@ -391,10 +388,10 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
 
       const result = await FanpageService.createPage(finalFormData);
 
-      if (result.success) {
+      if (result) {
         onSuccess();
       } else {
-        setErrors(result.errors || {});
+        setErrors({ general: "Có lỗi xảy ra khi tạo trang" });
       }
     } catch (error) {
       console.error("Create page error:", error);
@@ -436,7 +433,7 @@ const CreatePageModal: FC<CreatePageModalProps> = ({ onClose, onSuccess }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="slug">Slug (tùy chọn)</label>
+            <label htmlFor="slug">Slug *</label>
             <input
               type="text"
               id="slug"

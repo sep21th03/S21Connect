@@ -232,7 +232,7 @@ class UserService
                     ->toArray();
 
                 $currentFriendIds = array_unique(array_merge($currentFriendIds1, $currentFriendIds2));
-                
+
                 $mutualCount = count(array_intersect($friendFriendIds, $currentFriendIds));
             }
 
@@ -356,15 +356,17 @@ class UserService
 
     public function getUserStats(string $userId): array
     {
-        $start = microtime(true);
         return Cache::remember("user_stats_{$userId}", 60, function () use ($userId) {
             $totalPosts = Post::where('user_id', $userId)->count();
 
-            $totalFriends = Friendship::where('status', 'accepted')
+            $totalFriends = DB::table('friendships')
+                ->select(DB::raw('LEAST(user_id, friend_id) as uid1, GREATEST(user_id, friend_id) as uid2'))
+                ->where('status', 'accepted')
                 ->where(function ($query) use ($userId) {
                     $query->where('user_id', $userId)
                         ->orWhere('friend_id', $userId);
                 })
+                ->distinct()
                 ->count();
 
             return [

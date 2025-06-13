@@ -58,7 +58,7 @@ const LikePageListContent: FC<{ pageFollows: any[] }> = ({ pageFollows }) => {
                       iconName="User"
                       className="icon-font-color iw-13 ih-13"
                     />
-                    {data.followers_count}k
+                    {data.followers_count}
                   </span>
                 </h6>
               </Media>

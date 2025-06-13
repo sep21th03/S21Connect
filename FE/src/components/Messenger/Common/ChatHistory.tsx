@@ -436,7 +436,7 @@ const ChatHistory: FC<ChatHistoryProps> = ({
             style={{
               overflowY: "auto",
               scrollBehavior: "smooth",
-              padding: "20px 20px 64px 20px",
+              padding: "20px 20px 72px 20px",
             }}
           >
             {isLoadingMore && (
