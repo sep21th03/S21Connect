@@ -54,9 +54,10 @@ class SendCommentNotification
         ]);
 
 
-
+//https://node.codetifytech.io.vn/notification
+//http://localhost:3001
         try {
-            $response = Http::post("https://node.codetifytech.io.vn/notification", [
+            $response = Http::post("http://localhost:3001/notification", [
                 'id' => $notification->id,
                 'userId' => $notifiedUser->id,
                 'type' => 'comment',

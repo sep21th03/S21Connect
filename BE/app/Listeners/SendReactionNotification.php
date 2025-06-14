@@ -44,7 +44,7 @@ class SendReactionNotification
 
 
 
-        Http::post("https://node.codetifytech.io.vn/notification", [
+        Http::post("http://localhost:3001/notification", [
             'id' => $notification->id,
             'userId' => $postOwner->id,
             'type' => 'reaction',

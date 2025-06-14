@@ -32,14 +32,12 @@ const io = socketIo(server, {
     credentials: true,
   },
   maxHttpBufferSize: 20e6,
-  // Thêm config cho Cloudflare
   transports: ["websocket", "polling"],
   allowEIO3: true,
   pingTimeout: 60000,
   pingInterval: 25000,
 });
 
-// Middleware để log requests
 app.use((req, res, next) => {
   console.log(
     `${new Date().toISOString()} - ${req.method} ${req.url} - ${req.ip}`
@@ -47,12 +45,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes cơ bản
 app.get("/", (req, res) => {
   res.send("Socket.io server running on port " + PORT);
 });
 
-// Health check endpoint
 app.get("/health", (req, res) => {
   res.json({
     status: "OK",
@@ -62,7 +58,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Routes s dụng io (đã được đnh nghĩa)
 app.post("/notification", (req, res) => {
   console.log("Notification received:", req.body);
   const { userId, ...notificationData } = req.body;
@@ -91,13 +86,11 @@ app.post("/notification-message", (req, res) => {
   res.sendStatus(200);
 });
 
-// Error handler
 app.use((err, req, res, next) => {
   console.error("Express error:", err);
   res.status(500).json({ error: "Internal server error" });
 });
 
-// Helper functions
 async function updateLastActive(userId, lastActive, token) {
   try {
     const res = await axios.post(
@@ -182,7 +175,6 @@ async function uploadToCloudinary(base64Image, fileName) {
   }
 }
 
-// Socket.io authentication middleware
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) {
@@ -201,7 +193,6 @@ io.use(async (socket, next) => {
   }
 });
 
-// Socket.io connection handling
 io.on("connection", (socket) => {
   const userId = socket.user.id;
   const username = socket.user.username || "Anonymous";

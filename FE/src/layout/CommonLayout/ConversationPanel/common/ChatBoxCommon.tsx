@@ -626,7 +626,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
                 key={index}
                 className={`msg-${isOwnMessage ? "right" : "left"}`}
               >
-                <span style={{ maxWidth: "none!important" }}>
+                <span style={{ maxWidth: "100%" }}>
                   {data.type === "group" && !isOwnMessage && (
                     <div
                       className="sender-name"

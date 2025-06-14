@@ -13,7 +13,7 @@ class SendMessageToSocket
         try {
             $message = $event->message->load('sender');
 
-            $response = Http::timeout(5)->post('https://node.codetifytech.io.vn/notification-message', [
+            $response = Http::timeout(5)->post('http://localhost:3001/notification-message', [
                 'event' => 'new-message',
                 'data' => [
                     'message' => [

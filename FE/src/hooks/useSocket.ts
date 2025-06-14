@@ -154,10 +154,10 @@ export function useSocket(
   useEffect(() => {
     const token = getAuthToken();
     if (!token) return;
-
+  //http://localhost:3001
+  // https://node-s21.codetifytech.io.vn/
     if (!socket) {
-      socket = io("https://node-s21.codetifytech.io.vn/", {
-        //http://localhost:3001
+      socket = io("http://localhost:3001", { 
         auth: { token },
         reconnection: true,
       });
