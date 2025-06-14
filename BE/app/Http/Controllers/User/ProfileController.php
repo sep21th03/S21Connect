@@ -268,4 +268,31 @@ class ProfileController extends Controller
             ], 500);
         }
     }
+
+    public function updateProfileSetting(Request $request): JsonResponse
+    {
+        try {
+            $userId = Auth::id();
+            $data = $request->validate([
+                'birthday' => 'nullable|string|max:20',
+                'first_name' => 'nullable|string|max:255',   
+                'last_name' => 'nullable|string|max:255',
+                'gender' => 'nullable|string|max:255',
+                'phone_number' => 'nullable|string|max:255',
+            ]);
+
+            $profile = $this->profileService->updateProfileSetting($userId, $data);
+
+            return response()->json([
+                'message' => 'Cập nhật hồ sơ thành công',
+                'data' => $profile,
+                'success' => true,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi cập nhật hồ sơ',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

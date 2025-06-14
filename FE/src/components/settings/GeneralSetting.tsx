@@ -33,7 +33,7 @@ const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const response = await settingService.updateProfile(formData);
-    if (response.status === 200) {
+    if (response.success) {
       toast.success(response.message);
     } else {
       toast.error(response.message);
@@ -74,7 +74,7 @@ const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
               </Col>
               <Col md="6" className="form-group">
                 <Label>{Email}</Label>
-                <Input type="email" defaultValue={formData.email} />
+                <Input type="email" defaultValue={formData.email} disabled/>
               </Col>
               <Col md="6" className="form-group">
                 <Label>{BackupEmail}</Label>
@@ -122,7 +122,7 @@ const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
                   type="number"
                   className="form-control"
                   id="inputCity"
-                  defaultValue={formData.phonenumber}
+                  defaultValue={formData.phone_number}
                 />
               </Col>
               <Col md="4" className="form-group col-md-4">
@@ -141,9 +141,9 @@ const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
               </Col>
             </Row>
             <div className="text-right">
-              <a href={Href} className="btn btn-solid">
+              <Button type="submit" className="btn btn-solid">
                 {SaveChanges}
-              </a>
+              </Button>
             </div>
           </form>
         </div>

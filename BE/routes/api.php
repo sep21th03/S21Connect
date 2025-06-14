@@ -289,6 +289,7 @@ Route::middleware(['auth:api', 'throttle:10000,1'])->group(function () {
     Route::prefix('settings')->group(function () {
         Route::get('/get-info', [ProfileController::class, 'getSettingsInfoUser']);
         Route::post('/contact-us', [ContactController::class, 'send']);
+        Route::post('/update-profile', [ProfileController::class, 'updateProfileSetting']);
     });
 
     Route::prefix('pages')->group(function () {

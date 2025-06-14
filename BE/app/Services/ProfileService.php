@@ -318,4 +318,25 @@ class ProfileService
 
         return $user;
     }
+
+    public function updateProfileSetting($userId, array $data)
+    {
+        try {
+            $user = User::where('id', $userId)->firstOrFail();
+            $user->update([
+                'first_name' => $data['first_name'] ?? $user->first_name,
+                'last_name' => $data['last_name'] ?? $user->last_name,
+                'birthday' => $data['birthday'] ?? $user->birthday,
+                'gender' => $data['gender'] ?? $user->gender,
+            ]);
+            $user->profile->update([
+                'phone_number' => $data['phone_number'] ?? $user->profile->phone_number,
+                'birthday' => $data['birthday'] ?? $user->profile->birthday,
+            ]);
+            return $user;
+        } catch (\Exception $e) {
+            Log::error('Profile update failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 }
