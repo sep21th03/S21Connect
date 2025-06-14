@@ -73,7 +73,7 @@ const ChatUsers: FC = React.memo(() => {
   return (
     <div className="chat-users">
       <UserHeader onSearch={setSearchTerm} />
-      <Nav tabs style={{ height: "auto" }}>
+      <Nav tabs>
         {filteredUsers?.map((data) => (
           <ChatUserItem
             key={data.id} 
