@@ -145,11 +145,11 @@ export function useSocket(
   }, [onOnlineList, onNotification, onUnreadMessageUpdate]);
 
 
-  useEffect(() => {
-    onOnlineListRef.current = onOnlineList;
-    onNotificationCallbackRef.current = onNotification;
-    onUnreadMessageUpdateRef.current = onUnreadMessageUpdate;
-  }, [onOnlineList, onNotification, onUnreadMessageUpdate]);
+  // useEffect(() => {
+  //   onOnlineListRef.current = onOnlineList;
+  //   onNotificationCallbackRef.current = onNotification;
+  //   onUnreadMessageUpdateRef.current = onUnreadMessageUpdate;
+  // }, [onOnlineList, onNotification, onUnreadMessageUpdate]);
 
   useEffect(() => {
     const token = getAuthToken();

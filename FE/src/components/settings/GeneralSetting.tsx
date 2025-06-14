@@ -18,6 +18,7 @@ import { Button, Col, Input, Label, Row } from "reactstrap";
 import { Href } from "../../utils/constant/index";
 import { UserRedux } from "@/utils/interfaces/user";
 import { settingService } from "@/service/settingService";
+import { toast } from "react-toastify";
 
 const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
   const [formData, setFormData] = useState<any>({});
@@ -28,6 +29,16 @@ const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
     };
     getProfile();
   }, [user]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const response = await settingService.updateProfile(formData);
+    if (response.status === 200) {
+      toast.success(response.message);
+    } else {
+      toast.error(response.message);
+    }
+  };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -42,9 +53,7 @@ const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
         <div>
           <form
             className="theme-form form-sm"
-            onSubmit={(event: FormEvent<HTMLFormElement>) =>
-              event.preventDefault()
-            }
+            onSubmit={handleSubmit}
           >
             <Row>
               <Col md="6" className="form-group">
