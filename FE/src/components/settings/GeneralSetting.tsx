@@ -22,23 +22,46 @@ import { toast } from "react-toastify";
 
 const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
   const [formData, setFormData] = useState<any>({});
+  const [initialData, setInitialData] = useState<any>({});
+
   useEffect(() => {
     const getProfile = async () => {
       const response = await settingService.getProfile();
       setFormData(response.data);
+      setInitialData(response.data);
     };
     getProfile();
   }, [user]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await settingService.updateProfile(formData);
+    const changedFields: any = {};
+  
+    for (const key in formData) {
+      if (
+        key === "phonenumber" && 
+        formData[key] !== initialData[key]
+      ) {
+        changedFields["phone_number"] = formData[key];
+      } else if (formData[key] !== initialData[key]) {
+        changedFields[key] = formData[key];
+      }
+    }
+  
+    if (Object.keys(changedFields).length === 0) {
+      toast.info("Không có thay đổi nào để cập nhật.");
+      return;
+    }
+  
+    const response = await settingService.updateProfile(changedFields);
     if (response.success) {
       toast.success(response.message);
+      setInitialData(formData);
     } else {
       toast.error(response.message);
     }
   };
+  
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -61,7 +84,8 @@ const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
                 <Input
                   type="text"
                   defaultValue={formData.first_name}
-                  placeholder="S21"
+                  placeholder="S21" 
+                  onChange={handleChange}
                 />
               </Col>
               <Col md="6" className="form-group">
@@ -70,6 +94,7 @@ const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
                   type="text"
                   defaultValue={formData.last_name}
                   placeholder="Connect"
+                  onChange={handleChange}
                 />
               </Col>
               <Col md="6" className="form-group">
@@ -80,34 +105,13 @@ const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
                 <Label>{BackupEmail}</Label>
                 <Input type="email" defaultValue={formData.email} disabled />
               </Col>
-              {/* <Col xs="12" className="form-group">
-                <Label>{Address}</Label>
-                <Input type="text" placeholder="1234 Main St"/>
-              </Col>
-              <Col md="4" className="form-group">
-                <Label>{City}</Label>
-                <Input defaultValue="london" type="text"/>
-              </Col>
-              <Col md="4" className="form-group">
-                <Label >{State}</Label>
-                <Input type="select" >
-                  <option value="">Choose...</option>
-                  <option>...</option>
-                </Input>
-              </Col>
-              <Col md="4" className="form-group">
-                <Label >{Country}</Label>
-                <Input type="select" >
-                  <option value="">Choose...</option>
-                  <option>...</option>
-                </Input>
-              </Col> */}
               <Col md="4" className="form-group">
                 <Label>{DateOfBirth}</Label>
                 <div className="gj-datepicker gj-datepicker-bootstrap gj-unselectable input-group">
                   <Input
                     placeholder="Depart Date"
                     defaultValue={formData.birthday}
+                    onChange={handleChange}
                   />
                   <span className="input-group-append">
                     <Button className="btn-outline-secondary border-left-0">
@@ -123,6 +127,7 @@ const GeneralSetting: React.FC<{ user: UserRedux }> = ({ user }) => {
                   className="form-control"
                   id="inputCity"
                   defaultValue={formData.phone_number}
+                  onChange={handleChange}
                 />
               </Col>
               <Col md="4" className="form-group col-md-4">

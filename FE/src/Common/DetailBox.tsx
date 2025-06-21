@@ -9,11 +9,17 @@ import SufiyaElizaThirdPost from "@/components/NewsFeed/Style1/ContentCenter/Suf
 import SufiyaElizaMultiplePost from "@/components/NewsFeed/Style3/ContentCenter/SufiyaElizaMultiplePost";
 import SufiyaElizaFirstPost from "@/components/NewsFeed/Style1/ContentCenter/SufiyaElizaFirstPost";
 import { useMemo } from "react";
+import { getYoutubeEmbedUrl } from "@/utils/getUrl";
 
 const DetailBox: FC<DetailBoxProps> = ({ heading, span, post }) => {
   const [bookMarkActive, setBookMarkActive] = useState(false);
   const numbers = [1, 2, 3];
 
+  const youtubeEmbedUrl = useMemo(() => {
+    if (!post?.content) return null;
+    return getYoutubeEmbedUrl(post.content.trim());
+  }, [post?.content]);
+  
   const sharedContent = useMemo(() => {
     if (!post?.shared_post) return null;
   
@@ -77,6 +83,19 @@ const DetailBox: FC<DetailBoxProps> = ({ heading, span, post }) => {
       >
         {post?.content}
       </h3>
+      {youtubeEmbedUrl && (
+        <div className="youtube-preview" style={{ margin: "10px 0" }}>
+          <iframe
+            width="100%"
+            height="315"
+            src={youtubeEmbedUrl}
+            title="YouTube video player"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      )}
       {post?.post_format === "shared" && (
         <div
           className="shared-post-container"
