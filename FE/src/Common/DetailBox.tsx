@@ -9,7 +9,11 @@ import SufiyaElizaThirdPost from "@/components/NewsFeed/Style1/ContentCenter/Suf
 import SufiyaElizaMultiplePost from "@/components/NewsFeed/Style3/ContentCenter/SufiyaElizaMultiplePost";
 import SufiyaElizaFirstPost from "@/components/NewsFeed/Style1/ContentCenter/SufiyaElizaFirstPost";
 import { useMemo } from "react";
-import { extractAllYoutubeEmbedUrls } from "@/utils/getUrl";
+import {
+  extractAllYoutubeEmbedUrls,
+  extractYoutubeUrlsAndText,
+  getYoutubeEmbedUrl,
+} from "@/utils/getUrl";
 
 const DetailBox: FC<DetailBoxProps> = ({ heading, span, post }) => {
   const [bookMarkActive, setBookMarkActive] = useState(false);
@@ -18,6 +22,11 @@ const DetailBox: FC<DetailBoxProps> = ({ heading, span, post }) => {
   const youtubeEmbedUrls = useMemo(() => {
     if (!post?.content) return null;
     return extractAllYoutubeEmbedUrls(post.content.trim());
+  }, [post?.content]);
+
+  const parts = useMemo(() => {
+    if (!post?.content) return [];
+    return extractYoutubeUrlsAndText(post.content.trim());
   }, [post?.content]);
 
   const sharedContent = useMemo(() => {
@@ -79,32 +88,34 @@ const DetailBox: FC<DetailBoxProps> = ({ heading, span, post }) => {
     >
       {post?.content && (
         <>
-          {youtubeEmbedUrls ? (
-            <a
-              href={post.content}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "block",
-                fontSize: "16px",
-                fontWeight: 500,
-                color: "#007bff", 
-                textDecoration: "underline",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-              className={post?.bg_id ? "text-center" : ""}
-            >
-              {post.content}
-            </a>
-          ) : (
-            <h3
-              className={post?.bg_id ? "text-center" : ""}
-              style={{ fontSize: "16px", fontWeight: "500", color: "#000" }}
-            >
-              {post.content}
-            </h3>
+          {parts.map((part, idx) =>
+            part.type === "youtube" ? (
+              <a
+                key={idx}
+                href={part.content}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "block",
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  color: "#007bff",
+                  textDecoration: "underline",
+                  wordBreak: "break-word",
+                }}
+                className={post?.bg_id ? "text-center" : ""}
+              >
+                {part.content}
+              </a>
+            ) : (
+              <span
+                key={idx}
+                className={post?.bg_id ? "text-center d-block" : ""}
+                style={{ fontSize: "16px", fontWeight: 500, color: "#000" }}
+              >
+                {part.content}
+              </span>
+            )
           )}
         </>
       )}
