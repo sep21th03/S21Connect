@@ -77,7 +77,7 @@ const CreatePostHeader: FC<CreatePostHeaderInterFace> = ({
           }}
           onClick={() => setShowPostButton(true)}
         />
-        <a href={Href}>
+        {/* <a href={Href}>
           <Image
             width={14}
             height={12}
@@ -85,7 +85,7 @@ const CreatePostHeader: FC<CreatePostHeaderInterFace> = ({
             className="img-fluid blur-up icon lazyloaded"
             alt="translate"
           />
-        </a>
+        </a> */}
       </div>
     </div>
   );

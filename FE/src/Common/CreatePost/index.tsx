@@ -11,6 +11,7 @@ import styles from "../../style/newsFeed.module.css";
 import { uploadFilesToCloudinary } from "@/service/cloudinaryService";
 import { createPost } from "@/service/postService";
 import { getListFriends } from "@/service/userSerivice";
+import TextareaAutosize from "react-textarea-autosize";
 
 const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
   const colorList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
@@ -167,14 +168,13 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
       <div className="create-bg">
         <div className={`bg-post ${postClass} ${writePost ? "d-block" : ""} `}>
           <div className="input-sec">
-            <textarea
+            <TextareaAutosize
               className="form-control"
               placeholder="Bạn đang nghĩ gì..."
               value={postContent}
-              rows={1}
+              minRows={1}
               style={{
                 resize: "none",
-                maxHeight: "120px", // khoảng 4 dòng
                 overflowY: "auto",
                 background: "transparent",
                 border: "none",
@@ -193,6 +193,7 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
                 }
               }}
             />
+
             <div className="close-icon" onClick={() => setWritePost(false)}>
               <a href={Href}>
                 <DynamicFeatherIcon iconName="X" className="iw-20 ih-20" />
