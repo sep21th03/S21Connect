@@ -34,6 +34,8 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
 
+  const [isOver4Lines, setIsOver4Lines] = useState(false);
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
@@ -166,7 +168,11 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
         setPostContent={setPostContent}
       />
       <div className="create-bg">
-        <div className={`bg-post ${postClass} ${writePost ? "d-block" : ""} `}>
+        <div
+          className={`bg-post ${postClass} ${writePost ? "d-block" : ""} ${
+            !isOver4Lines ? "text-center" : ""
+          }`}
+        >
           <div className="input-sec">
             <TextareaAutosize
               className="form-control"
@@ -187,10 +193,12 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
                 setPostContent(value);
 
                 const lineCount = value.split("\n").length;
+
                 if (lineCount > 4 && selectedBg) {
                   setSelectedBg("");
                   setPostClass("");
                 }
+                setIsOver4Lines(lineCount > 4);
               }}
             />
 
