@@ -20,7 +20,7 @@ const DetailBox: FC<DetailBoxProps> = ({ heading, span, post }) => {
   const numbers = [1, 2, 3];
 
   const youtubeEmbedUrls = useMemo(() => {
-    if (!post?.content) return null;
+    if (!post?.content) return [];
     return extractAllYoutubeEmbedUrls(post.content.trim());
   }, [post?.content]);
 
@@ -119,7 +119,7 @@ const DetailBox: FC<DetailBoxProps> = ({ heading, span, post }) => {
           )}
         </>
       )}
-      {youtubeEmbedUrls && (
+      {youtubeEmbedUrls && youtubeEmbedUrls.length > 0 && (
         <div className="youtube-preview" style={{ margin: "10px 0" }}>
           <iframe
             width="100%"
