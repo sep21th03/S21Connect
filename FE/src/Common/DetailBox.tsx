@@ -19,10 +19,10 @@ const DetailBox: FC<DetailBoxProps> = ({ heading, span, post }) => {
     if (!post?.content) return null;
     return getYoutubeEmbedUrl(post.content.trim());
   }, [post?.content]);
-  
+
   const sharedContent = useMemo(() => {
     if (!post?.shared_post) return null;
-  
+
     switch (post?.shared_post?.type) {
       case "first":
         return (
@@ -77,12 +77,37 @@ const DetailBox: FC<DetailBoxProps> = ({ heading, span, post }) => {
       className={`detail-box ${post?.bg_id ? `${post?.bg_id}` : ""}`}
       style={post?.bg_id ? { padding: "100px 20px 100px 20px" } : {}}
     >
-      <h3
-        className={`${post?.bg_id ? "text-center" : ""}`}
-        style={{ fontSize: "16px", fontWeight: "500", color: "#000" }}
-      >
-        {post?.content}
-      </h3>
+      {post?.content && (
+        <>
+          {youtubeEmbedUrl ? (
+            <a
+              href={post.content}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "block",
+                fontSize: "16px",
+                fontWeight: 500,
+                color: "#007bff", 
+                textDecoration: "underline",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+              className={post?.bg_id ? "text-center" : ""}
+            >
+              {post.content}
+            </a>
+          ) : (
+            <h3
+              className={post?.bg_id ? "text-center" : ""}
+              style={{ fontSize: "16px", fontWeight: "500", color: "#000" }}
+            >
+              {post.content}
+            </h3>
+          )}
+        </>
+      )}
       {youtubeEmbedUrl && (
         <div className="youtube-preview" style={{ margin: "10px 0" }}>
           <iframe

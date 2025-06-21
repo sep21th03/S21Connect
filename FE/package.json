@@ -46,6 +46,7 @@
     "react-slick": "^0.30.3",
     "react-spinners": "^0.17.0",
     "react-switch": "^7.1.0",
+    "react-textarea-autosize": "^8.5.9",
     "react-toastify": "^11.0.3",
     "reactstrap": "^9.2.3",
     "recharts": "^2.15.3",

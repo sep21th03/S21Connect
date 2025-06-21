@@ -65,12 +65,13 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
   };
 
   const createPostHandler = async () => {
-    let media: { url: string; public_id: string; type: "image" | "video" }[] = [];
+    let media: { url: string; public_id: string; type: "image" | "video" }[] =
+      [];
     if (selectedFiles.length > 0) {
       setUploadingFiles(true);
       try {
         const uploadResult = await uploadFilesToCloudinary(selectedFiles);
-        media = uploadResult.files.map(file => ({
+        media = uploadResult.files.map((file) => ({
           url: file.url,
           public_id: file.public_id,
           type: file.resource_type === "image" ? "image" : "video",
@@ -166,12 +167,31 @@ const CreatePost = ({ onPostCreated }: { onPostCreated: () => void }) => {
       <div className="create-bg">
         <div className={`bg-post ${postClass} ${writePost ? "d-block" : ""} `}>
           <div className="input-sec">
-            <Input
-              type="text"
-              className="enable"
+            <textarea
+              className="form-control"
               placeholder="Bạn đang nghĩ gì..."
               value={postContent}
-              onChange={(e) => setPostContent(e.target.value)}
+              rows={1}
+              style={{
+                resize: "none",
+                maxHeight: "120px", // khoảng 4 dòng
+                overflowY: "auto",
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                padding: "10px",
+                fontSize: "16px",
+              }}
+              onChange={(e) => {
+                const value = e.target.value;
+                setPostContent(value);
+
+                const lineCount = value.split("\n").length;
+                if (lineCount > 4 && selectedBg) {
+                  setSelectedBg("");
+                  setPostClass("");
+                }
+              }}
             />
             <div className="close-icon" onClick={() => setWritePost(false)}>
               <a href={Href}>
