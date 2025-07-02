@@ -156,21 +156,20 @@ export function useSocket(
 
   const { playNotificationSound } = useSoundNotification();
 
-  // Update refs when callbacks change
   useEffect(() => {
     onOnlineListRef.current = onOnlineList;
     onNotificationCallbackRef.current = onNotification;
     onUnreadMessageUpdateRef.current = onUnreadMessageUpdate;
   }, [onOnlineList, onNotification, onUnreadMessageUpdate]);
 
-  // Initialize socket connection
   useEffect(() => {
     const token = getAuthToken();
     if (!token) return;
-
+    //http://localhost:3001
+  // https://node-s21.codetifytech.io.vn/
     const initializeSocket = () => {
       if (!socket || socket.disconnected) {
-        socket = io("http://localhost:3001", {
+        socket = io("https://node-s21.codetifytech.io.vn/", {
           auth: { token },
           reconnection: true,
           reconnectionAttempts: 5,
@@ -180,7 +179,6 @@ export function useSocket(
       }
       socketRef.current = socket;
 
-      // Connection events
       socket.on("connect", () => {
         console.log("Socket connected");
         setIsConnected(true);
@@ -199,13 +197,11 @@ export function useSocket(
         setReconnectAttempts(prev => prev + 1);
       });
 
-      // Online users
       const handleOnlineUsers = (users: User[]) => {
         onOnlineListRef.current(users);
       };
       socket.on("online_users_list", handleOnlineUsers);
 
-      // Call events
       socket.on("incoming_call", (call: IncomingCall) => {
         console.log("Incoming call:", call);
         setIncomingCall(call);
