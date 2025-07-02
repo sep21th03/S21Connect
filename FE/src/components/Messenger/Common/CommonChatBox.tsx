@@ -228,7 +228,7 @@ const CommonChatBox: FC<CommonChatBoxInterFace> = ({
       />
       <div
         className={`user-info ${showUserInfo ? "active" : ""}`}
-        style={{ display: showUserInfo ? "block" : "none" }}
+        style={{ display: showUserInfo ? "block" : "none", zIndex: 1 }}
       >
         <div
           className="back-btn d-lg-none d-block"

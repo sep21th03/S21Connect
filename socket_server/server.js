@@ -1,4 +1,3 @@
-// server.js
 const http = require("http");
 const socketIo = require("socket.io");
 const axios = require("axios");
@@ -11,6 +10,8 @@ app.use(express.json());
 
 const onlineUsers = new Map();
 const userSocketMap = new Map();
+const activeRooms = new Map(); // Lưu trữ thông tin phòng gọi
+const callSessions = new Map(); // Lưu trữ session gọi điện
 
 // Tạo server trước
 const server = http.createServer(app);
@@ -19,14 +20,6 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   path: "/socket.io",
   cors: {
-    // origin: [
-    //   "http://localhost:3000",
-    //   "http://127.0.0.1:8000",
-    //   "https://www.sep21th03.tech/",
-    //   "https://s21.codetifytech.io.vn/",
-    //   "https://socket-s21.codetifytech.io.vn",
-    //   "http://socket-s21.codetifytech.io.vn"
-    // ],
     origin: "*",
     methods: ["GET", "POST"],
     credentials: true,
@@ -55,6 +48,7 @@ app.get("/health", (req, res) => {
     port: PORT,
     timestamp: new Date().toISOString(),
     onlineUsers: onlineUsers.size,
+    activeCalls: callSessions.size,
   });
 });
 
@@ -175,6 +169,53 @@ async function uploadToCloudinary(base64Image, fileName) {
   }
 }
 
+function generateCallId() {
+  return `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+function createCallSession(callerId, receiverId, callType) {
+  const callId = generateCallId();
+  const session = {
+    id: callId,
+    caller_id: callerId,
+    receiver_id: receiverId,
+    call_type: callType,
+    status: "ringing",
+    created_at: new Date(),
+    offer: null,
+    answer: null,
+    ice_candidates: {
+      [callerId]: [],
+      [receiverId]: [],
+    },
+  };
+
+  callSessions.set(callId, session);
+  return session;
+}
+
+function getCallSession(callId) {
+  return callSessions.get(callId);
+}
+
+function updateCallSession(callId, updates) {
+  const session = callSessions.get(callId);
+  if (session) {
+    Object.assign(session, updates);
+    callSessions.set(callId, session);
+  }
+  return session;
+}
+
+function endCallSession(callId) {
+  const session = callSessions.get(callId);
+  if (session) {
+    callSessions.delete(callId);
+    return session;
+  }
+  return null;
+}
+
 io.use(async (socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) {
@@ -199,7 +240,7 @@ io.on("connection", (socket) => {
   const now = new Date();
   const token = socket.handshake.auth.token;
   userSocketMap.set(userId, socket.id);
-  console.log(token);
+  console.log(`User ${username} connected with socket ${socket.id}`);
 
   function formatDateToMySQL(datetime) {
     const date = new Date(datetime);
@@ -226,6 +267,7 @@ io.on("connection", (socket) => {
 
   socket.emit("online_users_list", Array.from(onlineUsers.values()));
 
+  // ============= MESSAGING HANDLERS =============
   socket.on("get_online_users", () => {
     broadcastAndLogOnlineUsers();
   });
@@ -315,6 +357,7 @@ io.on("connection", (socket) => {
           messagePayload.group_avatar = data.group_avatar;
         }
       }
+
       const messageResponse = await axios.post(
         "http://127.0.0.1:8000/api/messages/send",
         messagePayload,
@@ -339,7 +382,6 @@ io.on("connection", (socket) => {
         client_temp_id: data.client_temp_id || null,
       };
 
-      // broadcast
       io.to(room).emit("new_message", enrichedMessage);
 
       try {
@@ -422,31 +464,235 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("disconnect", () => {
-    const now = new Date();
-    userSocketMap.delete(userId);
-    if (onlineUsers.has(userId)) {
-      const userData = onlineUsers.get(userId);
+  // ============= CALL HANDLERS =============
 
-      onlineUsers.delete(userId);
+  // Initiate a call
+  socket.on("call_offer", (data) => {
+    const { receiver_id, offer, call_type } = data;
+    console.log(
+      `Call offer from ${userId} to ${receiver_id}, type: ${call_type}`
+    );
 
-      broadcastAndLogOnlineUsers();
-      io.emit("user_status_changed", {
-        userId,
-        username: userData.username,
-        status: "offline",
+    const receiverSocket = userSocketMap.get(receiver_id);
+    if (!receiverSocket) {
+      socket.emit("call_error", {
+        message: "User is not online",
+        code: "USER_OFFLINE",
+      });
+      return;
+    }
+
+    // Kiểm tra nếu receiver đang trong call khác
+    for (const session of callSessions.values()) {
+      if (
+        (session.caller_id === receiver_id ||
+          session.receiver_id === receiver_id) &&
+        session.status === "ringing"
+      ) {
+        socket.emit("call_error", {
+          message: "User is busy in another call",
+          code: "USER_BUSY",
+        });
+        return;
+      }
+    }
+
+    // Create call session
+    const callSession = createCallSession(userId, receiver_id, call_type);
+    updateCallSession(callSession.id, { offer });
+
+    // Get caller info
+    const callerInfo = onlineUsers.get(userId);
+
+    // Send incoming call notification to receiver
+    io.to(receiverSocket).emit("incoming_call", {
+      call_id: callSession.id,
+      caller_id: userId,
+      caller_name: callerInfo?.username || "Unknown",
+      call_type,
+      offer,
+    });
+
+    // Gửi trạng thái ringing cho caller
+    socket.emit("call_ringing", {
+      call_id: callSession.id,
+      receiver_id,
+      call_type,
+    });
+
+    // Tự động kết thúc call nếu không trả lời sau 30s
+    setTimeout(() => {
+      const session = getCallSession(callSession.id);
+      if (session && session.status === "ringing") {
+        // Notify caller
+        const callerSocket = userSocketMap.get(callSession.caller_id);
+        if (callerSocket) {
+          io.to(callerSocket).emit("call_ended", {
+            call_id: callSession.id,
+            ended_by: receiver_id,
+            reason: "No answer",
+          });
+        }
+        // Notify receiver
+        if (receiverSocket) {
+          io.to(receiverSocket).emit("call_ended", {
+            call_id: callSession.id,
+            ended_by: receiver_id,
+            reason: "No answer",
+          });
+        }
+        endCallSession(callSession.id);
+      }
+    }, 30000);
+
+    // Store call session reference in socket
+    socket.callId = callSession.id;
+
+    console.log(`Call session created: ${callSession.id}`);
+  });
+
+  // Answer a call
+  socket.on("call_answer", (data) => {
+    const { call_id, answer } = data;
+    console.log(`Call answered: ${call_id}`);
+
+    const callSession = getCallSession(call_id);
+    if (!callSession) {
+      socket.emit("call_error", {
+        message: "Call session not found",
+        code: "CALL_NOT_FOUND",
+      });
+      return;
+    }
+
+    // Update call session with answer
+    updateCallSession(call_id, {
+      answer,
+      status: "connected",
+      connected_at: new Date(),
+    });
+
+    const callerSocket = userSocketMap.get(callSession.caller_id);
+    if (callerSocket) {
+      io.to(callerSocket).emit("call_answered", {
+        call_id,
+        answer,
+        receiver_id: userId,
+      });
+    }
+
+    // Store call session reference in socket
+    socket.callId = call_id;
+  });
+
+  // Reject a call
+  socket.on("call_reject", (data) => {
+    const { call_id, reason = "Call rejected" } = data;
+    console.log(`Call rejected: ${call_id}`);
+
+    const callSession = getCallSession(call_id);
+    if (!callSession) {
+      return;
+    }
+
+    const callerSocket = userSocketMap.get(callSession.caller_id);
+    if (callerSocket) {
+      io.to(callerSocket).emit("call_rejected", {
+        call_id,
+        reason,
+        receiver_id: userId,
+      });
+    }
+
+    // End call session
+    endCallSession(call_id);
+  });
+
+  // Handle ICE candidates
+  socket.on("call_ice_candidate", (data) => {
+    const { call_id, candidate } = data;
+
+    const callSession = getCallSession(call_id);
+    if (!callSession) {
+      return;
+    }
+
+    // Store ICE candidate
+    if (callSession.ice_candidates[userId]) {
+      callSession.ice_candidates[userId].push(candidate);
+    }
+
+    // Forward to the other peer
+    const otherUserId =
+      callSession.caller_id === userId
+        ? callSession.receiver_id
+        : callSession.caller_id;
+
+    const otherSocket = userSocketMap.get(otherUserId);
+    if (otherSocket) {
+      io.to(otherSocket).emit("call_ice_candidate", {
+        call_id,
+        candidate,
+        from_user_id: userId,
       });
     }
   });
 
-  socket.on("heartbeat", () => {
-    if (onlineUsers.has(userId)) {
-      const now = new Date();
-      const userData = onlineUsers.get(userId);
-      userData.lastActive = now;
-      onlineUsers.set(userId, userData);
+  // End a call
+  socket.on("call_end", (data) => {
+    const { call_id } = data;
+    console.log(`Call ended: ${call_id}`);
+
+    const callSession = getCallSession(call_id);
+    if (!callSession) {
+      return;
+    }
+
+    // Notify the other peer
+    const otherUserId =
+      callSession.caller_id === userId
+        ? callSession.receiver_id
+        : callSession.caller_id;
+
+    const otherSocket = userSocketMap.get(otherUserId);
+    if (otherSocket) {
+      io.to(otherSocket).emit("call_ended", {
+        call_id,
+        ended_by: userId,
+      });
+    }
+
+    // Clean up call session
+    endCallSession(call_id);
+
+    // Remove call reference from sockets
+    if (socket.callId === call_id) {
+      delete socket.callId;
     }
   });
+
+  // Get call offer details (for retrieving stored offer)
+  socket.on("get_call_offer", (data) => {
+    const { call_id } = data;
+
+    const callSession = getCallSession(call_id);
+    if (!callSession) {
+      socket.emit("call_error", {
+        message: "Call session not found",
+        code: "CALL_NOT_FOUND",
+      });
+      return;
+    }
+
+    socket.emit("call_offer_details", {
+      call_id,
+      offer: callSession.offer,
+      call_type: callSession.call_type,
+      caller_id: callSession.caller_id,
+    });
+  });
+
+  // ============= GENERAL HANDLERS =============
 
   socket.on("join_all_conversations", async () => {
     try {
@@ -472,6 +718,55 @@ io.on("connection", (socket) => {
       console.error("Error joining conversations:", error.message);
     }
   });
+
+  socket.on("heartbeat", () => {
+    if (onlineUsers.has(userId)) {
+      const now = new Date();
+      const userData = onlineUsers.get(userId);
+      userData.lastActive = now;
+      onlineUsers.set(userId, userData);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`User ${username} disconnected`);
+
+    // Clean up user data
+    userSocketMap.delete(userId);
+    if (onlineUsers.has(userId)) {
+      const userData = onlineUsers.get(userId);
+      onlineUsers.delete(userId);
+
+      broadcastAndLogOnlineUsers();
+      io.emit("user_status_changed", {
+        userId,
+        username: userData.username,
+        status: "offline",
+      });
+    }
+
+    // Clean up any active calls
+    if (socket.callId) {
+      const callSession = getCallSession(socket.callId);
+      if (callSession) {
+        const otherUserId =
+          callSession.caller_id === userId
+            ? callSession.receiver_id
+            : callSession.caller_id;
+
+        const otherSocket = userSocketMap.get(otherUserId);
+        if (otherSocket) {
+          io.to(otherSocket).emit("call_ended", {
+            call_id: socket.callId,
+            ended_by: userId,
+            reason: "User disconnected",
+          });
+        }
+
+        endCallSession(socket.callId);
+      }
+    }
+  });
 });
 
 // Error handler cho server
@@ -483,7 +778,7 @@ server.on("error", (err) => {
   }
 });
 
-// Listen vi debug info
+// Listen với debug info
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Socket.io server running on port ${PORT}`);
   console.log(`Server accessible at:`);
@@ -492,4 +787,21 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`- http://0.0.0.0:${PORT}`);
   console.log(`Time: ${new Date().toISOString()}`);
   console.log(`Online users: ${onlineUsers.size}`);
+  console.log(`Active calls: ${callSessions.size}`);
 });
+
+// Cleanup old call sessions periodically (optional)
+setInterval(() => {
+  const now = new Date();
+  const CALL_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
+  for (const [callId, session] of callSessions.entries()) {
+    if (
+      now - session.created_at > CALL_TIMEOUT &&
+      session.status === "ringing"
+    ) {
+      console.log(`Cleaning up expired call session: ${callId}`);
+      endCallSession(callId);
+    }
+  }
+}, 60000); // Check every minute

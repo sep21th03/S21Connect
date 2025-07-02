@@ -132,7 +132,7 @@ const ChatUserItem = React.memo(
     return (
       <NavItem
         className="d-flex justify-content-between align-items-center px-2"
-        style={{ cursor: "pointer" }}
+        style={{ cursor: "pointer"}}
         onMouseEnter={() => setIsIconVisible(true)}
         onMouseLeave={() => {
           setIsIconVisible(false);

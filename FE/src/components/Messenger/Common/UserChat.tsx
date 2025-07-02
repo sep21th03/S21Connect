@@ -1,5 +1,4 @@
-import CustomImage from "@/Common/CustomImage";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useState, useRef, useCallback } from "react";
 import { UserChatInterFace } from "../MessengerType";
 import DynamicFeatherIcon from "@/Common/DynamicFeatherIcon";
 import { Media } from "reactstrap";
@@ -7,8 +6,8 @@ import { ImagePath } from "../../../utils/constant";
 import { Href } from "../../../utils/constant/index";
 import ChatHistory from "./ChatHistory";
 import Image from "next/image";
-import { useRef } from "react";
 import { useSocket } from "@/hooks/useSocket";
+import { CallModal, IncomingCallModal } from "./CallModal";
 
 const UserChat: FC<UserChatInterFace> = ({
   user,
@@ -28,15 +27,251 @@ const UserChat: FC<UserChatInterFace> = ({
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   const [enableInfiniteScroll, setEnableInfiniteScroll] = useState(true);
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [isCallConnected, setIsCallConnected] = useState(false);
+  const [currentCallType, setCurrentCallType] = useState<"audio" | "video">(
+    "audio"
+  );
+
   const settingsDropdownRef = useRef<HTMLDivElement>(null);
 
   const {
     socket,
+    incomingCall,
+    currentCall,
+    initiateCall,
+    answerCall,
+    rejectCall,
+    endCall,
+    sendIceCandidate,
+    onCallAnswered,
+    onIceCandidate,
+    onCallEnded,
+    onCallRejected,
+    onCallError,
   } = useSocket(
     (users) => console.log(users),
-    (conversationId) => console.log(conversationId)
+    (notification) => console.log(notification),
+    undefined,
+    true
   );
 
+  const rtcConfiguration = {
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      {
+        urls: "turn:your-turn-server.com",
+        username: "username",
+        credential: "password",
+      },
+    ],
+  };
+
+  const createPeerConnection = useCallback(() => {
+    const pc = new RTCPeerConnection(rtcConfiguration);
+
+    pc.onicecandidate = (event) => {
+      console.log("ICE candidate:", event.candidate);
+      if (event.candidate && currentCall?.callId) {
+        sendIceCandidate(currentCall.callId, event.candidate);
+      }
+    };
+
+    pc.ontrack = (event) => {
+      console.log("Received remote stream:", event.streams[0]);
+      event.streams[0].getTracks().forEach((track) => {
+        console.log("Remote track:", track.kind, track.id, track.enabled);
+      });
+      setRemoteStream(event.streams[0]);
+      setIsCallConnected(true);
+    };
+
+    pc.onconnectionstatechange = () => {
+      console.log("WebRTC Connection state for user:", user?.other_user?.id || user?.id, pc.connectionState);
+      if (pc.connectionState === "connected") {
+        console.log("WebRTC connection established successfully!");
+        setIsCallConnected(true);
+      } else if (
+        pc.connectionState === "disconnected" ||
+        pc.connectionState === "failed"
+      ) {
+        console.log("WebRTC connection failed or disconnected");
+        handleCallEnd();
+      }
+    };
+
+    return pc;
+  }, [currentCall?.callId, sendIceCandidate]);
+
+  const getUserMedia = async (video: boolean = false) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: video ? { width: 640, height: 480 } : false,
+      });
+      console.log("getUserMedia success:", stream);
+      setLocalStream(stream);
+      return stream;
+    } catch (error) {
+      console.error("Error accessing media devices:", error);
+      alert("Could not access camera/microphone. Please check permissions.");
+      return null;
+    }
+  };
+
+  const startCall = async (callType: "audio" | "video") => {
+    if (!user?.other_user?.id || user.type !== "private") return;
+
+    try {
+      const stream = await getUserMedia(callType === "video");
+      if (!stream) return;
+
+      const pc = createPeerConnection();
+      setPeerConnection(pc);
+
+      stream.getTracks().forEach((track) => {
+        console.log("Adding track to peer connection:", track);
+        pc.addTrack(track, stream);
+      });
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const success = initiateCall(user.other_user.id, offer, callType);
+      if (success) {
+        setCurrentCallType(callType);
+        setShowCallModal(true);
+      }
+    } catch (error) {
+      console.error("Error starting call:", error);
+      alert("Failed to start call");
+    }
+  };
+
+  // Handle incoming call
+  const handleAcceptCall = async () => {
+    if (!incomingCall) return;
+
+    try {
+      const stream = await getUserMedia(incomingCall.call_type === "video");
+      if (!stream) return;
+
+      const pc = createPeerConnection();
+      setPeerConnection(pc);
+
+      // Add local stream
+      stream.getTracks().forEach((track) => {
+        console.log("Adding track to peer connection:", track);
+        pc.addTrack(track, stream);
+      });
+
+      // Set remote description
+      await pc.setRemoteDescription(incomingCall.offer);
+
+      // Create answer
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      // Send answer
+      answerCall(incomingCall.call_id, answer);
+
+      setCurrentCallType(incomingCall.call_type);
+      setShowCallModal(true);
+    } catch (error) {
+      console.error("Error accepting call:", error);
+      alert("Failed to accept call");
+    }
+  };
+
+  const handleRejectCall = () => {
+    if (incomingCall) {
+      rejectCall(incomingCall.call_id);
+    }
+  };
+
+  const handleCallEnd = () => {
+    // Clean up streams
+    if (localStream) {
+      localStream.getTracks().forEach((track) => track.stop());
+      setLocalStream(null);
+    }
+
+    if (remoteStream) {
+      setRemoteStream(null);
+    }
+
+    // Close peer connection
+    if (peerConnection) {
+      peerConnection.close();
+      setPeerConnection(null);
+    }
+
+    // End call through socket
+    if (currentCall?.callId) {
+      endCall(currentCall.callId);
+    }
+
+    // Reset UI state
+    setShowCallModal(false);
+    setIsCallConnected(false);
+  };
+
+  // Socket event handlers
+  useEffect(() => {
+    if (!socket) return;
+
+    const unsubscribeCallAnswered = onCallAnswered(async (data) => {
+      console.log("Call answered:", data);
+      if (peerConnection) {
+        await peerConnection.setRemoteDescription(data.answer);
+      }
+    });
+
+    const unsubscribeIceCandidate = onIceCandidate(async (data) => {
+      console.log("Received ICE candidate:", data);
+      if (peerConnection && data.candidate) {
+        try {
+          await peerConnection.addIceCandidate(data.candidate);
+        } catch (error) {
+          console.error("Error adding ICE candidate:", error);
+        }
+      }
+    });
+
+    const unsubscribeCallEnded = onCallEnded((data) => {
+      console.log("Call ended:", data);
+      handleCallEnd();
+    });
+
+    const unsubscribeCallRejected = onCallRejected((data) => {
+      console.log("Call rejected:", data);
+      handleCallEnd();
+    });
+
+    const unsubscribeCallError = onCallError((data) => {
+      console.error("Call error:", data);
+      alert(`Call error: ${data.message}`);
+      handleCallEnd();
+    });
+
+    return () => {
+      unsubscribeCallAnswered?.();
+      unsubscribeIceCandidate?.();
+      unsubscribeCallEnded?.();
+      unsubscribeCallRejected?.();
+      unsubscribeCallError?.();
+    };
+  }, [
+    socket,
+    peerConnection,
+    onCallAnswered,
+    onIceCandidate,
+    onCallEnded,
+    onCallRejected,
+    onCallError,
+  ]);
+
+  // Handle click outside settings dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -53,6 +288,7 @@ const UserChat: FC<UserChatInterFace> = ({
     };
   }, []);
 
+  // Calculate last active time
   useEffect(() => {
     if (user?.type === "private" && user?.other_user?.last_active) {
       const lastActiveDate = new Date(user.other_user.last_active);
@@ -77,6 +313,7 @@ const UserChat: FC<UserChatInterFace> = ({
     setEnableInfiniteScroll(!enableInfiniteScroll);
     setShowSettingsDropdown(false);
   };
+
   const chatAvatar =
     user?.type === "group"
       ? user.avatar || `${ImagePath}/icon/group.png`
@@ -86,6 +323,11 @@ const UserChat: FC<UserChatInterFace> = ({
     user?.type === "group"
       ? user.name || "Nhóm chat"
       : user?.other_user?.nickname || user?.other_user?.name || "Người dùng";
+
+  useEffect(() => {
+    console.log("IncomingCall state changed:", incomingCall);
+  }, [incomingCall]);
+
   return (
     <div className="user-chat" style={{ width: showUserInfo ? "" : "100%" }}>
       <div className="user-title">
@@ -166,7 +408,13 @@ const UserChat: FC<UserChatInterFace> = ({
             ) : (
               <>
                 <li>
-                  <a href={Href}>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      startCall("audio");
+                    }}
+                  >
                     <DynamicFeatherIcon
                       iconName="Phone"
                       className="icon-dark"
@@ -174,7 +422,13 @@ const UserChat: FC<UserChatInterFace> = ({
                   </a>
                 </li>
                 <li>
-                  <a href={Href}>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      startCall("video");
+                    }}
+                  >
                     <DynamicFeatherIcon
                       iconName="Video"
                       className="icon-dark"
@@ -288,12 +542,32 @@ const UserChat: FC<UserChatInterFace> = ({
           </ul>
         </div>
       </div>
+
       <ChatHistory
         user={user}
         setUserList={setUserList}
         initialConversationId={initialConversationId}
         enableInfiniteScroll={enableInfiniteScroll}
         messagesOffset={messagesOffset}
+      />
+
+      <IncomingCallModal
+        isOpen={!!incomingCall}
+        callerName={incomingCall?.caller_name || "Unknown"}
+        callType={incomingCall?.call_type || "audio"}
+        onAccept={handleAcceptCall}
+        onReject={handleRejectCall}
+      />
+
+      <CallModal
+        isOpen={showCallModal}
+        onClose={handleCallEnd}
+        isVideo={currentCallType === "video"}
+        remoteStream={remoteStream}
+        localStream={localStream}
+        isConnected={isCallConnected}
+        onEndCall={handleCallEnd}
+        userName={chatName}
       />
 
       <style jsx>{`
