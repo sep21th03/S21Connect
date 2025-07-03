@@ -341,7 +341,7 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
           </a>
         );
       }
-      return <span>{message.content}</span>;
+      return <span style={{ padding: "0px" }}>{message.content}</span>;
     }
     return message.content;
   };
@@ -840,6 +840,13 @@ const ChatBoxCommon: FC<ChatBoxCommonInterFace> = ({
           left: 32px;
           z-index: 1;
         }
+        .msg-right span{
+     max-width: 70%;
+     margin-left: auto;
+     word-break: break-word;
+     display: block;
+     padding: 5px;
+   }
       `}</style>
     </div>
   );

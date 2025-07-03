@@ -26,9 +26,10 @@ const BirthdayReminder: FC<BirthdayReminderInterFace> = ({mainClass, userInforBi
     }
   };
 
+
   return (
     <div className={`birthday-section bg-size blur-up lazyloaded section-t-space ${mainClass?mainClass:""}`}> 
-      <CustomImage className="img-fluid blur-up lazyload bg-img" src={`${ImagePath}/birthday-bg.jpg`}/>
+      <CustomImage className="img-fluid blur-up lazyload bg-img" src={`${ImagePath}/birthday.webp`}/>
       <div className="birthday-top">
         <div className="title">
           <h3>{Birthday} !!!!</h3>

@@ -42,7 +42,13 @@ const ChatHistory: FC<ChatHistoryProps> = ({
   enableInfiniteScroll,
   messagesOffset,
 }) => {
-  const { playNotificationSound, toggleSound, isEnabled, setVolume, setIsEnabled } = useSoundNotification(); 
+  const {
+    playNotificationSound,
+    toggleSound,
+    isEnabled,
+    setVolume,
+    setIsEnabled,
+  } = useSoundNotification();
   const [showButton, setShowButton] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -483,7 +489,9 @@ const ChatHistory: FC<ChatHistoryProps> = ({
                   <Fragment key={messageId}>
                     {data.sender_id === session?.user?.id ? (
                       <div
-                      className={`message ${isOwnMessage ? "message-personal" : ""} new ${
+                        className={`message ${
+                          isOwnMessage ? "message-personal" : ""
+                        } new ${
                           highlightedMessageId === messageId
                             ? "highlighted"
                             : ""
@@ -494,12 +502,18 @@ const ChatHistory: FC<ChatHistoryProps> = ({
                           }
                         }}
                         data-message-id={messageId}
+                        style={{
+                          margin: showTimestamp ? "8px 0 10px" : "4px 0 4px",
+                        }}
                       >
                         {user?.type === "group" && !isOwnMessage && (
-                        <div className="sender-name" style={{ fontWeight: "bold", marginBottom: "4px" }}>
-                          {senderName}
-                        </div>
-                      )}
+                          <div
+                            className="sender-name"
+                            style={{ fontWeight: "bold", marginBottom: "4px" }}
+                          >
+                            {senderName}
+                          </div>
+                        )}
                         {data.isPending
                           ? renderPendingMessage(data, isUploading)
                           : renderMessageContent(
@@ -510,7 +524,10 @@ const ChatHistory: FC<ChatHistoryProps> = ({
                         {showTimestamp && (
                           <div
                             className="timestamp"
-                            style={{ bottom: "-20px", [isOwnMessage ? "right" : "left"]: "0px", }}
+                            style={{
+                              bottom: "-20px",
+                              [isOwnMessage ? "right" : "left"]: "0px",
+                            }}
                           >
                             {data.isPending
                               ? "Đang gửi..."
@@ -520,7 +537,9 @@ const ChatHistory: FC<ChatHistoryProps> = ({
                       </div>
                     ) : (
                       <div
-                        className={`message ${isOwnMessage ? "message-personal" : ""} new ${
+                        className={`message ${
+                          isOwnMessage ? "message-personal" : ""
+                        } new ${
                           highlightedMessageId === messageId
                             ? "highlighted"
                             : ""
@@ -529,9 +548,15 @@ const ChatHistory: FC<ChatHistoryProps> = ({
                           if (el) messageRefs.current[messageId] = el;
                         }}
                         data-message-id={messageId}
+                        style={{
+                          margin: showTimestamp ? "8px 0 10px" : "4px 0 4px",
+                        }}
                       >
                         {user?.type === "group" && !isOwnMessage && (
-                          <div className="sender-name" style={{ fontWeight: "bold", marginBottom: "4px" }}>
+                          <div
+                            className="sender-name"
+                            style={{ fontWeight: "bold", marginBottom: "4px" }}
+                          >
                             {senderName}
                           </div>
                         )}
@@ -543,7 +568,10 @@ const ChatHistory: FC<ChatHistoryProps> = ({
                         {showTimestamp && (
                           <div
                             className="timestamp"
-                            style={{ bottom: "-20px", [isOwnMessage ? "right" : "left"]: "0px", }}
+                            style={{
+                              bottom: "-20px",
+                              [isOwnMessage ? "right" : "left"]: "0px",
+                            }}
                           >
                             {formatTime(data.created_at || "")}
                           </div>

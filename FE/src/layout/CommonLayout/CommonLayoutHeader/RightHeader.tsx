@@ -6,9 +6,9 @@ import { UserStats } from "@/utils/interfaces/user";
 const RightHeader: FC<UserStats> = ({ total_posts, total_friends }) => {
   return (
     <div className="header-right">
-      {total_posts && total_friends && (
+      {total_posts && total_friends ? (
         <PostStats totalPosts={total_posts} totalFriends={total_friends} />
-      )}
+      ) : null}
       <OptionList />
     </div>
   );

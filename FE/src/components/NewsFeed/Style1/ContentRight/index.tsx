@@ -8,7 +8,7 @@ import { UserInforBirthday } from "@/components/NewsFeed/Style1/Style1Types";
 const ContentRight: FC<{ userInforBirthday: UserInforBirthday[] | null }> = ({ userInforBirthday }) => {
   return (
     <div className="content-right">
-      {userInforBirthday && <BirthdayReminder userInforBirthday={userInforBirthday}/>}
+      {userInforBirthday && userInforBirthday.length > 1 && <BirthdayReminder userInforBirthday={userInforBirthday}/>}
       <Gallery />
       <div className="sticky-top">
         <EventsCard eventImage={1} />

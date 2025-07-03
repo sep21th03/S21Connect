@@ -466,7 +466,6 @@ io.on("connection", (socket) => {
 
   // ============= CALL HANDLERS =============
 
-  // Initiate a call
   socket.on("call_offer", (data) => {
     const { receiver_id, offer, call_type } = data;
     console.log(
@@ -482,7 +481,6 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Kiểm tra nếu receiver đang trong call khác
     for (const session of callSessions.values()) {
       if (
         (session.caller_id === receiver_id ||
@@ -497,14 +495,11 @@ io.on("connection", (socket) => {
       }
     }
 
-    // Create call session
     const callSession = createCallSession(userId, receiver_id, call_type);
     updateCallSession(callSession.id, { offer });
 
-    // Get caller info
     const callerInfo = onlineUsers.get(userId);
 
-    // Send incoming call notification to receiver
     io.to(receiverSocket).emit("incoming_call", {
       call_id: callSession.id,
       caller_id: userId,
@@ -513,14 +508,12 @@ io.on("connection", (socket) => {
       offer,
     });
 
-    // Gửi trạng thái ringing cho caller
     socket.emit("call_ringing", {
       call_id: callSession.id,
       receiver_id,
       call_type,
     });
 
-    // Tự động kết thúc call nếu không trả lời sau 30s
     setTimeout(() => {
       const session = getCallSession(callSession.id);
       if (session && session.status === "ringing") {
@@ -533,7 +526,6 @@ io.on("connection", (socket) => {
             reason: "No answer",
           });
         }
-        // Notify receiver
         if (receiverSocket) {
           io.to(receiverSocket).emit("call_ended", {
             call_id: callSession.id,
@@ -545,13 +537,11 @@ io.on("connection", (socket) => {
       }
     }, 30000);
 
-    // Store call session reference in socket
     socket.callId = callSession.id;
 
     console.log(`Call session created: ${callSession.id}`);
   });
 
-  // Answer a call
   socket.on("call_answer", (data) => {
     const { call_id, answer } = data;
     console.log(`Call answered: ${call_id}`);
