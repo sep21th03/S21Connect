@@ -137,6 +137,12 @@ const FriendsList: FC<FriendsListProps> = ({ searchTerm = "" }) => {
               className="img-fluid lazyload bg-img rounded-circle"
               alt="user"
               height={50} width={50}
+              style={{
+                objectFit: "cover",
+                width: "50px",
+                height: "50px",
+                borderRadius: "50%",
+              }}
             />
             {isOnline && <span className="available-stats online" />}
           </a>
