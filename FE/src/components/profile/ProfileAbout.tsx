@@ -39,7 +39,7 @@ const ProfileAbout: React.FC<ProfileAboutProps> = ({
   const aboutUser = [
     {
       icon: "User",
-      heading: "About",
+      heading: "Giới thiệu",
       details: userInfo?.user.bio,
     },
     {
