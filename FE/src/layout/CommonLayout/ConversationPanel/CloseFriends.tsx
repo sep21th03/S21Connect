@@ -112,6 +112,12 @@ const CloseFriends = () => {
             alt="user"
             height={50}
             width={50}
+            style={{
+              color: "transparent",
+              width: "50px",
+              height: "50px",
+              objectFit: "cover",
+            }}
           />
           <span className="available-stats online" />
         </a>
